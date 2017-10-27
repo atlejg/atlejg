@@ -1,0 +1,25 @@
+# in-situ flowrates [m3/d]
+float qo    = 1150.  # I13 AYH Y2 (oyvind m.) (really q-liquid, but assume its oil...)
+float qg    = 1500.  # I13 AYH Y2 (oyvind m.)
+
+# the assumed dp's
+string mode = find_dp  # fixed_dp or find_dp
+float dp1   = 10.       # only used for fixed_dp mode
+float dp2   = 10.       # only used for fixed_dp mode
+
+# fluid props
+float rho_g = 116.
+float rho_o = 805.
+float mu_g  = 0.018
+float mu_o  = 1.8
+
+# inflow valves
+int   nv    = 231            # total number of valves
+string valve_type = tr7_troll
+
+# try these gvf's
+eval  gvf1  = [1, 0.8, 0.6]  # gas fraction in gas-zone
+eval  gvf2  = [0, 0.2, 0.4]  # gas fraction in oil-zone
+
+# extra info?
+bool debug = False
