@@ -1,1 +1,56 @@
-/private/agy/.fluent
+; NB! ~/.fluent file is automatically loaded by any fluent process
+; that is started!!!
+
+; ================== CONSTANTS ======================
+; ================== GLOBALS ======================
+(load "~/Fluent/Scheme/pick.scm")
+; ================== FUNCTIONS ======================
+
+; example on how to make it easy to interact with the solver
+; atle j. gyllensten
+; Feb 2015
+;
+;(define (adjust_dt)
+;  (let ((gas_vol (string->number (pick "rep vol-int vol (zn_resv) gas n"))))
+;      (display (format #f "physical-time-step= ~a\n" (rpgetvar 'physical-time-step)))
+;      (if (> gas_vol 1) (ti-menu-load-string (format #f "so se ts 1")))
+;      (if (> gas_vol 2) (ti-menu-load-string (format #f "so se ts 2")))
+;      (if (> gas_vol 3) (ti-menu-load-string (format #f "so se ts 3")))
+;      (if (> gas_vol 4) (ti-menu-load-string (format #f "so se ts 4")))
+;      (if (> gas_vol 5) (ti-menu-load-string (format #f "so se ts 5")))
+;      (display (format #f "physical-time-step= ~a gas-vol= ~a\n" (rpgetvar 'physical-time-step) gas_vol))
+;))
+
+; ============== PRIVATE FUNCTIONS ==============
+
+; workaround so that we can easily read in a macro. see alias _mr below.
+(define (_readmacro)
+  (let ((name (ti-read-unquoted-string 'macroname 'macros.scm))) 
+  (ti-menu-load-string (format #f "file/read-macro ~a" name))))
+
+
+; ================== MACROS ======================
+; _vectors and _contours is just a shortcut for doing
+; Display->Contours->Display + Close in the GUI
+;
+(cx-macro-define
+ '(
+   (_end . "(ti-menu-load-string \"(local-time(time))\")")
+   (_start . "(ti-menu-load-string \"pwd (local-time(time)) (set! checkpoint/exit-filename './exit-fluent) (set! checkpoint/check-filename './check-fluent) report summary , \")")
+   (_contours . "(cx-gui-do cx-activate-item \"MenuBar*DisplayMenu*Graphics and Animations...\")\n(cx-gui-do cx-set-list-selections \"Graphics and Animations*Frame1*Table1*Frame1*List1(Graphics)\" '( 1))\n(cx-gui-do cx-activate-item \"Graphics and Animations*Frame1*Table1*Frame1*List1(Graphics)\")\n(cx-gui-do cx-activate-item \"Graphics and Animations*Frame1*Table1*PushButton2(Set Up)\")\n(cx-gui-do cx-activate-item \"Contours*PanelButtons*PushButton1(OK)\")\n")
+   (_vectors . "(cx-gui-do cx-activate-item \"MenuBar*DisplayMenu*Graphics and Animations...\")\n(cx-gui-do cx-set-list-selections \"Graphics and Animations*Frame1*Table1*Frame1*List1(Graphics)\" '( 2))\n(cx-gui-do cx-activate-item \"Graphics and Animations*Frame1*Table1*Frame1*List1(Graphics)\")\n(cx-gui-do cx-set-list-selections \"Graphics and Animations*Frame1*Table1*Frame1*List1(Graphics)\" '( 2))\n(cx-gui-do cx-activate-item \"Graphics and Animations*Frame1*Table1*Frame1*List1(Graphics)\")\n(cx-gui-do cx-activate-item \"Vectors*PanelButtons*PushButton1(OK)\")\n")
+   ))
+
+; ================== ALIASES ======================
+
+; the point of using aliases is that it's easer to write 'function' than '(function)'
+; aliases must be anonymous
+(alias '_mr (lambda () (_readmacro) ) )
+  
+; ================== MISC ======================
+
+; cannot load menu string this early :(
+; (ti-menu-load-string "display/set/hardcopy/color-mode/color") ;; Default ist "grey"
+
+
+(display "\n main.scm loaded \n");
