@@ -3281,13 +3281,13 @@ class EclipseCoupling(object):
         (not at every time-step)
       - There is at least one statement (other than TSTEP or END) after READDATA
       - You provide this class with a simulation state instance. This class *must* have
-         casenm               : just the basename of the simulation
+         casenm                    : just the basename of the simulation
          next_tstep(tstep_no, trn) : returns next tstep. return None when you want to stop.
-                                     trn: open transcript file (or None)
+                                     trn: an open transcript file (or None)
          new_schedule(tstep, trn)  : returns a formatted string that is the schedule-part. tstep is from next_tstep.
                                      typically, this function will read output from eclipse (should use read_summary2 for this)
                                      to adjust some input in the schedule section
-                                     trn: open transcript file (or None)
+                                     trn: an open transcript file (or None)
    #
    Example usage (this naive example will only run a simulation with fixed time-steps)
    #
