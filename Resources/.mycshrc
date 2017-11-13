@@ -132,8 +132,7 @@ alias gambit__ 'echo "REMEMBER: GOTO /tmp"; setenv FLUENT_ARCH lnx86; setenv LM_
 #
 #
 alias ftags 'ctags $FLUENT_INC/fluent6.1.22/cortex/src/*.[ch] $FLUENT_INC/fluent6.1.22/src/*.[ch] *.[ch]'
-alias cmds 'vi ~/Misc/cmds'
-alias todo 'vi ~/Misc/todo.txt'
+alias cmds 'vi $RC/atlejg/Resources/cmds'
 #alias bookshelf '@manuals bookshelf.pdf < $HOME/Eclipse/manuals.startup'
 #alias bookshelf 'kpdf /prog/ecl/grid/2012.2/manuals/bookshelf.pdf'
 alias bookshelf 'acroread /prog/ecl/grid/2016.1/manuals/bookshelf.pdf'
@@ -253,6 +252,7 @@ setenv ALI /project/multiscale/generic/ICD_Rotvoll/
 setenv KRISTINE /project/RCP/active/reservoir_simulations/krhal/ERT/ert/Simulations
 setenv TT /project/RCP/active/reservoir_simulations/agy/Peregrino/Shoebox/Simul/Version12
 setenv PY $HOME/Tools/lib/Python/AtlejgTools/
+setenv GITHOME $RC/atlejg
 
 end:
 onintr

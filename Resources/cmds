@@ -1,0 +1,272 @@
+# processing loglist
+do 'finger $_ | grep Name;grep $_ loglist | wc' `awk '/toplist/ {print $2}' loglist | sort | uniq`
+# turning on/off terminal beeping on err
+xset b off; xset b on
+
+# annoying window..
+do -f -t1 'xmessage -timeout 5 -nearmouse -buttons Yes:1,No:2 -print Is this annoying'
+
+# stick memory (usb)
+must use mount. see /etc/fstab
+
+# debugging -> remember -g option on gcc !!
+gdb --dbx ./dpme_proto2 
+   inside gdb, do 'stop in main' and 'run'
+
+# cropping images (removing legend from fluent hardcopies)
+# note: origin is upper left corner. the +180+0 is translation
+# according to that datum
+do 'convert -crop 50%x100%+180+0 $_ Preps/$_' `cat ls`
+# removing lower part of it and reducing
+convert -resize 70%X70% -crop 100%x90% dpm-01.jpg t.jpg
+
+# settin them together
+convert +append 1.jpg 2.jpg 1+2.jpg # side by side
+convert -append 1.jpg 2.jpg 1+2.jpg # on top of eachother
+
+# overlays (need new version of IM - use PC)
+composite -blend 20 A00_CONORAT.jpg A00_CONGRAT_bw.jpg t.png
+
+# replacing colour (see http://studio.imagemagick.org/pipermail/magick-users/2006-May/017672.html for details)
+convert -fuzz '5%' -fill white -opaque black A01_permx.jpg t.jpg  # from black to white
+
+# monitoring a given machine
+# 'echo failed' should be replaced by 'send_sms ...' or something useful
+# note: it checks every 30 secs, that may be to often.
+do -t30 'ping -c1 por017lin.hre.hydro.com >/dev/null 2>&1' ; echo por017lin going down at `date` | mail atle.j.gyllensten@hydro.com
+
+# if something doesn work that should have ...
+# like fluent -r6.2.16 on prism (eirik fix)
+bcfree
+
+# using exceed at Hydro
+setenv DISPLAY y3120089.nh.ad.hydro.com:0.0
+
+# listing all files with sizes
+find -type f -exec ls -s {} \; > all
+
+# or...
+find -type d -exec du {} \; > all
+
+# FLUENT LICENSES
+#lmutil lmstat -c 7241@por102sgi -f fluentall | grep $USER
+lmstat -a | grep start | grep -v licenses
+
+# for fluent installation etc (get owner permission for fluent files)
+/local/etc/fluentsh  (just run this one)
+
+dsm -virtualnode=por002sgi passw = fsenter
+
+# komma/punktum paa redhat
+% xmodmap -e "keysym KP_Separator = period"
+Jeg har lagt keysym KP_Separator = period
+inn i ~/.Xmodmap, men Gnome sier at den ignorerer den og at jeg maa skru den paa i Preferences. Men det har jeg ikke greid aa finne ut hvordan jeg skal gjore. Uansett, kommandolinja virker.  Stian
+
+# cleaning ...
+ rmall `find -name '*~' -or -name 'clean*'`
+
+ # converting flux-report fluent files to monitor files
+ awk '/Net/{print ((++iteration)*10),$2}' Monit/1_liqout.flp | cat ~/Fluent/outfile.head - | sed 's/XXX/massflow/' > ! Monit/1_liqout.flp.out
+
+# remote desktop to my pc
+# note that 569511 is the YLT-number for my pc
+rdesktop -u agy@statoilhydro.com -g 1024x768 -a 16 -k no LT-569511.client.statoil.net &
+
+# finding 2d/3d fluent cases (2d gives (2 2), 3d returns (2 3))
+grep -A1 '"Dimensions:"' `find -name '*.cas'`
+
+# animation
+#     on irix:
+makemovie -o outfile.qt -r20 -fqt *.jpg
+   -r is frames per sec
+   qt works for movieplayer and QuickTime (pc)
+   this usually create a _huge_ file ... (see next step)
+mediaconvert
+   compress = *video*
+   to avi
+   (if it does not work make sure aspect ratio or frame size (?) is mod 4 ...)
+#     on windows
+JPGVideo
+or matlab (see mail from Rainer (in Data folder in mailbox))
+#     with imagemagick
+animate -delay 5 *jpg
+   does _not_ make file, just for display
+mogrify -format gif *.tif
+convert -delay 10 *.jpg firedeluge.mpg  # use this one
+convert -delay 10 *.jpg firedeluge.qt   # or this one
+# animation - animated gif. 27/1-2010
+convert -delay 20 -loop 0 a00_vof_*00.tif a00.gif &
+# better animation (real video)
+mencoder mf://a01_*0.png -mf fps=1 -ovc lavc -o a01.avi    # yes - we need the mf://
+
+# appending mpg's
+-> use cat! ex:
+cat ah10_4.mpg ah10_4.mpg > tt.mpg
+
+# eclipse commands
+/prog/ecl/grid/macros/@office # must use version 2006.2 (at least for now - 5jan-2010)
+/prog/ecl/grid/macros/@floviz # must use version 2006.2 (at least for now - 5jan-2010)
+eq -m  # checking @eclipse jobs running in batch (using the queue system)
+eclq   # this one is better!
+# starting eclipse from unix shell
+/prog/ecl/grid/macros/@eclipse -lsf -ver 2009.2 -lsfqueue normal -local -data `pwd` -file CHAP # note: not chCH.DATA
+# parallell
+@eclipse -lsf -ver 2010.1 -lsfqueue normal -lsfhtype any -scali -procs 6 -local -data `pwd` -file CHAP # note: not chCH.DATA
+
+# useful eclipse commands
+grep 'WELL X21      IS  SHUT   AT TIME' *.PRT
+do 'ls $_; grep \"STEP.* ITS)\" $_ | tail -1' *.PRT
+
+# hardware info
+hwinfo --short
+~/bin/hardware # uses hwinfo
+uname -a
+
+# using lsf queue system
+see: /project/RCP/active/fluent/Atle_Resources/Fluent/Jou/1.bsub
+OLD:
+bsub ./run.bsub      # must have ./ (see mail to Ketil Nummedal 30/9-16
+#!/bin/sh
+#BSUB -o run.log 
+#BSUB -R "x86_64Linux"
+#BSUB -J performance_test 
+#BSUB -n 16
+export FLUENT_ARCH=lnx86; /prog/Fluent/i686/Fluent.Inc/bin/fluent 3ddp -pnet -t0 -i run7.jou -g  -lsf > 7.tra 2>&1
+
+# other userful bsub-commands
+bjobs, bkill
+xlsbatch  # gui bsub
+
+# archiving projects
+tar cf archive.tar `find -name '*.bc' -or -name '*.jou' -or -name '*.bsub' ` readme.txt
+
+# vim compilation
+./configure --enable-pythoninterp --prefix=/project/RCP/active/fluent//Atle_Tools/vim --with-python-config-dir=/project/RCP/active/fluent//Atle_Tools/Python/lib/python2.5/config/
+
+## funker paa feks stj-linapp02
+#setenv FLUENT_ARCH lnamd64
+#/prog/Fluent/ansys_inc/v121/fluent/bin/fluent 3d
+## CFD post
+#/prog/Fluent/ansys_inc/v121/CFX/bin/cfx5post &
+
+## fluent 6.3
+#setenv FLUENT_LICENSE_FILE 7241@st-vlic01
+
+# chmod
+# add read access to all
+chmod a+r <file>
+chmod -R a+r <directory> # recursively
+# make directories available for all
+chmod -R a+X <directory> # note: capital X
+# sticky bit
+chmod a+s <directory>
+Fra Ola Scheire:
+Sticky bit:
+rettighetene til en katalog må være drwxrwsrwx for at nye filer skal få samme gruppe som katalogen. 
+kommando for å sette sticky bit på gruppe er: chmod 2775 foldernavn.
+resultat av denne kommandoen blir: rwxrwsr-x
+(rettigheter drwxrwxrwx gir feil gruppetilhørighet på nye filer)
+
+# pylab
+for aa ha grafikk (plot) med pylab:
+start pylab (ipython -pylab) og skriv figure() og saa show().
+maa lukke plottet (med X) og gjor gjerne close('all').
+deretter funker det som matlab
+
+# project directories
+/project/multiscale/ICD_Rotvoll # ali
+
+
+###############
+# PYLAB
+###############
+# setting window size _before_ creating the plot:
+rcParams['figure.figsize'] = 10, 5 
+gcf().get_size_inches()   # to find size of current plot
+
+# useful for interactive session
+%rep 171 172  # repeat commandos 171 and 172
+%macro M1 171 172 # create a macro called M1 which does commandos 171 and 172
+
+# system tools
+gnome-system-monitor  : ala  Task Manager in windows. shows number of cpu's etc.
+
+# example octave script for resinsight
+/project/res/riOctaveScripts
+
+# fluent licenses
+/prog/Fluent/ansys_inc/shared_files/licensing/lic_admin/anslic_admin
+
+# install python packages
+tar xfz MDP-3.3.tar.gz
+cd MDP-3.3
+python setup.py build
+python setup.py install --prefix=/project/RCP/active/fluent//Atle_Resources/lib/Python
+
+# create a tar-file for the most important stuff.
+# useful when going to a new Unix site.
+cd # go home
+tar cfh resources_atle.tar .mycshrc .cshrc Tools/pythonstartup .vimrc bin `find Tools/lib/Python/AtlejgTools/ -name "*.py"`
+
+# getting full name (including path from root) of a file
+readlink -f <filename>
+
+# typical rsync command
+rsync -avr pors-linfluent01.pors.statoil.no:/project/RCP/active/fluent/InflowToWell/Cases/bgb12 .
+rsync -avr tr-linrgsn022.tr.statoil.no:/project/RCP/active/fluent/Atle_Resources/lib/Python/AtlejgTools     # copying from other sites (stavanger etc.)
+rsync -arvP --delete pors-linfluent01.pors.statoil.no:/project/RCP/active/fluent/InflowToWell/Cases/abb00 .
+
+# running fluent/gambit etc.
+help: /prog/Fluent/ansys_inc/v121/fluent/fluent12.1.2/help/
+gambit (as of 2016):
+  setenv FLUENT_ARCH lnx86
+  setenv LM_LICENSE_FILE 7241@st-vlic01.st.statoil.no
+  setenv LD_PRELOAD $HOME/Tools/memcpy-preload.so
+  /prog/Fluent/i686/Fluent.Inc/bin/gambit
+  AND: need to use /tmp disk (use Geom_tmp and remember rsync to Geom)
+
+# multi CPU machines
+tr-tawapp01.tr.statoil.no  # 24 cores
+
+# backup of files
+cd .snapshot
+
+# checking how much disk-space you are using
+baobab . &
+
+# tags for python
+ctags --python-kinds=-iv -R .
+
+# cleaning up after eclipse
+erm                           # my script
+/prog/ecl/script/CleanDiskApp # statoil GUI
+
+# crontab: goto stj-linrgs039.stj.statoil.no
+# usage:
+# crontab $HOME/Tools/crontab.txt
+# 
+# crontab example
+# crontab -e   
+    # Use the hash sign to prefix a comment
+    # +---------------- minute (0 - 59)
+    # |  +------------- hour (0 - 23)
+    # |  |  +---------- day of month (1 - 31)
+    # |  |  |  +------- month (1 - 12)
+    # |  |  |  |  +---- day of week (0 - 7) (Sunday=0 or 7)
+    # |  |  |  |  |
+    # *  *  *  *  *  command to be executed
+    #--------------------------------------------------------------------------
+
+    # Run my cron job every Monday, Wednesady and Friday at 7:00PM
+      0 19 * * 1,3,5 nohup /home/lathonez/script.sh > /tmp/script.log 2>&1
+
+# git-commands (stand at root level)
+git clone git@git.statoil.no:vkip/vpy.git   # getting vegard kippe's libraries (vpy is then the root directory)
+git pull                                    # update library
+git add <file>  OR  git add *
+git commit -a                               # commit all
+git push                                    # push to server
+
+# typical installation procedures
+pip install --install-option="--prefix=$RC/lib/Python/" jupyter
+pip install jupyter --user    # <== better
