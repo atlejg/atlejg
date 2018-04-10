@@ -136,7 +136,7 @@ UI.legend_type   = 1     # 1 :show completion-type and casenm when showing legen
                          # 2 :show casenm only when showing legend
                          # 3 :show completion-type only when showing legend
 UI.plot_md       = False # if true, it will plot measured depth in stead of segment-# for segments
-UI.plot_kwargs   = None
+UI.plot_kwargs   = None  # typically PP.UI.plot_kwargs = lambda case, cases: {'marker':'o', 'ls':'--'}
 UI.legend        = None  # function. should be set externally.
 UI.use_in_situ   = False # plot rates at reservoir conditions. to be implemented!!
 UI.Bo           = 1.    # formation factor oil. to be done: should not be constant
@@ -306,11 +306,12 @@ def _xplot(varnm1, varnm2, cases, refcase=None, plot_kwargs=None, nolegend=False
    title(titl)
    grid(True)
    if varnm2.startswith('WMCTL'):
-      yticks(range(-7,8), ('bhp (grp)', 'thp (grp)', 'resv (grp)', 'lrat (grp)',   # grp = group control
+      yticks(range(-7,14), ('bhp (grp)', 'thp (grp)', 'resv (grp)', 'lrat (grp)',   # grp = group control
                            'grat (grp)', 'wrat (grp)', 'orat (grp)',
                            'shut/stop',
                            'orat', 'wrat', 'grat',
-                           'lrat', 'resv', 'thp', 'bhp'))
+                           'lrat', 'resv', 'thp', 'bhp',
+                           ' ', 'crat', ' ', 'GOR Penalty', 'drawdown', 'ngl'))
 
 def _wbarplot(varnm, wname_pattern, case, t0, shift=0, mark_highest=True, rel_height=False):
    '''
@@ -1821,6 +1822,7 @@ def _plot_block_data_at_given_time(varnm, blocks, t0, cases):
    for case in cases:
       s = get_summary(case)
       ind = UT.find_closest_index(s.time, t0)
+      print 'using time', s.time[ind]
       plot(arange(len(blocks))+1, s.get_block_data(varnm, blocks, tsteps=[ind])[:,0], label=s.shortnm)
    grid(True)
    xlabel('blocks [-]')

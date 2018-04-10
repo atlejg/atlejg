@@ -163,12 +163,13 @@ if has("autocmd")
 
 endif " has("autocmd")
 
-" want to have auto-completion of paranthesis'es etc.
-:inoremap ( ()<Esc>i
-:inoremap [ []<Esc>i
-:inoremap { {}<Esc>i
-:inoremap ' ''<Esc>i
-:inoremap " ""<Esc>i
+"" auto-completion not so efficient...
+"" want to have auto-completion of paranthesis'es etc.
+" :inoremap ( ()<Esc>i
+" :inoremap [ []<Esc>i
+" :inoremap { {}<Esc>i
+" :inoremap ' ''<Esc>i
+" :inoremap " ""<Esc>i
 
 " want to fold functions etc
 set foldmethod=indent

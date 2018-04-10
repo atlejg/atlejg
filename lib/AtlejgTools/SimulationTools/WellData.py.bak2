@@ -48,7 +48,7 @@ class WellData(object):
 #
    def __init__(self, wellnm, startdate=0, t=[], qo=[], qg=[], qw=[], ql=[], p=[], T=[],
                 visc_func=unitf, dens_func=unitf, unit_conv=unitf, welltype=TYPE_PROD,
-                z_gauge=0., z_ref=0., rho_ref=1000., dt=None):
+                z_gauge=0., z_ref=0., rho_ref=1000.):
       '''
       # input
          wellnm        : well name
@@ -60,7 +60,6 @@ class WellData(object):
       self.z_gauge = z_gauge
       self.rho_ref = rho_ref
       self.z_ref   = z_ref
-      self.dt      = dt  # in many cases, we assume regular sampling
       if startdate == 'today': startdate = datetime.datetime.now().toordinal()
       #
       self.np = max(len(t), len(qo), len(qg), len(qw), len(ql), len(p), len(T))
@@ -96,9 +95,8 @@ class WellData(object):
       self.mg = self.qg * self.dg
       self.ml = self.mo + self.mw
       self.mt = self.ml + self.mg
-      self.shutins = None
 #
-   def plot(self, varnm1, varnm2=None, ylim1=None, ylim2=None, sharex=None, sharey=None, fmt='-', ix1=0, ix2=-1):
+   def plot(self, varnm1, varnm2=None, ylim1=None, ylim2=None, sharex=None, sharey=None, fmt='-', i1=0, i2=-1):
       '''
       plots one or two variables in one figure.
       # input
@@ -106,16 +104,16 @@ class WellData(object):
          varnm2 : second variable to plot (optional)
          ylim1  : min, max for varnm1
          ylim2  : min, max for varnm2
-         ix1     : index for start of plotting
-         ix2     : index for end of plotting
+         i1     : index for start of plotting
+         i2     : index for end of plotting
       # output
          ax1, ax2: axes - one for the first variable and one for the second (if applicable)
                    useful if you need to link zooming in different figures.
       '''
       # plot first variable (always)
-      y1 = self.__dict__[varnm1][ix1:ix2]
+      y1 = self.__dict__[varnm1][i1:i2]
       ax1 = pl.figure().add_subplot(111, sharex=sharex, sharey=sharey)
-      ax1.plot_date(self.t[ix1:ix2], y1, 'k'+fmt, label=varnm1)
+      ax1.plot_date(self.t[i1:i2], y1, 'k'+fmt, label=varnm1)
       ax1.set_ylabel(varnm1)
       if varnm2: ax1.legend(loc='upper left')
       if not ylim1 == None: ax1.set_ylim(ylim1[0],ylim1[1])
@@ -125,9 +123,9 @@ class WellData(object):
       #
       # plot second variable (optional)
       if varnm2:
-         y2 = self.__dict__[varnm2][ix1:ix2]
+         y2 = self.__dict__[varnm2][i1:i2]
          ax2 = ax1.twinx()
-         ax2.plot_date(self.t[ix1:ix2], y2, 'r'+fmt, label=varnm2)
+         ax2.plot_date(self.t[i1:i2], y2, 'r'+fmt, label=varnm2)
          ax2.set_ylabel(varnm2)
          ax2.legend(loc='upper right')
          if not ylim2 == None: ax2.set_ylim(ylim2[0],ylim2[1])
@@ -141,10 +139,10 @@ class WellData(object):
       decimate data based on variable values
       '''
       y = self.__dict__[varnm]
-      ixs1 = pl.find(minval <= y)
-      ixs2 = pl.find(maxval >= y)
-      ixs = list(set.intersection(set(ixs1), set(ixs2)))
-      return self.t[ixs], y[ixs], ixs
+      i1 = pl.find(minval <= y)
+      i2 = pl.find(maxval >= y)
+      ii = list(set.intersection(set(i1), set(i2)))
+      return self.t[ii], y[ii], ii
 #
    def cum(self, varnm):
       '''
@@ -152,29 +150,27 @@ class WellData(object):
       '''
       return UT.cumulative(self.t, self.__dict__[varnm])
 #
-   def medfilt(self, varnm, dt_filt):
-      '''
-      median filter
-      '''
+   def median_filtered(self, varnm, dt_filt):
       winsz = int(dt_filt / self.dt)
       if winsz % 2 == 0: winsz += 1   # make it odd
       y = self.__dict__[varnm]
       return medfilt(y, winsz)
 #
-   def calc_shutins(self, q_shut, p_min, dt_min, dt_filt, q_preshut, dt_preshut):
+   def get_shutins(self, q_shut, tp, p_min, dt_min, dt_filt, q_preshut, dt_preshut):
       '''
       finds the observed pressure during shut-ins
       # input
          q_shut    : max (total) production (to define shut-ins) [m3/d]
-         p_min     : min BHP (for dismissing periods with no BHP-data)
+         p_min     : min BHP (for dismissing periods with no data)
          dt_min    : min time periode to be regarded a shut-in [hours]
          dt_filt   : time periode to filter the pressure [hours]
+         tp        : get pressure at this relative time [hours]. must be less than dt_min
          q_preshut : min flow-rate in the periode before shut-in (should be high)
-         dt_preshut: min length of hi-flowrate periode before shut-in [hours]
+         dt_preshut: min length of hi-flowrate periode before shut-in
       # output
          t_sh : time for shut-ins
          p_sh : shut-in pressures
-         ixs  : indices for measured shut-ins
+         ii1  : indices for measured shut-ins
       # note1
          assumes that shut-in starts first time flow-rate is below q_shut
         note2
@@ -185,43 +181,39 @@ class WellData(object):
       '''
       #
       # some useful parameters
-      dt_min     /= 24.                        # convert to days
-      dt_preshut /= 24.                        # convert to days
+      dt_min     /= 24.  # convert to hours
+      dt_preshut /= 24.  # convert to hours
+      tp        /= 24.  # convert to hours
+      tp = min(tp, dt_min)
+      np  = int(tp / self.dt)
       nps = max(int(dt_preshut / self.dt), 1)  # make sure it's not 0
       #
-      # filter data
-      pf  = self.medfilt('p', dt_filt/24.)
-      qlf = self.medfilt('ql', dt_filt/24.)
+      # filter vectors
+      pf  = self.median_filtered('p', dt_filt/24.)
+      qlf = self.median_filtered('ql', dt_filt/24.)
       #
-      shutins = [] # indice-pairs for shutins
-      ix1 = None
+      ii = [] # indice-pairs for shutins
+      i1 = None
       for i, q in enumerate(qlf):
          if q < q_shut:
-            if ix1 == None: ix1 = i
-         elif ix1 != None:
-            if   (self.t[i-1]-self.t[ix1]) > dt_min                \
-             and pl.mean(qlf[ix1-nps:ix1]) > q_preshut             \
-             and ( (self.typ==TYPE_PROD and pf[i-1] > pf[ix1]) or  \
-                   (self.typ==TYPE_INJ  and pf[i-1] < pf[ix1]) )   \
+            if i1 == None: i1 = i
+         elif i1 != None:
+            a = pl.polyfit(self.t[i1:i]-self.t[i1], pf[i1:i], 1)[0]   # fit pf = at + b
+            if   (self.t[i-1]-self.t[i1]) > dt_min                                   \
+             and pl.mean(qlf[i1-nps:i1]) > q_preshut                                 \
+             and ( (self.typ==TYPE_PROD and a>0.) or (self.typ==TYPE_INJ and a<0.) ) \
              and pf[i-1] > p_min :
-               shutins.append((ix1,i-1))
-            ix1 = None
+               ii.append((i1,i-1))
+            i1 = None
       #
+      # now we have the indices. get the shut-in pressures
+      ii1 = [x[0]+np for x in ii]
       # keep useful stuff
-      self.shutins = shutins
+      self.shutins = ii
       self.pf      = pf
       self.qlf     = qlf
+      return self.t[ii1], pf[ii1], ii1
 #
-   def get_shutins(self, tp):
-      '''
-      *must* call calc_shutins before this one
-      tp : get pressure at this relative time [hours]
-      '''
-      tp        /= 24.                         # convert to days
-      np  = int(tp / self.dt)
-      ixs = [x[0]+np for x in self.shutins]
-      return self.t[ixs], self.pf[ixs], ixs
-
    def resample(self, t):
       '''
       assumes dt has regular sampling
@@ -249,11 +241,11 @@ deprecated
       dp  = abs(self.p - self.p_res)
       sz = int(len(dp)*rel_smooth_len)               # window-size
       dps = pandas.rolling_mean(dp, sz, center=True)  # dp smoothed
-      ixs1 = find(dps>dp_min)
-      ixs2  = find(self.ql >= ql_min)
-      ixs  = list(set.intersection(set(ixs1), set(ixs2)))
-      ixs.sort()
-      return self.t[ixs], self.qw[ixs]/dps[ixs]
+      idp = find(dps>dp_min)
+      iq  = find(self.ql >= ql_min)
+      ii  = list(set.intersection(set(iq), set(idp)))
+      ii.sort()
+      return self.t[ii], self.qw[ii]/dps[ii]
 '''
 
 
@@ -265,3 +257,4 @@ if __name__ == '__main__':
    wd.plot('ql')
    pl.ylim(0,1100)
    pl.show()
+'''

@@ -270,3 +270,13 @@ git push                                    # push to server
 # typical installation procedures
 pip install --install-option="--prefix=$RC/lib/Python/" jupyter
 pip install jupyter --user    # <== better
+
+# folding in vim (see http://vim.wikia.com/wiki/Folding)
+set foldingmethod=indent
+zc: close
+zo: open
+za: toggle
+zR: open all
+zr: open next level
+zM: close all
+zm: close next level

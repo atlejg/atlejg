@@ -713,17 +713,29 @@ class SummaryVectors() :
 #
    def contour_plot(self, varnm, wellnm, segments,
                     zmin=None, zmax=None, scaler=1., Bo=1., Bg=1., Bw=1., Rs=1.,
-                    accum=False, relative=False):
-      z = self.get_segm_data(varnm, wellnm, segments, Bo=Bo, Bg=Bg, Bw=Bw, Rs=Rs, scaler=scaler)
+                    accum=False, relative=False, transpose=True):
+      z = self.get_segm_data(varnm, wellnm, segments, Bo=Bo, Bg=Bg, Bw=Bw, Rs=Rs)
       if relative:
          z /= max(z.flatten())
       if accum:
          for i in range(len(segments)):
             z[i,:] = UT.cumulative(self.time, z[i,:])
-      ax =  PU.contourf(segments, self.time, z.T, zmin=zmin, zmax=zmax)
+      z *= scaler
+      if transpose:
+         z = z.T
+         ylbl = 'TIME [days]'
+         xlbl = 'segment # [-]'
+         x = segments
+         y = self.time
+      else:
+         xlbl = 'TIME [days]'
+         ylbl = 'segment # [-]'
+         y = segments
+         x = self.time
+      ax =  PU.contourf(x, y, z, zmin=zmin, zmax=zmax)
       titl = '%s - %s - %s' % (self.shortnm, wellnm, varnm)
       if accum: titl += ' (accum.)'
-      pl.matplotlib.artist.setp(ax, title=titl, ylabel='TIME [days]', xlabel='segment # [-]')
+      pl.matplotlib.artist.setp(ax, title=titl, ylabel=ylbl, xlabel=xlbl)
       return ax
 #
    def get_interp_value(self, varnm, t0):
@@ -3393,7 +3405,7 @@ class EclipseCoupling(object):
 #
    def cleanup(self):
       if self.trn and not self.trn.closed: self.trn.close()
-      os.system('cat %s.I0* >! %s.sched' % (self.casenm, self.casenm))     # cat all sched-files created into one file
+      UT.tcsh('cat %s.I0* >! %s.sched' % (self.casenm, self.casenm))     # cat all sched-files created into one file
 
 # aliases
 load_rsm = read_rsm

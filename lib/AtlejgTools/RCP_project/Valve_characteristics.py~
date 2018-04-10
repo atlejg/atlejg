@@ -199,11 +199,11 @@ def mu_mix(mu_o, mu_g, gvf):
    '''
    return (1-gvf)*mu_o + gvf*mu_g
 
-def rho_mix(rho_o, rho_g, gvf, a=1., c=1.):
+def rho_mix(rho_o, rho_g, gvf):
    '''
    [rho] = kg/m3
    '''
-   return (1-gvf)**a*rho_o + gvf**c*rho_g
+   return (1-gvf)*rho_o + gvf*rho_g
 
 def fluent_sicd_coefficients(area, length, rho, mu, bar_strength):
    '''
