@@ -176,3 +176,7 @@ set foldmethod=indent
 set foldlevel=99
 " Enable folding with the spacebar
 "nnoremap <space> za
+
+" aligns text (like comments after code) so they end at column 80
+" <leader> means '\', so \+tab executes this
+nnoremap <leader><tab> mc80A <esc>080lDgelD`cP

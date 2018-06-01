@@ -330,8 +330,10 @@ def rcp_length(dp, q, segm_length, rho, mu, valve_type=None, rho_cal=0., mu_cal=
    '''
    calculates the distance between sicd's to obtain the given flow & dp on a segment.
    useful for optimizing sicd's.
-   [dp] = bar
-   [q]  = m3/d
+   [dp]  = bar
+   [q]   = m3/d
+   [rho] = kg/m3
+   [mu]  = cp
    valve_type: implemented: ar3, ar7 (based on oseberg FFR tests)
    rho_cal   : calibration density       (needed if valve_type is not given)
    mu_cal    : calibration viscosity     (needed if valve_type is not given)

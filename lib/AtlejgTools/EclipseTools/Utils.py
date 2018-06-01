@@ -11,11 +11,11 @@ import AtlejgTools.LogTools
 import AtlejgTools.SimulationTools.UnitConversion as U
 import AtlejgTools.Utils                          as UT
 import AtlejgTools.Plotting.Utils                 as PU
-import ert
-import ert.ecl.ecl                                as ecl
+#import ert
+#import ert.ecl.ecl                                as ecl
+import ecl.ecl                                    as ecl
 import inspect
 import subprocess, signal, psutil
-import ert.ecl.ecl as ecl
 
 _log = AtlejgTools.LogTools.Log(AtlejgTools.LogTools.LOG_LEVEL_DEBUG)
 
@@ -1408,7 +1408,7 @@ def dp_along_well(segments, rho, mu, diam, q_segm, roughn=1.5e-05, dy=1.):
        dp_[i+1] = dp_[i] + ((C_f * rho/diam**5) * dy * (f[i+1]*q_acc[i+1]**2 + f[i]*q_acc[i]**2)) / 2.
    # upscale from every meter to segment lengths
    dp = pl.zeros(segments.shape)
-   ind = 0
+   ind = -1
    for i in range(len(segments)):
       ind += int(segments[i] / float(dy))
       dp[i] = dp_[ind]

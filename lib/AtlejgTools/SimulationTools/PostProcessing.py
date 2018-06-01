@@ -83,8 +83,10 @@ def get_summary(case):
       raise Exception("No summary file for case %s" % case)
    s = CM1.add(smryfile, reread=UI.reread)
    os.chdir(cwd)
-   if not UI.startdate: UI.startdate = ECL.DataDeck(case+'.DATA').get_raw_data('START')[0]
-   s.startdate = date2num(datetime(*_startdate(UI.startdate)))
+   if UI.startdate: s.startdate = UI.startdate
+   else:
+      d = ECL.DataDeck(case+'.DATA').get_raw_data('START')[0]
+      s.startdate = date2num(datetime(*_startdate(d)))
    return s
 
 def _fix(s, varnm):

@@ -1,5 +1,5 @@
 import os, sys
-import numpy
+import numpy as np
 import glob as glob_
 import pylab as pl
 import re
@@ -79,6 +79,14 @@ def interpolate(x, y, x0, index=None) :
    a = (y[index+1]-y[index]) / (x[index+1]-x[index])
    return y[index] + a*(x0-x[index])
 
+def interp_nan(x, y):
+   '''
+   interpolates nan-values according to neigbours values.
+   very basic - uses piecewise linear interpolation
+   '''
+   ix = pl.isfinite(y)
+   return pl.interp(x, x[ix], y[ix])
+
 def find_roots(x, y, last_only=False) :
    roots   = []
    indices = []
@@ -116,8 +124,7 @@ def read_excel_column(sheet, col_nm, line_from, line_to, file=None, book=None, r
    else: sh = sheet
    vals =  sh.col_values(column_indx(col_nm), line_from-1, line_to)
    if return_array :
-      import numpy
-      vals = numpy.array(vals)
+      vals = np.array(vals)
    if return_refs: return vals, book, sheet
    else          : return vals
 
@@ -149,7 +156,7 @@ def smooth(x,window_len=11,window='hanning'):
     
     see also: 
     
-    numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
+    np.hanning, np.hamming, np.bartlett, np.blackman, np.convolve
     scipy.signal.lfilter
  
     TODO: the window parameter could be the window itself if an array instead of a string   
@@ -170,14 +177,14 @@ def smooth(x,window_len=11,window='hanning'):
         raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
 
 
-    s=numpy.r_[2*x[0]-x[window_len:1:-1],x,2*x[-1]-x[-1:-window_len:-1]]
+    s=np.r_[2*x[0]-x[window_len:1:-1],x,2*x[-1]-x[-1:-window_len:-1]]
     #print(len(s))
     if window == 'flat': #moving average
-        w=numpy.ones(window_len,'d')
+        w=np.ones(window_len,'d')
     else:
-        w=eval('numpy.'+window+'(window_len)')
+        w=eval('np.'+window+'(window_len)')
 
-    y=numpy.convolve(w/w.sum(),s,mode='same')
+    y=np.convolve(w/w.sum(),s,mode='same')
     return y[window_len-1:-window_len+1]
 
 def glob(patterns, sortit=False, suffix=None):
@@ -321,8 +328,13 @@ def cumulative_old(t, y):
 def cumulative(t, y):
    '''
    *much* more effective than cumulative_old,
-   and it uses the same principle as trapz
+   and it uses the same principle as trapz.
+   it handles NaNs by making a copy and replacing them with 0
    '''
+   ixs = pl.find(pl.isnan(y))
+   if len(ixs):
+      y = y.copy()
+      y[ixs] = 0.
    cy = pl.zeros(len(t))
    for i in pl.arange(1,len(t)):
       cy[i] = cy[i-1] + (y[i-1]+y[i])/2.*(t[i]-t[i-1])
@@ -755,3 +767,126 @@ def clone(obj):
    cloned = pickle.load(f)
    f.close()
    return cloned
+
+
+def peakdetect(y_axis, x_axis = None, lookahead = 500, delta = 0):
+    """
+    Atle: Copied from https://gist.github.com/gcalmettes/1784428
+
+    Converted from/based on a MATLAB script at http://billauer.co.il/peakdet.html
+    
+    Algorithm for detecting local maximas and minmias in a signal.
+    Discovers peaks by searching for values which are surrounded by lower
+    or larger values for maximas and minimas respectively
+    
+    keyword arguments:
+    y_axis -- A list containg the signal over which to find peaks
+    x_axis -- A x-axis whose values correspond to the 'y_axis' list and is used
+        in the return to specify the postion of the peaks. If omitted the index
+        of the y_axis is used. (default: None)
+    lookahead -- (optional) distance to look ahead from a peak candidate to
+        determine if it is the actual peak (default: 500) 
+        '(sample / period) / f' where '4 >= f >= 1.25' might be a good value
+    delta -- (optional) this specifies a minimum difference between a peak and
+        the following points, before a peak may be considered a peak. Useful
+        to hinder the algorithm from picking up false peaks towards to end of
+        the signal. To work well delta should be set to 'delta >= RMSnoise * 5'.
+        (default: 0)
+            Delta function causes a 20% decrease in speed, when omitted
+            Correctly used it can double the speed of the algorithm
+    
+    return -- two lists [maxtab, mintab] containing the positive and negative
+        peaks respectively. Each cell of the lists contains a tupple of:
+        (position, peak_value) 
+        to get the average peak value do 'np.mean(maxtab, 0)[1]' on the results
+    """
+    maxtab = []
+    mintab = []
+    dump = []   #Used to pop the first hit which always if false
+       
+    length = len(y_axis)
+    if x_axis is None:
+        x_axis = range(length)
+    
+    #perform some checks
+    if length != len(x_axis):
+        raise ValueError, "Input vectors y_axis and x_axis must have same length"
+    if lookahead < 1:
+        raise ValueError, "Lookahead must be above '1' in value"
+    if not (np.isscalar(delta) and delta >= 0):
+        raise ValueError, "delta must be a positive number"
+    
+    #needs to be a numpy array
+    y_axis = np.asarray(y_axis)
+    
+    #maxima and minima candidates are temporarily stored in
+    #mx and mn respectively
+    mn, mx = np.Inf, -np.Inf
+    
+    #Only detect peak if there is 'lookahead' amount of points after it
+    for index, (x, y) in enumerate(zip(x_axis[:-lookahead], y_axis[:-lookahead])):
+        if y > mx:
+            mx = y
+            mxpos = x
+        if y < mn:
+            mn = y
+            mnpos = x
+        
+        ####look for max####
+        if y < mx-delta and mx != np.Inf:
+            #Maxima peak candidate found
+            #look ahead in signal to ensure that this is a peak and not jitter
+            if y_axis[index:index+lookahead].max() < mx:
+                maxtab.append((mxpos, mx))
+                dump.append(True)
+                #set algorithm to only find minima now
+                mx = np.Inf
+                mn = np.Inf
+        
+        ####look for min####
+        if y > mn+delta and mn != -np.Inf:
+            #Minima peak candidate found 
+            #look ahead in signal to ensure that this is a peak and not jitter
+            if y_axis[index:index+lookahead].min() > mn:
+                mintab.append((mnpos, mn))
+                dump.append(False)
+                #set algorithm to only find maxima now
+                mn = -np.Inf
+                mx = -np.Inf
+    
+    
+    #Remove the false hit on the first value of the y_axis
+    try:
+        if dump[0]:
+            maxtab.pop(0)
+            #print "pop max"
+        else:
+            mintab.pop(0)
+            #print "pop min"
+        del dump
+    except IndexError:
+        #no peaks were found, should the function return empty lists?
+        pass
+    
+    return maxtab, mintab
+
+def find_maxima(y, lookahead, delta=0):
+   '''
+   uses peakdetect to obtain maxima. only returns indices of maxima
+   input:
+    lookahead: distance to look ahead from a peak candidate to
+               determine if it is the actual peak (default: 500) 
+               '(sample / period) / f' where '4 >= f >= 1.25' might be a good value
+   '''
+   r = peakdetect(y, lookahead=lookahead, delta=delta)[0]
+   return [x[0] for x in r]
+
+def find_minima(y, lookahead, delta=0):
+   '''
+   uses peakdetect to obtain minima. only returns indices of minima
+    lookahead: distance to look ahead from a peak candidate to
+               determine if it is the actual peak (default: 500) 
+               '(sample / period) / f' where '4 >= f >= 1.25' might be a good value
+   '''
+   r = peakdetect(y, lookahead=lookahead, delta=delta)[1]
+   return [x[0] for x in r]
