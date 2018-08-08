@@ -15,7 +15,7 @@ setenv ACTIVE
 setenv TMP $ACTIVE/TMP
 setenv RC $ACTIVE/Atle_Resources
 
-if (! -f /project/RCP/active/fluent/) then
+if (-d /project/RCP/active/fluent/) then
    setenv ACTIVE /project/RCP/active/fluent/
    setenv RC $ACTIVE/Atle_Resources
 else
