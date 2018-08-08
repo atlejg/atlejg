@@ -154,7 +154,7 @@ def get_coord(Lx, x0, dx1, k, dx_max):
       dx = dx*k
       if dx > dx_max:
          # make sure we dont get the next to last coordinate squeezed into the last.
-         # we do this by making homogenous grid on the remaining part
+         # we do this by making homogenous prid on the remaining part
          dL = x
          n = int(pl.ceil(dL / dx_max))
          dx = dL / float(n)

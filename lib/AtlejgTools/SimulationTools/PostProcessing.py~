@@ -332,7 +332,7 @@ def _meanplot(varnm, cases):
    else:
       plotfunc = plot
    y /= len(cases)
-   plotfunc(t, y, '-')
+   plotfunc(t, y/len(cases), '-')
    ylabel('%s [%s]' % (varnm, r.unit(varnm)))
    title('Mean values')
    grid(True)

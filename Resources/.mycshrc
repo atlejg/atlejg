@@ -121,6 +121,13 @@ alias do 'do -vc'
 alias fnm 'readlink -f'
 alias eclipse '++ $ACTIVE/../reservoir_simulations/agy; pwd; echo "see ~/Misc/cmds for typical eclipse related commands"'
 alias octave /prog/rdtoolbox/octave/octave
+#
+# useful for RGS session (got it from Håkon Kyte)
+alias x11win "xrandr --size 1600x900"
+alias x11one "xrandr --size 1920x1080"
+alias x11two "xrandr --size 3840x1080"
+alias x11big1 "xrandr --size 2560x1600"
+alias x11big2 "xrandr --size 5120x1600"
 
 # PYTHON STUFF
 #

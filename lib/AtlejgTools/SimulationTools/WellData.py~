@@ -103,7 +103,6 @@ class WellData(object):
       self.wcp = 100 * self.wc  # wc in percent
       self.gvf = self.qg/self.qt * 100   # in percent
       self.gor = self.qg/self.qo
-      self.glr = self.qg/self.ql
       self.vo = visc_func('oil', self.p, self.T)
       self.vg = visc_func('gas', self.p, self.T)
       self.vw = visc_func('wat', self.p, self.T)
