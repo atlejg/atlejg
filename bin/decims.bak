@@ -1,0 +1,50 @@
+#!/usr/bin/perl -w
+#
+# atle.j.gyllensten@hydro.com
+#
+# HISTORY
+# Wed Oct 25 00:44:09 NST 2006
+#  version 1.0
+
+use Getopt::Std;
+
+sub _usage
+{
+   return <<THE_END;
+ synopsis : decimate files, skewed (see below)
+ usage: $0 -f<n1> -l<n2> filelist
+  where every n1 is kept for first half of filelist and
+        every n2 is kept for second half of filelist
+THE_END
+}
+
+getopt('fl');
+
+$nfiles = @ARGV;
+
+die _usage() unless $nfiles && $opt_f && $opt_l;
+
+@files = ();
+
+for ($i=0; $i<$nfiles/2; ++$i) {
+   next if $i % $opt_f == 0;
+
+   push(@files,$ARGV[$i]);
+}
+
+for ($i=int($nfiles/2)+1; $i<$nfiles; ++$i) {
+   next if $i % $opt_l == 0;
+
+   push(@files,$ARGV[$i]);
+}
+
+if (@files) {
+   print "$0: deleting\n",map("$_ ",@files),"\nOK? y/n [n] ";
+   $ans = <STDIN>;
+   unlink @files if ($ans && $ans =~ /^y/i);
+}
+else {
+   print "$0: nothing to delete\n";
+}
+
+

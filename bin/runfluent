@@ -1,0 +1,143 @@
+#!/usr/bin/env perl
+
+###############################################################################
+#   2003-09-12
+#    made the transcript file name more reasonable
+#   2003-08-27
+#   Changed the order of getLog and getOpts according to changes in Utils.pm
+###############################################################################
+
+use strict;
+
+use lib $ENV{EXT_PERL_MODULES};
+use PoorMan::Utils qw(getOpts getLog);
+use PoorMan::FileUtils qw(tmpfile nextFileNm);
+use PoorMan::DateTime;
+use File::Basename;
+
+#======================= CONSTANTS ============================================
+
+
+#======================= GLOBAL VARIABLES =====================================
+
+my $_id;
+my $_case;
+
+my $_log  = getLog();
+my $_opts = getOpts qw(loglevel=i keep help test args=s id=s cas=s msh=s bc=s);
+
+$_log->logLevel($_opts->loglevel() ) if $_opts->loglevel();
+
+#======================= SUBROUTINES FOLLOW ===================================
+
+
+
+###############################################
+# 
+# ->
+# <-
+###############################################
+sub createJournal {
+
+   my $journal = tmpfile() or die "could not create tempfile!";
+
+   open(JOU, ">$journal") or die "could not create file $journal : $!";
+
+   my $transcr = (nextFileNm(-pre => $_id.'_', -ndigits => 3, -suffix => '.tra') );
+   
+   print JOU "file start-tran $transcr\n";
+
+   # wanted to start journal es well, but fluent does not allow
+   # opening a journal when it is running one :-(
+   #print JOU "file start-jou $timestamp.jou\n"
+   #unless $_opts->{'nojournal'};
+
+   print JOU "(define id '$_id)\n";
+   print JOU "(define cwd 'cwd)\n";
+
+   # read case
+   print JOU "rc $_case\n" if $_case;
+
+   # do some stuff if case is a mesh
+   if ($_case =~ /msh$/) {
+      print JOU "grid check\n";
+      print JOU "grid reorder reorder-domain\n";
+   }
+
+   print JOU "file read-boundary-case ", $_opts->{'bc'}, "\n" if $_opts->{'bc'};
+
+   # read data if they exist
+   print JOU "rd $_id\n" if (-e "$_id.dat" || -e "$_id.dat.gz");
+
+   # better to use the .fluent file for this!
+   ## now set some defaults
+   #print JOU _defaultSetting();
+
+   # now set name of files to be 'touched' to stop/check this session
+   print JOU "(set! checkpoint/exit-filename '$_id.exit)\n";
+   print JOU "(set! checkpoint/check-filename '$_id.check)\n";
+
+   close JOU;
+
+   return $journal;
+}
+
+sub _defaultSetting {
+   return <<THE_END;
+
+solve solution bla bla
+solve solution bla bla
+
+THE_END
+}
+
+sub usage {
+
+   print <<THE_END;
+ 
+ Simple wrapper that starts fluent using an input journal
+ that starts a transcript and reads a case&data file (optional).
+ 
+ usage: runfluent 3ddp my.cas
+
+ options: --args : fluent args (like -pvmpi -t2 3ddp)
+          --id   : case id
+          --cas  : .cas file
+          --msh  : .msh file
+          --bc   : .bc file
+          --keep : keep the temp journal file that fluent is given
+          --test : dont start fluent.
+          --help : print this message.
+
+THE_END
+
+}
+
+
+#======================= MAIN LOGIC ===========================================
+
+my $fluentargs = ($_opts->{'args'} || shift);
+if ($_opts->{'help'} || ! $fluentargs) {
+   usage();
+   exit 0;
+}
+
+
+$_id = ( $_opts->{'id'} 
+       || $_opts->{'bc'} && fileparse($_opts->{'bc'},'.bc')
+       || $_opts->{'cas'} && fileparse($_opts->{'cas'},'.cas')
+       || $_opts->{'msh'} && fileparse($_opts->{'msh'},'.msh')
+       ||  'default_id');
+$_case = ($_opts->{'cas'} || $_opts->{'msh'});
+
+my $jou = createJournal();
+
+unless ($_opts->{'test'}) {
+   system("fluent -i $jou $fluentargs");
+   unlink $jou unless $_opts->{'keep'};
+}
+
+# done
+
+
+

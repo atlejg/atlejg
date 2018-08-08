@@ -1,0 +1,118 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+# Creates a rectangular regular grid for SigmaView.
+# Usage:
+# perl -w svGrid.pl --x0=0 --y0=1 --delX=0 1 --delY=0.2 --nRows=20 --nCols=20 --gridNm=grid
+#
+###############################################################################
+
+use strict;
+use Getopt::Long;
+
+#======================= CONSTANTS ============================================
+use constant FILE_EXT => 'grd';
+
+#======================= GLOBAL VARIABLES =====================================
+
+my ($_x0, $_y0, $_deltaX, $_deltaY, $_nofRows, $_nofCols);
+my $_gridNm = 'grid';
+
+#======================= SUBROUTINES FOLLOW ===================================
+
+sub userInput($) {
+   my $var = shift;
+   
+   print "Set a value for $var : ";
+   my $input = <>;
+   chop($input);
+   
+   return $input;
+}
+
+###############################################
+# 
+###############################################
+sub setParams() {
+   
+   GetOptions ('x0=s'    => \$_x0,
+               'y0=s'    => \$_y0, 
+               'delX=s'  => \$_deltaX,
+               'delY=s'  => \$_deltaY,
+               'nRows=s' => \$_nofRows,
+               'nCols=s' => \$_nofCols,
+               'gridNm=s'=> \$_gridNm,
+              );
+   
+   $_x0 = userInput('x0') if not defined $_x0;
+   $_y0 = userInput('y0') if not defined $_y0;
+   $_deltaX = userInput('deltaX') if not $_deltaX;
+   $_deltaY = userInput('deltaY') if not $_deltaY;
+   $_nofRows = userInput('nofRows') if not $_nofRows;
+   $_nofCols = userInput('nofCols') if not $_nofCols;
+   $_gridNm  = userInput('gridNm') if not $_gridNm;
+}
+
+sub coordinates() {
+   
+   my ($x1, $y1, $x2, $y2, $x3, $y3);
+   
+   my $xLength = $_deltaX * $_nofCols;
+   my $yLength = $_deltaY * $_nofRows;
+   
+   $x1 = $_x0 + $xLength;
+   $y1 = $_y0;
+   
+   $x2 = $_x0;
+   $y2 = $_y0 - $yLength;
+   
+   $x3 = $x1;
+   $y3 = $y2;
+   
+   return "$_x0 $_y0 $x1 $y1 $x2 $y2 $x3 $y3";
+}
+
+sub heading() {
+
+   return <<THE_END;
+SigmaView : created by $0
+MissingNumber:      1e+30
+$_gridNm GridUnits #
+ 0
+THE_END
+
+}
+
+sub createGrid() {
+   
+   my $fileNm = $_gridNm.'.'.FILE_EXT;
+   open(FILE, ">$fileNm")
+     or die "Cannot open $fileNm for writing : $!";
+   
+   print FILE heading();
+   print FILE coordinates(), "\n";
+   print FILE "$_nofRows $_nofCols\n";
+   
+   for (my $rowNo = 1; $rowNo <= $_nofRows; $rowNo++) {
+      
+      for (my $colNo = 1; $colNo <= $_nofCols; $colNo++) {
+         
+         print FILE ' 0';
+         print FILE "\n" if ($colNo % 9) == 0;
+      }
+      print FILE "\n";
+   }
+   
+   close FILE;
+
+}
+
+#======================= MAIN LOGIC ===========================================
+
+setParams(); # sets global vars
+
+createGrid();
+
+
+
+

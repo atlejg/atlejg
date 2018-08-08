@@ -1,0 +1,18 @@
+#! /project/RCP/active/fluent//Atle_Tools/Python/bin/python
+
+import sys, os
+
+def _usage():
+   print "usage: %s old new" % sys.argv[0]
+   sys.exit(1)
+
+if len(sys.argv) < 2:
+   _usage()
+
+old = sys.argv[1]
+new = sys.argv[2]
+
+cmd = "cp -i %s.DATA %s.DATA" % (old, new)
+#print cmd
+os.system(cmd)
+os.system("ls -lrt %s.DATA" % new)

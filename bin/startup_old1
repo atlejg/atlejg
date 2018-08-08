@@ -1,0 +1,23 @@
+#!/bin/tcsh
+
+if ($# != 1) then
+   echo "usage: $0 version";
+   exit 1;
+endif
+
+set ver = $1;
+set testdir = ~/PhD/Test/DEM/3D/Fluent6.1.22/$ver;
+
+pu $testdir;
+myterm log &;
+cd FieldView
+myterm fv &
+po;
+
+pu ~/PhD/DEM/DEM_model/$ver/src
+myterm gcc &;
+myterm src &;
+
+rsh por002sgi "disp; cd $testdir; myterm build&" &
+rsh por002sgi "disp; cd $testdir; myterm fluent&" &
+

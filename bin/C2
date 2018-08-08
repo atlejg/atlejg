@@ -1,0 +1,27 @@
+#!/usr/bin/perl -w
+
+# calculates the value of C2 for the porous jump model in fluent
+
+# atle.j.gyllensten@hydro.com
+
+# Squares a given number.
+sub sqr($) {
+	my $val = shift;
+	
+	return $val * $val;
+}
+
+
+my $dP       = shift || die "need dP";
+my $V_above  = shift || die "need V_above";
+my $heigth   = shift || die "need heigth";
+my $density  = shift || die "need density";
+
+my $KL = 2 * $dP / ($density * sqr($V_above) );
+
+my $C2 = $KL / $heigth;
+
+print("KL = $KL");
+
+print "==========\nC2 = $C2\n==========\n";
+

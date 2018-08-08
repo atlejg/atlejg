@@ -1,0 +1,5 @@
+#!/bin/tcsh -f
+
+# lists which functions are called by which files for a group
+# of c-files (all c-files in current directory.
+~/bin/do -q 'echo $_ ;grep -c $_ *.c | grep -v :0 ;echo ' `ctags -x *.[ch] | awk '$2=="function"{print $1}'`

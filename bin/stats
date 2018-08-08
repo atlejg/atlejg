@@ -1,0 +1,109 @@
+#!/usr/bin/perl
+#
+# see usage()
+
+
+# HISTORY
+#  Fri Jan  9 12:45:51 NWT 2004
+#   debug() is not exported from Utils
+#  2003-08-25
+#   It will now read from STDIN unless a filename is given
+#  2003-08-19
+#   Changing the 'delimeter' of the output from '=' to '>>'
+#   since the latter is not allowed in a filename.
+#   + cosmetic changes...
+#  2003-06-19
+#   Use @ARGV as filelist (dont glob ourselves). 
+#  2003-03-26
+#   read has changed name to readfile to avoid nameclash...
+
+use lib $ENV{EXT_PERL_MODULES};
+use Statistics::Lite qw(min max mean stddev);
+use Getopt::Long;
+use strict;
+#use Data::Dumper; # not on por001sgi
+use PoorMan::FileUtils qw(readfile);
+
+################ globals #####################
+
+my %_opts;
+################ subs ########################
+
+sub usage() {
+
+   return <<THE_END;
+
+reports statistics for plain datafiles (or STDIN) - column wise.
+
+    options :
+    --mean, --min, --max, --absmax, --stddev, --all
+    if none is specified, --all is used.
+    --column : which column to handle. default is all columns
+    --skip : number of 'header lines' to skip
+    --delim : what character to use as column delimiter, default is 'whitespace'
+    
+    example: 
+    $0 --mean --max --column=1 --column=3 *.asc   
+
+    note:
+    unless a filename is given, it will read from STDIN
+    
+THE_END
+}
+
+# not in use anymore
+sub _files() {
+
+   my $pattern = shift(@ARGV) 
+     or die usage();
+
+
+   my @files = glob($pattern);
+
+   return @files;
+}
+
+sub main() {
+   
+   # if no file is given, use STDIN, which is often denoted '-'.
+   push(@ARGV, '-') unless @ARGV > 0;
+
+   foreach my $file (@ARGV) {
+      
+      my $data = readfile(-file=>$file, -cols=>$_opts{column}, -skip=>$_opts{skip});
+      
+      my $no = 0;
+      my @cols = ($_opts{column}) ? sort@{$_opts{column}} : (1..scalar(@$data));
+      foreach my $colNo (@cols) {
+         my $min = min(@{$data->[$no]});
+         my $max = max(@{$data->[$no]});
+         my $absmax = max($max,(-1)*$min);
+
+         print "$file column $colNo min    >> ", $min , "\n" 
+           if $_opts{min} or $_opts{all};
+         print "$file column $colNo max    >> ", $max, "\n" 
+           if $_opts{max} or $_opts{all};
+         print "$file column $colNo absmax >> ", $absmax, "\n" 
+           if $_opts{absmax} or $_opts{all};
+         print "$file column $colNo mean   >> ", mean(@{$data->[$no]}), "\n" 
+           if $_opts{mean} or $_opts{all};
+         print "$file column $colNo stddev >> ", stddev(@{$data->[$no]}), "\n" 
+           if $_opts{stddev} or $_opts{all};
+         $no++;
+      }
+
+   }
+}
+################ main logic ##################
+
+
+GetOptions(\%_opts, 'help', 'mean', 'max', 'absmax', 'min', 'stddev', 'all', 'delim=s', 'column=i@', 'skip=s');
+$_opts{all} = 1 
+  unless ($_opts{mean} or $_opts{min} or $_opts{max} or $_opts{absmax} or $_opts{stddev});
+
+die usage() if $_opts{help};
+#print Dumper(@ARGV);
+
+
+main();
+

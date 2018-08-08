@@ -1,0 +1,14 @@
+#!/bin/tcsh
+
+if ($# < 1) then
+   echo "usage: $0 directory";
+   exit 1;
+endif
+
+set resources = '~/Resources'
+
+gtar cf - `all .bc $1` | (cd $resources; gtar xfv -)
+gtar cf - `all .jou $1` | (cd $resources; gtar xfv -)
+gtar cf - `all .c $1` | (cd $resources; gtar xfv -)
+gtar cf - `all Tools $1` | (cd $resources; gtar xfv -)
+

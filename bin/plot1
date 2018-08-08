@@ -1,0 +1,29 @@
+#! /usr/bin/env python
+
+import sys, os
+import AtlejgTools.Plotting.Gnuplot as Gnuplot
+import AtlejgTools.FluentUtils      as FluentUtils
+
+#usage = """
+ #usage: %prog [-b -c] datafile
+ #-b : hardcopy
+ #-c : comment characters"""
+
+#parser = OptionParser(usage)
+#parser.add_option("-c", "--createcases", dest="create_cases", action="store_true")
+
+fig = Gnuplot.Figure()
+
+for monit in sys.argv[1 :] :
+   (x, y) = FluentUtils.read_monitorfile(monit)
+   print monit
+   fig.load(x, y, os.path.basename(monit))
+
+#fig.xlabel('iterations')
+#fig.ylabel('x-velocity [m/s]')
+#fig.location('bottom')
+#fig.axis(20, 200, 1.0, 1.6)
+fig.title(os.path.basename(monit))
+fig.show()
+fig.hardcopy()
+

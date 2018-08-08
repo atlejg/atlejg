@@ -1,0 +1,40 @@
+#!/usr/bin/perl -w
+#
+
+$gnuplotfile = '/tmp/gplot';
+
+$host = `hostname`;
+
+if ($host =~ /statoil/i) {
+   $displayer = 'display';
+}
+else {
+   $displayer = 'xv';
+}
+
+#print "host = $host , displayer = $displayer\n";
+
+open GFILE, ">$gnuplotfile" or die "cannot open gnuplotfile '$gnuplotfile'";
+
+$filelist = ' ';
+foreach $file (@ARGV) {
+   print GFILE <<THE_END;
+plot "$file" every ::5
+set term png
+set out
+set out "$file.png"
+rep
+THE_END
+   $filelist .= " $file.png"
+}
+
+close GFILE;
+
+$cmd = "gnuplot $gnuplotfile";
+#print "cmd = $cmd\n";
+system($cmd);
+
+$cmd = "$displayer $filelist &";
+#print "cmd = $cmd\n";
+system($cmd);
+

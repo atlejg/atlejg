@@ -1,0 +1,41 @@
+#!/usr/bin/perl -w
+
+# calculates the value of C2 for the porous jump model in fluent
+
+# atle.j.gyllensten@hydro.com
+
+
+use lib $ENV{'EXT_PERL_MODULES'};
+use PoorMan::Utils qw(debug get);
+
+$PoorMan::Utils::_debug = 1;
+
+use constant DENSITY => 1.225; # air
+
+sub main() {
+
+	my $P_above  = get('P_above', 1);
+	my $P_below  = get('P_below', 1);
+	my $V_above  = get('V_above', 1);
+	my $heigth   = get('Heigth', 1);
+
+	my $KL = 2 * ($P_above - $P_below) / (DENSITY * sqr($V_above) );
+
+	my $C2 = $KL / $heigth;
+
+	debug("KL = $KL");
+
+	print "==========\nC2 = $C2\n==========\n";
+}
+
+# Squares a given number.
+sub sqr($) {
+	my $val = shift;
+	
+	return $val * $val;
+}
+
+# MAIN LOGIC
+
+main();
+	

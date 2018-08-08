@@ -1,0 +1,5 @@
+#!/bin/tcsh
+# i would like to do a do -t 86400 '...' but that did not work...
+
+find ~/ -name readme.txt -ctime -1 -exec mailme {} \;
+

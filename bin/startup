@@ -1,0 +1,27 @@
+#!/bin/tcsh
+
+if ($# == 0) then
+   echo "usage: $0 version (host)";
+   exit 1;
+endif
+
+set ver = $1;
+
+if ($# > 1) then
+   set host = $2;
+else
+   set host = 'por017lin';
+endif
+
+set disp = $DISPLAY;
+set testdir = ~/PhD/Test/DEM/3D/Fluent6.2.16/$ver;
+set srcdir = ~/PhD/DEM/DEM_model/$ver/src/;
+
+#rsh $host.hre.hydro.com "setenv DISPLAY $disp; cd $testdir; myterm log &" &
+#rsh $host.hre.hydro.com "setenv DISPLAY $disp; cd $srcdir; myterm src &" &
+#rsh $host.hre.hydro.com "setenv DISPLAY $disp; cd $srcdir; myterm gcc &" &
+
+rsh $host.hre.hydro.com "setenv DISPLAY $disp; cd $testdir; myterm b+d&" &
+rsh $host.hre.hydro.com "setenv DISPLAY $disp; cd $testdir; myterm fluent&" &
+rsh $host.hre.hydro.com "setenv DISPLAY $disp; cd $testdir/FieldView; myterm fv &" &
+

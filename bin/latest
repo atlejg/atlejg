@@ -1,0 +1,31 @@
+#!/usr/bin/perl -w
+
+use lib $ENV{'EXT_PERL_MODULES'};
+use PoorMan::Utils qw(getOpts);
+
+my $opts = getOpts(qw(long help debug));
+
+sub usage {
+   print <<THE_END;
+ usage: $0 [--long --help --debug] <filelist>
+
+ example $0 -l *dat
+
+THE_END
+}
+ 
+
+if (@ARGV==0 || $opts->{'help'}) {
+   usage();
+   exit 1;
+}
+
+$cmd = 'ls -rt';
+$cmd .= 'l' if $opts->{'long'};
+
+$cmd .= ' ' . join(' ', @ARGV) .  ' | tail -1';
+
+print STDERR "$0: cmd = $cmd\n" if $opts->{'debug'};
+
+system($cmd);
+

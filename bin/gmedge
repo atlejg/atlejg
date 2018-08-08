@@ -1,0 +1,30 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+# Calculates number of intervals to be put into Gambit form when using
+# 'First length'.
+# This means one can decide for lenght of first and last interval.
+###############################################################################
+
+use lib $ENV{EXT_PERL_MODULES};
+use PoorMan::Utils qw(get);
+use strict;
+
+
+#======================= CONSTANTS ============================================
+#======================= GLOBAL VARIABLES =====================================
+#======================= SUBROUTINES FOLLOW ===================================
+#======================= MAIN LOGIC ===========================================
+
+my $L  = get('Total length',1);
+my $ll = get('Length of last interval',1);
+my $fl = get('Length of first interval',1);
+
+my $R = ($L - $fl) / ($L - $ll);
+my $n = log( $R*$L/$fl - $L/$fl + 1) / log($R);
+
+print("Number of intervals is : $n\n");
+print("Ratio is : $R\n");
+print("FYI: Last interval = ", $fl*exp($n*log($R)), "\n");
+print("REMEMBER USING 'Succesive Ratio' and 'Interval count' in mesh edges if edge-meshing is what you are doing!!\n");
+

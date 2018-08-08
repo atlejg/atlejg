@@ -1,0 +1,12 @@
+#!/usr/bin/perl -w
+
+$opt = shift;
+
+my $version = '6.1.22';
+
+if ($opt) {
+   print $ENV{FLUENT_INC}."/fluent$version\n";
+}
+else {
+   print $ENV{FLUENT_INC}."\n";
+}

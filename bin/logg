@@ -1,0 +1,23 @@
+#!/bin/tcsh
+
+# using $tmpfile since aage wants to have new entries in the start of the file - not at the end
+
+if ($# < 1) then
+   echo "usage: $0 logfile";
+   exit 1;
+endif
+
+set logfile = $1;
+set tmpfile = "/tmp/tmp.$USER"
+
+date >! $tmpfile;
+cat $logfile >> $tmpfile
+mv -f $tmpfile $logfile
+
+vi -c 1 $logfile   # make sure we start at line 1
+
+
+# logging
+set logfile = '/h/a111785/Misc/loglist'
+date >> $logfile
+echo "$0 $USER" >> loglist

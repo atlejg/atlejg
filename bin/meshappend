@@ -1,0 +1,48 @@
+#!/usr/bin/perl -w
+
+use strict;
+use Getopt::Std;
+
+our($opt_c,$opt_h);
+
+getopts('hc:');
+
+_usage() if $opt_h;
+
+sub _usage
+{
+   print <<THE_END;
+
+ usage: $0 [-hc:] npcs msh left right dist fused_zone_id
+
+ -c : some fluent TUI command
+
+THE_END
+
+   exit;
+}
+
+my $npcs  = shift || die "need number of pieces to be appended";
+my $msh   = shift || die "need name of mesh file";
+my $left  = shift || die "need name of left side";
+my $right = shift || die "need name of right side";
+my $dist  = shift || die "need distance between sides";
+my $fuseid  = shift || die "need id of the first fused zone (typically interior-<fuseid>. can be found by appending just 1 piece)";
+
+print "rc $msh y\n";
+for (my $i=0; $i<$npcs-1; ++$i) {
+   my $l = ($i%2==0)? $left : "$left.1";
+   my $r = "$right.1";
+
+   print <<THE_END;
+grid translate $dist 0 0
+grid modify append $msh
+grid modify fuse ($l $r)
+THE_END
+
+   print "$opt_c\n" if $opt_c;
+
+   ++$fuseid unless $opt_c;
+}
+
+print STDERR "you might want to merge zones afterwards. do fluid zones first, then interior, then wall etc\n";

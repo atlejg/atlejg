@@ -1,0 +1,13 @@
+#!/bin/tcsh
+
+if ($# < 1) then
+   echo "usage: $0 files";
+   exit 1;
+endif
+
+set pwd = `pwd`
+
+#echo $argv,$pwd
+
+rsh por103lin "cd $pwd;ctags $argv"
+

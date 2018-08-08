@@ -1,0 +1,58 @@
+#!/usr/bin/perl -wn
+#
+# this script calculates the time difference between each
+# (local-time (time)) in a fluent transcript
+#
+# usage: $0 <fluent-transcript-file>
+#
+# notes
+# - for the first timestep, $t is printed which is just the number of seconds since midnight
+# - it does not handle months
+# 
+#
+# atle.j.gyllensten@hydro.com
+#
+# HISTORY
+# Fri Oct 27 08:25:08 NST 2006
+#  ver1.0
+
+BEGIN {
+   $t_prev = 0;
+   $first_time = 1;
+   $debug = 0;
+}
+
+next unless /local-time/;
+
+# make sure line starts in the same way i.e. delete everything preceeding the essentials
+s/^.*isdst/isdst/;
+(@f) = split;
+
+print if $debug;
+
+$d = substr($f[17],0,-1);
+$h = substr($f[20],0,-1);
+$m = substr($f[23],0,-1);
+$s = substr($f[26],0,-2);
+
+print "d=$d h=$h, m=$m,s=$s\n" if $debug;
+
+$t = $d*3600*24 + $h*3600 + $m*60 + $s;
+$runtime = $t - $t_prev;
+$t_prev = $t;
+
+# dont report first time
+if ($first_time) {
+   $first_time = 0;
+   next;
+}
+
+if ($runtime < 60) {
+   printf("%s: runtime= %.3f secs\n",$0,$runtime);
+}
+elsif ($runtime < 3600) {
+   printf("%s: runtime= %.3f mins\n",$0,$runtime/60);
+}
+else {
+   printf("%s: runtime= %.3f hours\n",$0,$runtime/3600);
+}

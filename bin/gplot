@@ -1,0 +1,13 @@
+#!/bin/sh
+# knut bech script for using gnuplot for plotting fluent monitors
+rm $HOME/TMP/gplot.tmp;
+tekst1='set key title "Fluent monitor data" ;';
+tekst2='plot "'$HOME'/TMP/gplot.tmp" notitle';
+echo $tekst1 $tekst2 > $HOME/TMP/gplot.inp;
+while [ -n "$1" ]; do
+cp $1 $HOME/TMP/gplot.tmp;
+vi "+:1,3d" "+w" "+q" $HOME/TMP/gplot.tmp;
+gnuplot $HOME/TMP/gplot.inp -;
+break;
+done
+

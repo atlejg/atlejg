@@ -1,0 +1,196 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+#
+###############################################################################
+
+use strict;
+
+use lib $ENV{EXT_PERL_MODULES};
+use PoorMan::Utils qw(get debug getLog getOpts);
+
+#======================= CONSTANTS ============================================
+
+
+#======================= GLOBAL VARIABLES =====================================
+
+my $_log = getLog();
+my $_opts = getOpts();
+#======================= SUBROUTINES FOLLOW ===================================
+
+
+
+###############################################
+# 
+# ->
+# <-
+###############################################
+sub create {
+
+=head2 create
+
+Creates the macro based on a text input file
+that should look like this:
+
+# module 1
+BEGIN MODULE01 100 100 0
+CY 5 5 0 1 10 X
+CY 10 5 0 1 10 X
+CY 15 5 0 1 10 X
+BO 5 5 10 1 10 2
+BO 5 5 15 1 10 2
+BO 5 5 20 1 10 2
+END MODULE01
+# module 2
+BEGIN MODULE02 200 200 0
+CY 5 5 0 1 10 Z
+CY 10 5 0 1 10 Z
+CY 15 5 0 1 10 Z
+BO 5 5 10 1 10 2
+BO 5 5 15 1 10 2
+BO 5 5 20 1 10 2
+END MODULE02
+
+Notice that all positions inside a module are relative
+to the position of the module itself!
+
+=cut
+
+   my $file = (shift or get('Filename of macro template', 1) );
+   my $macro = (shift or get('Filename of macro to be created', 1) );
+
+   open(TEMPLATE, $file)
+     or die "cannot open template file '$file' : $!";
+   
+   open(MACRO, ">$macro")
+     or die "cannot create macro file '$macro' : $!";
+
+   # declare
+   my($dooh, $objNm, $Xpos, $Ypos, $Zpos);
+   my $nPrimitives = 0;
+
+   while (<TEMPLATE>) {
+
+      chomp;
+      s/^\s*//; # remove leading whitespaces 
+
+      if (/^begin/i) {
+         # start of a new object
+         ($dooh, $objNm, $Xpos, $Ypos, $Zpos) = split;
+         $_log->debug("objNm=$objNm,Xpos=$Xpos,Ypos=$Ypos,Zpos=$Zpos");
+
+         print MACRO"DATABASE NEW OBJECT $objNm\n";
+      }
+      elsif(/^end/i) {
+         # end of current object
+         print MACRO "FILE EXIT Y Y\n";
+         $nPrimitives = 0;
+      }
+      elsif(/^#/) {
+         # comment line
+         next;
+      }
+      else {
+         # add a new primitive
+
+         $nPrimitives++;
+
+         if (/^c/i) {
+            # its a cylinder
+
+            my($dooh, $xpos, $ypos, $zpos, $diam, $lng, $dir, $apor1, $apor2, $vpor) = split;
+            # set porosities to 0 unless they have been specified
+            $apor1 = 0 unless defined $apor1;
+            $apor2 = 0 unless defined $apor2;
+            $vpor = 0 unless defined $vpor;
+
+            # adjust position of primitive relative to the position of this object
+            $xpos += $Xpos;
+            $ypos += $Ypos;
+            $zpos += $Zpos;
+
+            print MACRO "ADD CYL $xpos $ypos $zpos $diam $lng $dir $apor1 $apor2 $vpor\n";
+         }
+
+         else {
+            # its a box
+
+            my($dooh, $xpos, $ypos, $zpos, $delx, $dely, $delz, $apor1, $apor2, $apor3, $vpor, $nDiams) = split;
+            # set porosities to 0 unless they have been specified
+            $apor1 = 0 unless defined $apor1;
+            $apor2 = 0 unless defined $apor2;
+            $apor3 = 0 unless defined $apor3;
+            $vpor = 0 unless defined $vpor;
+            $nDiams = 0 unless defined $nDiams;
+
+            # adjust position of primitive relative to the position of this object
+            $xpos += $Xpos;
+            $ypos += $Ypos;
+            $zpos += $Zpos;
+
+            print MACRO "ADD BOX $xpos $ypos $zpos $delx $dely $delz $apor1 $apor2 $apor3 $vpor $nDiams\n";
+         }
+
+         # remember adding the union!
+         print MACRO "ADD UNION\n" if ($nPrimitives > 1);
+      }
+
+   }
+
+   close TEMPLATE;
+   close MACRO;
+
+}
+
+
+sub cylinders {
+
+=head2 cylinders
+
+Creates a set of cylinders based on input.
+
+=cut
+
+   my $xpos = (shift or get('x position', 1) ); 
+   my $ypos = (shift or get('y position', 1) ); 
+   my $zpos = (shift or get('z position', 1) ); 
+   my $dmin = (shift or get('Min diameter', 1) ); 
+   my $dmax = (shift or get('Max diameter', 1) ); 
+   my $nd = (shift or get('Number of diameters', 1) ); 
+   my $lmin = (shift or get('Min length', 1) ); 
+   my $lmax = (shift or get('Max length', 1) ); 
+   my $nl = (shift or get('Number of lengths', 1) ); 
+   my $dirs = (shift or get('Directions (eg x y z)', 1) ); 
+   my $apor1 = (shift or get('Area porisity 1', 1) ); 
+   my $apor2 = (shift or get('Area porisity 2', 1) ); 
+   my $vpor = (shift or get('Volume porisity', 1) ); 
+
+   my $delD = ($dmax - $dmin) / $nd;
+   my $delL = ($lmax - $lmin) / $nl;
+
+   my @dirs = split(' ', $dirs);
+
+   foreach my $dir (@dirs) {
+      my $diam = $dmin;
+      foreach my $n (1..$nd) {
+         my $lng = $lmin;
+         foreach my $m (1..$nl) {
+            print "ADD CYL $xpos $ypos $zpos $diam $lng $dir $apor1 $apor2 $vpor\n";
+            $lng+=($m*$delL);
+         }
+         $diam+=($n*$delD);
+      }
+   }
+
+}
+
+sub test {
+
+   create;
+   #cylinders;
+}
+
+
+#======================= MAIN LOGIC ===========================================
+
+test();

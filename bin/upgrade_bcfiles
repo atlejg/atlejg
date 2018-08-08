@@ -1,0 +1,86 @@
+#!/usr/bin/perl -w
+# 
+
+use Getopt::Std;
+use strict;
+
+my $_buildver0 = '6.2.16';
+my $_buildver1 = '6.3.26';
+my $_jou = '/tmp/jou';
+my $_tmp_case = '/tmp/_';
+
+our($opt_v);
+getopt('v');
+
+sub _usage
+{
+   return <<THE_END;
+useful for converting old fluent-version bc-files to new version
+ usage: $0 -v <version> bcfiles
+ where version is 2d, 3d or whatever.
+ every bc-file in current directory gets a new version with the same name, but with a new extension,
+ which currently is '$_buildver1'.
+THE_END
+}
+
+die _usage unless @ARGV > 0;
+die "need a fluent version (3d or whatever) using the -v option" unless $opt_v;
+
+my $lmfile0 = ' 7241@por102sgi';
+my $lmfile1 = '/local/fluent/fluent.inc/license/license.por017lin:/local/fluent/fluent.inc/license/license.por017lin.lnia64';
+
+my $fluent0 = "fluent $opt_v -r$_buildver0 ";
+my $fluent1 = "fluent $opt_v -r$_buildver1 ";
+my $tcshfile = '/tmp/tcshfile';
+
+sub _create_jou0
+{
+   my $bcfile = shift;
+
+   open(JOU,"> $_jou") || die "cannot open file $_jou";
+
+   print JOU <<THE_END;
+rc _ y
+fi rbc $bcfile
+wc $_tmp_case y
+ex y
+
+THE_END
+   
+   close JOU;
+}
+
+sub _create_jou1
+{
+   my $bcfile = shift;
+
+   open(JOU,"> $_jou") || die "cannot open file $_jou";
+
+   print JOU <<THE_END;
+rc $_tmp_case y
+fi wbc $bcfile.$_buildver1
+ex y
+
+THE_END
+   
+   close JOU;
+}
+
+sub _cleanup
+{
+   unlink $_tmp_case;
+   unlink $_jou;
+}
+
+foreach my $bcfile (@ARGV) {
+   _create_jou0($bcfile);
+   my $cmd0 = "export LM_LICENSE_FILE='$lmfile0' ; $fluent0 -i $_jou -g";
+   #print $cmd0 , "\n";
+   qx/$cmd0/;
+   
+   _create_jou1($bcfile);
+   my $cmd1 = "export LM_LICENSE_FILE='$lmfile1' ; $fluent1 -i $_jou -g";
+   qx/$cmd1/;
+}
+
+_cleanup();

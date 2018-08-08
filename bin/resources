@@ -1,0 +1,24 @@
+#!/bin/csh
+# eiriks /h/ema/bin/freescript
+# should be symbolic link but eirik doesnt permit that...
+# and i want to check more machines...
+# and report memory usage.
+#********************************************
+ clear
+ echo " Viser tilgjengelig regnekapasitet ... "
+ echo " "
+  
+   set sgihosts="por002sgi por102sgi por103sgi"
+   foreach h ( $sgihosts )
+     echo "Maskin ..." $h
+     rsh $h top -d2 -b -s1 16 | grep -v '0\.0' | grep -e 'run/' -e Memory | uniq
+     echo "   "
+   end
+
+   set linhosts="por103lin por104lin por105lin por106lin por107lin por108lin"
+   foreach h ( $linhosts )
+     echo "Maskin ..." $h
+     rsh $h top -d2 -n1 -b | grep -e 'R ' -e Mem -e Swap
+     echo "   "
+   end
+

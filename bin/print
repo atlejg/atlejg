@@ -1,0 +1,21 @@
+#!/bin/tcsh
+
+if ($# != 1) then
+   echo "usage: $0 file";
+   exit 1;
+endif
+
+set file = $1
+
+mkdir TMP
+awk '{print NR,$0}' $file >! TMP/$file
+cd TMP
+unix2dos $file
+
+set pwd = `pwd`
+rsh por002sgi lpr $pwd/$file
+
+rm -f $file
+
+cd - 
+rmdir TMP

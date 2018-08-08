@@ -1,0 +1,81 @@
+#!/usr/bin/perl
+#
+use File::Copy;
+
+use Getopt::Long;
+GetOptions ('help' => \$help, 'force' => \$force, 'test'=>\$test,
+            'quiet' => \$quiet, 'copy' => \$copy);
+
+sub usage {
+
+   print <<THE_END;
+ rnm uses perl syntax to rename files. 
+       rnm s/orig/bak/ *
+       rnm 's/\.orig\$//' *.orig
+       rnm 'y/A-Z/a-z/ unless /^Make/' * # translate to upper case
+       rnm '\$_ .= ".bad"' *.f
+       rnm 'print "$_: "; s/foo/bar/ if <stdin> =~ /^y/i' *
+
+ options: --help  -h : print this message
+          --force -f : overwrite existing file without prompting
+                       in case file with new name already exists.
+          --test  -t : just write old and new filename without 
+                       actually renaming.
+          --copy  -c : copy the file (with the new file name)
+          --quiet -q : dont tell what you're doing.
+ 
+ based on a script by Larry Wall found on 
+ http://www.faqs.org/faqs/unix-faq/faq/part2/section-6.html
+
+THE_END
+}
+
+
+sub _print {
+   print 'rnm: ', @_ unless $quiet;
+}
+
+
+if ($help) {
+   usage();
+   exit;
+}
+
+$op = shift;
+
+_print @ARGV . " files to be processed\n" unless $test;
+
+$cnt = 0;
+for (@ARGV) {
+   $was = $_;
+
+   eval $op;
+   die $@ if $@;
+
+   _print "$was => $_", ($copy? " (copy)\n":"\n");
+
+   next if $test;
+
+   if ($was eq $_) {
+      print STDERR "rnm: cannot handle unchanged filename: '$was'\n";
+      next;
+   }
+
+   if (! $force && -e $_) {
+      # file with new name exists. OK to replace it ?
+      print STDERR "rnm: replace $_ (y/n) ? [n] ";
+      next unless <STDIN> =~ /y/i;
+   }
+
+   # copy or rename file
+   if ($copy) {
+      copy($was, $_) && $cnt++;
+   }
+   else {
+      rename($was,$_) && $cnt++;
+   }
+
+}
+
+_print "$cnt files were succesfully processed\n" unless $test;
+

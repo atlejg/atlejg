@@ -1,0 +1,39 @@
+#!/usr/bin/perl -w
+
+use lib $ENV{'EXT_PERL_MODULES'};
+use PoorMan::Utils qw(pad);
+
+use strict;
+
+sub _time() 
+{
+   my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+
+   #return sprintf("%i_%i_%i_%i%i%i",$year+1900,$mon+1,$mday,$hour,$min,$sec);
+   return ($year+1900).'_'.pad($mon+1,2).'_'.pad($mday,2).'_'.pad($hour,2).pad($min,2).pad($sec,2);
+}
+
+sub _usage
+{
+   return <<THE_END;
+
+ usage: $0 <files>
+
+ Creates a directory named BAK_<date> where the given files is copied to.
+ Ex. $0 *.[ch]
+
+THE_END
+
+}
+
+die _usage() unless @ARGV > 0;
+
+my $bakdir = "BAK_" . _time();
+mkdir $bakdir || die "directory $bakdir could not be created: $!";
+
+foreach my $file (@ARGV) {
+   system("cp -p $file $bakdir");
+}
+
+# qc
+system("find $bakdir");

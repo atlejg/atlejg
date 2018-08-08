@@ -1,0 +1,17 @@
+#!/usr/bin/env tcsh
+#
+# extracts runtime info from fluent transcript file
+# handles only 1 file - use do for multiple files
+# agy@statoil.com
+# History:
+# Tue Feb  9 07:42:40 MET 2010
+#  version 0.1
+#
+
+if ($# < 1) then
+   echo "usage: $0 transcriptname"
+   exit 1
+endif
+
+echo $1
+grep isdst $1 | sed 's/.*isdst//'

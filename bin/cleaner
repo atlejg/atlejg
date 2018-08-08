@@ -1,0 +1,2 @@
+#!/usr/bin/tcsh
+rmall `find -name '*~' -or -name 'clean*'`

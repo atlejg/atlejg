@@ -1,0 +1,17 @@
+#! /usr/bin/env python
+
+'''
+just a very simple wrapper for the runstars program.
+since we have a limited number of licenses, could be useful
+to start cases one by one.
+note that it redirects output to a log-file.
+'''
+
+import sys, os
+import AtlejgTools.Utils as UT
+
+for datfile in sys.argv[1:]:
+   cmd = 'runstars -i %s >& %s.log' % (datfile, UT.basename(datfile))
+   print cmd
+   os.system(cmd)
+

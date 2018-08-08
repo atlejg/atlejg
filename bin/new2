@@ -1,0 +1,42 @@
+#!/usr/bin/env tcsh
+
+if ($# < 2) then
+   echo " usage: $0 1 10"
+   echo "   assumes that there exists templ1.jou, templ1.bc, templ1.bsub."
+   echo "   template files must have the string _RUNID_ at proper places."
+   echo "   will create 10.jou, 10.bc, 10.bsub"
+   exit 1;
+endif
+
+set templ = $1;
+set runid = $2;
+
+set bcfile   = $runid.bc  
+set joufile  = $runid.jou
+set bsubfile = $runid.bsub
+
+if -e $joufile then
+   echo "$joufile exists"
+else
+   if -e templ{$templ}.jou then
+      sed s/_RUNID_/$runid/g templ{$templ}.jou   > ! $joufile
+   endif
+endif
+
+if -e $bcfile then
+   echo "$bcfile exists"
+else
+   if -e templ{$templ}.bc then
+      sed s/_RUNID_/$runid/g templ{$templ}.bc   > ! $bcfile
+   endif
+endif
+
+if -e $bsubfile then
+   echo "$bsubfile exists"
+else
+   if -e templ{$templ}.bsub then
+      sed s/_RUNID_/$runid/g templ{$templ}.bsub   > ! $bsubfile
+   endif
+endif
+
+echo "done"

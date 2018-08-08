@@ -1,0 +1,79 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+#
+###############################################################################
+
+use strict;
+
+
+use lib $ENV{EXT_PERL_MODULES};
+use PoorMan::Utils qw(getLog getOpts);
+
+#======================= CONSTANTS ============================================
+
+
+#======================= GLOBAL VARIABLES =====================================
+
+my $_log = getLog();
+my $_opts = getOpts(qw(assembly:s nx=i ny=i nz=i dx=f dy=f dz=f) );
+
+#======================= SUBROUTINES FOLLOW ===================================
+
+sub usage() {
+
+   return <<THE_END;
+ 
+ Creates a macro file for CASD.
+ This macro builds an assembly created by alternating
+ objects in X,Y, and Z directions. Typically these
+ objects are boxes with different porosities.
+
+ Usage:
+ $0 --[nx ny nz dx dy dz (assembly)] OBJLIST 
+
+THE_END
+
+}
+
+#======================= MAIN LOGIC ===========================================
+
+my @instances = @ARGV;
+my $no = scalar(@instances)
+  or die usage();
+
+# this is just for convinience
+my $nx = $_opts->{'nx'};
+my $dx = $_opts->{'dx'};
+my $ny = $_opts->{'ny'};
+my $dy = $_opts->{'dy'};
+my $nz = $_opts->{'nz'};
+my $dz = $_opts->{'dz'};
+
+# want this attached to one assambly
+my $assembly = ($_opts->{'assembly'} or 'ASSEMBLY');
+print "GE AS $assembly\n";
+
+for my $i (0..$nx-1) {
+   for my $j (0..$ny-1) {
+      for my $k (0..$nz-1) {
+
+         my $index = ($i + $j + $k) % $no;
+         my $object = $instances[$index];
+
+         my $x = $i * $dx;
+         my $y = $j * $dy;
+         my $z = $k * $dz;
+
+         print "GE IN $object\n";
+         print "GE PO $x $y $z\n";
+      }
+   }
+}
+
+
+
+
+
+
+

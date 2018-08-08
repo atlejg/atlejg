@@ -1,0 +1,155 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+#
+###############################################################################
+
+use strict;
+
+
+use lib $ENV{EXT_PERL_MODULES};
+use PoorMan::Utils qw(getLog getOpts get);
+
+#use Data::Dumper;
+
+#======================= CONSTANTS ============================================
+
+use constant RUN => $ENV{FLACS_RUN}; # typically /h/flacs/FLACS99/bin/run99
+
+#======================= GLOBAL VARIABLES =====================================
+
+use vars qw($_log $_opts %_max %_xyz $_cgfile);
+$_log  = getLog();
+$_opts = getOpts(qw(cgfile=s i=i j=i k=i x=f y=f z=f));
+
+#======================= SUBROUTINES FOLLOW ===================================
+
+
+
+sub readGrid() {
+
+=head2 readGrid()
+
+Reads grid into matrix.
+Uses flacstool 'listgrid'
+
+=cut
+
+
+   my $cgAscii = $_cgfile . '.ascii';
+
+   my $cmd = RUN . " listgrid $_cgfile > $cgAscii";
+   my $rc = system($cmd);
+
+   die "system could not execute command '$cmd'"
+     if $rc > 0;
+
+
+   open(FILE, $cgAscii)
+     or die "cannot open file '$cgAscii' : $!";
+
+   my $dir;
+   while (<FILE>) {
+
+      chomp;
+      my $first = substr($_,0,1);
+
+      if ('XYZ' =~ /$first/) {
+
+         $dir = $first;
+
+         # picking up number of gridlines. Doesnt work on cygwin:-(
+         my $maxIndex;
+         ($maxIndex) = /(\d*$)/;
+         $_log->debug("dir = $dir - maxIndex = $maxIndex");
+
+         $_max{$dir} = $maxIndex;
+         $_xyz{$dir} = [];
+         $_xyz{$dir}->[0] = -1e+30; # i want gridline 1 to have index 1
+      }
+      elsif ($first eq ' ') {
+         push(@{$_xyz{$dir}}, split);
+      }
+   }
+
+   $_log->debug('_xyz = ' . scalar(@{$_xyz{'X'}} ) );
+   #$_log->debug('_max = ' . Dumper(\%_max) );
+}
+
+sub getCoord($$) {
+   my $dir = uc(shift);
+   my $gridLn = shift;
+
+   die "$gridLn is utside index range for $dir!"
+     if ($gridLn > $_max{$dir} || $gridLn < 1);
+     
+   $_log->debug("dir = $dir, gridLn = $gridLn");
+
+   return $_xyz{$dir}->[$gridLn];
+}
+
+sub getGridline($$) {
+   my $dir = uc(shift);
+   my $lookfor = shift;
+
+   die "$lookfor is outside range for $dir!"
+     if ($lookfor > $_xyz{$dir}->[$_max{$dir}]
+      || $lookfor < $_xyz{$dir}->[1]);
+
+   my $gridLn = -1;
+
+   foreach my $coord (@{$_xyz{$dir}} ) {
+      $gridLn++;
+      $_log->debug("coord = $coord - lookfor = $lookfor");
+      last if $coord >= $lookfor;
+   }
+
+   $_log->debug("dir = $dir, lookfor = $lookfor gridLn = $gridLn");
+   
+   return $gridLn;
+}
+
+
+
+sub _map($) {
+   my $dir = shift;
+
+   return 'X' if $dir eq 'i';
+   return 'Y' if $dir eq 'j';
+   return 'Z' if $dir eq 'k';
+}
+
+#======================= MAIN LOGIC ===========================================
+
+#$_log->debug("opts = " . Dumper($_opts));
+
+
+$_cgfile = ($_opts->{'cgfile'} or get('Geometry file', 1) );
+
+$_log->debug("cgfile = $_cgfile");
+
+die "Geometry file '$_cgfile' does not exist!"
+  unless -e $_cgfile;
+
+
+readGrid();
+
+foreach my $dir (qw(i j k) ) {
+
+   my $gridLn = $_opts->{$dir};
+   if (defined $gridLn) {
+      my $coord = getCoord(_map($dir), $gridLn);
+
+      print "$dir: Coord for gridNo $gridLn = $coord\n";
+   }
+}
+
+foreach my $dir (qw(x y z) ) {
+
+   my $coord = $_opts->{$dir};
+   if (defined $coord) {
+      my $gridLn = getGridline($dir, $coord);
+
+      print "$dir: Gridline for coordinate $coord = $gridLn\n";
+   }
+}

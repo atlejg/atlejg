@@ -1,0 +1,19 @@
+#!/bin/awk -f
+
+#usage: $0 /usr/share/games/fortune/miscellaneous
+
+BEGIN {
+   DEBUG = 0;
+   RS = "\%"
+}
+
+{
+  fortunes[NR] = $0;
+}
+
+END {
+   srand();
+   n = int(NR * rand());
+   if (DEBUG) print n;
+   print fortunes[n];
+}

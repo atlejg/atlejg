@@ -1,0 +1,81 @@
+#!/usr/bin/perl
+
+use Getopt::Std;
+
+sub usage {
+   print <<THE_END;
+
+ One could say $0 is just a poor mans 'find . -exec' or xargs ...
+
+ usage: $0 <command> [-f -v -t <secs> -h] [files]
+
+ the <command> is executed for each file (or given time interval, using -t), through system().
+ you got the filename at your disposal through \$_ (unless -t)
+
+ Options: 
+ -f : you dont want to stop even if system() returns error.
+
+ -v : if you want the script to be verbose (cannot force system() to be quiet, though).
+
+ -t : do command, then sleep for <secs> seconds and redo the command.
+      Infinite loop - must be terminated be Ctrl-C or kill.
+      (there is no such thing as an infinite loop - eventually the
+      machine will break down :-)
+
+ -c : use tcsh instead of sh (which is inherently in system()). fix of NB1 below
+
+ -h : show this info
+ 
+ NB1 : system() uses /bin/sh on Unix/Linux so any aliases in .cshrc
+ are lost. other problems could also appear.
+
+ ex: $0 'echo \$_' *    # just a stupid way to do 'ls'
+     $0 -t 2 'cat file.txt;echo' # content of file.txt is rewritten by another process.
+
+THE_END
+}
+
+sub _tcsh {
+   my $cmd = shift;
+
+   system("tcsh -c '$cmd'");
+}
+
+sub _do {
+   my $cmd = shift;
+
+   eval "print STDERR \"do: $cmd\n\"" if $opt_v; # verbose
+   if ($opt_c) {
+      $rc = eval "_tcsh(\"$cmd\")";
+   }
+   else {
+      $rc = eval "system(\"$cmd\")";
+   }
+   die $@ if $@; # should never happen...
+
+   die "system returned error '$rc' (command is '$cmd')" 
+      if ($rc && ! $opt_f);
+}
+
+getopt('th');
+
+my $cmd = shift;
+
+unless ($cmd || $opt_h) {
+   usage();
+   exit 1;
+}
+
+unless ($opt_t) {
+   foreach (@ARGV) {
+      _do($cmd);
+   }
+}
+else {
+   while (1) {
+      _do($cmd);
+      sleep $opt_t;
+   }
+}
+
+

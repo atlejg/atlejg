@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# doesnt work. it doesnt interpolate "$name" correctly - why?
+
+name=$1
+echo $name
+
+gnuplot <<\EOF
+set title "$name"
+plot "$name" every ::5
+pause -1
+EOF

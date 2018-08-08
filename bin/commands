@@ -1,0 +1,149 @@
+#!/usr/bin/perl -w
+
+=head1 commands
+
+NOT VERY USEFUL. USE 'setenv DISPLAY <machine>' IN STEAD !!
+
+This script reads (unix) commands from a file and executes them (in the
+background).
+
+Useful if you want a job to be started from a particular shell at a given 
+machine, but you dont sit in front of that machine.
+
+Typically, it can be used for running Fluent with animation, which
+requires gui and cannot be started in batch using telnet. The entry in
+the cmds.txt would then look like
+
+fluent -i run.jou 3d
+
+A log file telling the command that is executed, a timestamp and the return code
+from the shell is created.
+
+=cut
+
+###############################################################################
+#
+###############################################################################
+
+use strict;
+
+use lib $ENV{EXT_PERL_MODULES};
+use PoorMan::Utils qw(getOpts getLog);
+use PoorMan::Log;
+
+use Data::Dumper;
+
+#======================= CONSTANTS ============================================
+
+use constant LOGFILE => 'cmds.log';
+use constant CMDFILE => 'cmds.txt';
+use constant DEF_IDLE_TIME => 10;  # secs
+
+#======================= GLOBAL VARIABLES =====================================
+
+my $_log  = getLog(LOGFILE); #new PoorMan::Log(LOGFILE);
+my $_opts = getOpts(qw(help idle=f test fg) );
+
+#======================= SUBROUTINES FOLLOW ===================================
+
+
+
+###############################################
+# 
+# ->
+# <-
+###############################################
+sub readCommands {
+   
+   my @cmds;
+   open(FILE, CMDFILE) or $_log->error('Could not open file ',CMDFILE, " :$!");
+
+   while (<FILE>) {
+      chomp;
+      next unless /\w/; # blank lines
+
+      push(@cmds, $_);
+   }
+
+   close FILE;
+
+   return @cmds;
+}
+
+sub execute {
+   my $cmd = shift;
+   
+   # in background, unless told otherwise
+   $cmd .= '&' unless ( $_opts->{'fg'} || $cmd =~ /&\s*$/);
+
+   $_log->info("command = $cmd");
+   my $rc = system("$cmd"); 
+   $_log->info("Return code = $rc");
+}
+
+sub _unlink {
+   my $file = shift;
+
+   if (unlink($file)) {
+      return 1;
+   }
+   else {
+      $_log->fatal("Cannot remove ", $file, " : $!");
+      return 0;
+   }
+}
+
+sub main {
+
+   my $idle = ($_opts->{'idle'} or DEF_IDLE_TIME);
+
+   # reuse variables in deamons...
+   my @cmds;
+   my $cmd;
+   my $rc;
+
+   while (1) {
+
+      next unless -e CMDFILE;
+
+      @cmds = readCommands();
+
+      foreach $cmd (@cmds) {
+         execute($cmd);
+      }
+
+      # _never_ allow the same command file to be executed more than once
+      _unlink(CMDFILE) || last;
+
+   }
+   continue {
+      $_log->debug("sleeping $idle secs...");
+      sleep($idle);
+   }
+
+}
+
+sub test {
+
+   my @cmds = readCommands();
+   print Dumper(\@cmds);
+
+   foreach my $cmd (@cmds) {
+      execute($cmd);
+   }
+
+}
+
+#======================= MAIN LOGIC ===========================================
+
+$_log->timestampAll();
+
+if ($_opts->{'test'} ) {
+   test();
+}
+else {
+   main();
+}
+
+$_log->info('done');
+

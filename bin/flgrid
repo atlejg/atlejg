@@ -1,0 +1,532 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+#
+# creates a macro file for creating grid in flacs.
+#
+###############################################################################
+
+
+
+use strict;
+
+
+use lib $ENV{EXT_PERL_MODULES};
+use PoorMan::Utils qw(getLog getOpts);
+
+#use Data::Dumper;
+
+
+#======================= CONSTANTS ============================================
+
+my @_params = 
+  qw(xmin=f xmax=f ymin=f ymax=f zmin=f zmax=f dx=f dy=f dz=f);
+my @_paramsOpt = qw(x=f@ y=f@ z=f@);
+
+#======================= GLOBAL VARIABLES =====================================
+
+my $_log = getLog();
+my $_opts = getOpts(@_params, @_paramsOpt,  'ifile=s', 'ofile=s', 'cfile=s'); 
+my $_params = {};
+
+###############################################################################
+# inner class...
+###############################################################################
+package Interval;
+
+use constant MAX_STRETCH_FACTOR => 1.2;
+
+
+
+sub new {
+
+=head2
+
+constructor
+
+=cut
+
+   my $class = shift;
+   my $min = shift;
+   my $max = shift;
+
+   die "Intervals must have positive length"
+     if $min >= $max;
+
+   my %self;
+
+   $self{'min'} = $min;
+   $self{'max'} = $max;
+   $self{'del'} = 0;
+   $self{'n'}   = 0;
+
+   return bless \%self, $class;
+}
+
+sub length() {
+
+=head2
+
+FInds the length of this interval
+
+=cut
+
+   my $self = shift;
+
+   return ($self->{'max'} - $self->{'min'} );
+}
+
+sub grid($) {
+
+=head2 grid()
+
+This one does the actual gridding.
+NOT GOOD ENOUGH !!
+
+=cut
+
+   my $self = shift;
+   my $del = shift;
+
+   my $lng = $self->length();
+
+   my $n = int($lng / $del);
+   my $r = $lng - ($n * $del); # mod
+
+   # normalize residual
+   $r /= $del;
+
+
+   $n++ if ($r >= 0.5) || $n == 0;
+
+   my $del2 = $lng / $n;
+
+   # this warning may be out of order if this interval is
+   # the first to be gridded!
+   $_log->warn('OUTSIDE LIMITS') unless _insideLimits($del, $del2);
+
+   $self->{'n'} = $n;
+   $self->{'del'} = $del2;
+
+   $_log->debug("del2=$del2 del=$del  n=$n : res=$r");
+
+   return $del2;
+}
+   
+sub max() {
+   return shift->{'max'};
+}
+
+sub min() {
+   return shift->{'min'};
+}
+
+sub nodes() {
+
+=head2 nodes()
+
+return the _inner_ nodes of an interval
+
+=cut
+
+   my $self = shift;
+
+   # for convinience...
+   my $del = $self->{'del'};
+   my $n = $self->{'n'};
+   my $node = $self->{'min'};
+
+   die "nodes() cannot be used _before_ grid()" unless $del;
+
+   my @nodes;
+   for(1..($n - 1)) {
+      $node += $del;
+      push(@nodes, $node);
+   }
+
+   return @nodes;
+}
+
+sub _insideLimits($$) {
+   my $del1 = shift;
+   my $del2 = shift;
+
+   return ($del1/$del2 <= MAX_STRETCH_FACTOR 
+        && $del2/$del1 <= MAX_STRETCH_FACTOR);
+}
+
+# end of  package Interval
+
+
+package Axis;
+
+#use Data::Dumper;
+
+=head1
+
+One axis consists of several Interval's.
+
+=cut
+
+sub new($$) {
+
+=head2
+
+constructor
+
+=cut
+
+   my $class = shift;
+
+   my $self = {};
+
+   $self->{'intervals'} = [];
+   $self->{'dir'} = shift;
+   $self->{'del'} = shift;
+   $self->{'nofInterv'} = 0;
+
+   return bless $self, $class;
+}
+
+
+sub direction() {
+   my $self = shift;
+
+   return $self->{'dir'};
+}
+
+
+sub addInterval($$) {
+   my $self = shift;
+   my $min = shift;
+   my $max = shift;
+
+   push(@{$self->{'intervals'}}, new Interval($min, $max) );
+   $self->{'nofInterv'}++;
+
+   return $self;
+}
+
+
+   
+
+sub nodes() {
+
+=head2
+
+finds nodes for the entire Axis
+
+=cut
+
+   my $self = shift;
+
+   $self->_sort(); # better safe than sorry...
+
+   # for convinience...
+   my @intervals = $self->_intervals();
+   my $lastIndex = $self->{'nofInterv'} -1;
+
+   # find smallest grid distance for this axis
+   my($del, $index) = $self->_smallest();
+
+   # need to keep the grid dist for neighbour interval
+   my $ndel = $del;
+
+   # start on smallest interval and then go left
+   foreach my $no (0..$index) {
+      $ndel = $intervals[$index - $no]->grid($ndel);
+      $del = $ndel if $no == 0;
+   } 
+   # -and right
+   $ndel = $del;
+   foreach my $no (($index + 1)..$lastIndex) {
+      $ndel = $intervals[$no]->grid($ndel);
+   } 
+
+   my @nodes;
+   foreach my $interval (@intervals) {
+      push(@nodes, $interval->min() );
+      push(@nodes, $interval->nodes() );
+   }
+
+   # the first node is part of the simulation region -> remove
+   shift @nodes;
+
+   return @nodes;
+}
+
+# find smallest delta (which is the length of the
+# smallest interval or the delta)
+# returns this one and the position of the smallest
+# interval.
+sub _smallest() {
+   my $self = shift;
+
+   my $del = 1e+30;
+   my $index;
+
+   foreach my $no (0..($self->{'nofInterv'} - 1 ) ) {
+      my $interval = $self->{'intervals'}->[$no];
+      if ($interval->length() < $del) {
+         $del = $interval->length(); 
+         $index = $no;
+      }
+   }
+   $del = $self->{'del'} if ($self->{'del'} < $del);
+
+   $_log->debug("del=$del, index=$index");
+
+   return ($del, $index);
+}
+
+sub _intervals() {
+   my $self = shift;
+
+   return @{$self->{'intervals'}};
+}
+
+
+sub _sort() {
+   my $self = shift;
+
+   $_log->debug('inside');
+
+   # make sure we sort numerically
+   my @sorted = sort {$a->min() <=> $b->min()} @{$self->{'intervals'} };
+
+   #$_log->debug('sorted'.Dumper(\@sorted));
+   $self->{'intervals'} = \@sorted;
+
+   return $self;
+}
+# end of package Axis
+   
+
+package main;
+
+#======================= SUBROUTINES FOLLOW ===================================
+
+
+
+###############################################
+# 
+# ->
+# <-
+###############################################
+sub newAxis($) {
+   my $dir = shift;
+
+   # the nodes that must be honoured - if any
+   my @nodes;
+   if ($_params->{$dir}) {
+      @nodes = sort {$a <=> $b}@{$_params->{$dir}};
+   }
+
+   # stick in borders
+   push(@nodes, $_params->{"${dir}max"});
+   unshift(@nodes, $_params->{"${dir}min"});
+
+   # divide axis into intervals
+   my $axis = new Axis($dir, $_params->{"d$dir"});
+   foreach my $no (0..(scalar(@nodes) - 2 ) ) {
+
+      $axis->addInterval($nodes[$no], $nodes[$no+1], $_params->{"d$dir"});
+   }
+   
+   #$_log->debug('axis = ' . Dumper($axis) );
+      
+   return $axis;
+
+}
+
+sub createMacro($) {
+   my $axis = shift;
+
+   my $OUT;
+   my $ofile = $_opts->{'ofile'};
+
+   if ($ofile) {
+
+      open(OFILE, ">$ofile")
+        or die "cannot create file '$ofile'";
+      
+      $OUT = *OFILE{IO};
+
+      $_log->info("creating file '$ofile'");
+   }
+   else {
+      $OUT = *STDOUT{IO};
+   }
+
+   # simulation volume
+   print $OUT "grid sim ";
+   foreach my $dir ('x', 'y', 'z') {
+      print $OUT $_params->{"${dir}min"}, ' ';
+   }
+   foreach my $dir ('x', 'y', 'z') {
+      print $OUT $_params->{"${dir}max"}, ' ';
+   }
+   print $OUT "\n";
+
+   # grid nodes
+   foreach my $axis (@$axis) {
+      print $OUT "grid dir ", $axis->direction(), "\n";
+      
+      foreach my $node ($axis->nodes() ) {
+         printf $OUT "grid add %.2f\n", $node;
+      }
+   }
+
+   close $OUT if $ofile;
+   
+}
+
+# takes input values into the global $_parms hash.
+# input is from command line options or from file.
+# to get a unified approach, we'll read the content
+# of the file into @ARGV and use getOpts again.
+sub _params() {
+
+   my $opts; 
+
+   # are we gonna take input from file ?
+   if ($_opts->{'ifile'}) {
+
+      # yes 
+      @ARGV = map("--$_", _readInputFile() ); 
+      $opts = getOpts(@_params, @_paramsOpt);
+   }
+   else {
+      # no, input is given by options
+      $opts = $_opts;
+   }
+
+   # by now, all input is found in $opts.
+   # want to put it into the global $_params.
+   foreach my $param (@_params) {
+
+      # get rid of '=f' etc in param name...
+      ($param) = split(/=/, $param);
+
+      $_params->{$param} = $opts->{$param};
+
+      # these are not optional!
+      return 0 unless defined $_params->{$param};
+   }
+
+   foreach my $param (@_paramsOpt) {
+
+      # get rid of '=f' etc in param name...
+      ($param) = split(/=/, $param);
+
+      $_params->{$param} = $opts->{$param};
+   }
+
+   #$_log->debug('params = ' . Dumper($_params) );
+
+   return 1; # if we get down here...
+
+}
+
+sub _readInputFile() {
+
+   my $ifile = $_opts->{'ifile'};
+   
+   open(IFILE, $ifile)
+     or die "cannot open file '$ifile' : $!";
+
+   my @ifile;
+   while (<IFILE>) {
+      chomp;
+      push(@ifile, $_);
+   }
+
+   close(IFILE);
+   
+   #$_log->debug('ifile = '.Dumper(\@ifile) );
+
+   return @ifile;
+}
+
+# creates input file in the correct format.
+# nb! this one messes up @_params - so dont do anything afterwards!
+sub createInputFile() {
+
+   my $cfile = $_opts->{'cfile'}; 
+
+   open(IFILE, ">$cfile")
+     or die "cannot create file '$cfile' : $!";
+
+   foreach my $param (@_params, @_paramsOpt) {
+
+      # get rid of '=f' etc in param name...
+      ($param) = split(/=/, $param);
+
+      print IFILE "$param=\n";
+   }
+
+   close IFILE;
+
+   $_log->info("input file $cfile successfully written");
+}
+
+sub usage() {
+
+   return <<THE_END;
+
+usage: $0 --options
+
+   where the following options _must_ be given or specified
+   in a file using the --ifile option :
+
+   --d[x|y|z] : delta
+   --[x|y|z]min : start of interval
+   --[x|y|z]max : end of interval
+
+   and these option are optional (!) :
+
+   --x|y|z  : grid must honour this point (multiple)
+
+
+   In addition, we have these file options:
+
+   --ifile  : values found in file 'ifile'
+   --ofile  : macro written to file (default is STDOUT)
+
+   One special case:
+
+   --cfile  : create a template input file - and do NOTHING more!
+
+   Example:
+    First: create a template input file:
+     $0 --cfile grid.txt
+    Edit grid.txt using a standard text editor.
+    Then create the macro file:
+     $0 -i grid.txt > grid.mcr
+     (which is equivalent to $0 --ifile=grid.txt --ofile=grid.mcr )
+
+THE_END
+
+}
+
+
+
+#======================= MAIN LOGIC ===========================================
+
+#$_log->debug('opts = ' . Dumper($_opts) );
+
+if ($_opts->{'cfile'}) {
+   createInputFile();
+   exit 0; 
+}
+
+_params() or die usage();
+
+my @axis;
+foreach my $dir(qw(x y z)) { 
+#foreach my $dir(qw(x)) {#testing
+   push(@axis, newAxis($dir) );
+}
+
+createMacro(\@axis);
+

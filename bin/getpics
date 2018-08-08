@@ -1,0 +1,89 @@
+#!/usr/bin/perl -w
+
+# copies files (typically pics) from one dir to another.
+# in the todir, a structure based on date of the file is
+# set up and files put into
+
+# atle j. gyllensten
+# 25-26/12-2005
+#
+# note: on cygwin, copy does not preserve the date !!!
+# YES IT DOES, USE mtime instead of ctime !
+#
+# 5/6-2012: dont copy raw-files (rc2-files)
+
+
+use strict;
+use Getopt::Std;
+use File::Copy;
+
+use constant DEBUG_LVL => 1;
+
+our($opt_f); # force
+
+sub _debug
+{
+   return if (shift) > DEBUG_LVL;
+
+   print "$0 : ",@_,"\n";
+}
+
+sub _mkdir
+{
+   my $dir = shift;
+   my $rc;
+
+   if (! -e $dir) {
+      $rc = mkdir $dir;
+      _debug(0,"creating directory $dir. rc= $rc");
+   }
+}
+
+getopts('f');
+
+my $fromdir = shift or die "need a fromdir";
+my $basedir   = shift or die "need a basedir";
+
+my @allpics = glob("$fromdir/*");
+_debug(9,@allpics);
+
+# dont copy raw files
+my @pics;
+foreach (@allpics) {
+   push(@pics, $_) if not m/cr2$/i;
+}
+
+_debug(0,sprintf("copying %i pics from '%s' to '%s'",$#pics + 1,$fromdir,$basedir));
+
+my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks);
+my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst);
+my ($todir,$file);
+foreach (@pics) {
+   ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size, $atime,$mtime,$ctime,$blksize,$blocks)
+      = stat($_);
+   ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)
+      = localtime($mtime);
+   $year += 1900;
+   $mon  += 1;
+   $mday = sprintf('%02s',$mday);  # left-zero-padding
+   $mon = sprintf('%02s',$mon);  # left-zero-padding
+
+
+   $todir = "$basedir/$year/";
+   _mkdir($todir);
+   $todir .= "$year-$mon-$mday/";
+   _mkdir($todir);
+
+   # obtaining 'basename'
+   ($file) = m/\/(\w*\.\w*)/;
+   _debug(9,"1 = $1");
+
+   if ($opt_f || ! -e "$todir/$file") {
+      _debug(0,"copying '$_' to '$todir'");
+      copy($_,$todir) or die "Copy failed: $!";
+   }
+   else {
+      _debug(-1,"skipping $todir/$_ : file exists");
+   }
+}
+#sleep 109;

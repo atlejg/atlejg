@@ -1,0 +1,6 @@
+#! /usr/bin/env python
+import AtlejgTools.EclipseTools.Utils as ECL
+import AtlejgTools.Utils as UT
+import sys
+
+ECL.lsf_run2(UT.glob(sys.argv[1:]))

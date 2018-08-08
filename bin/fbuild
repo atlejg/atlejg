@@ -1,0 +1,25 @@
+#!/bin/tcsh
+# note: so-name in makefile _must_ be libudf.so, else fluent wont find it
+if ($# != 2) then
+   echo "usage: $0 <libudf-name> version";
+   exit 1;
+endif
+set libdir = $1;
+set vers   = $2;
+mkdir $libdir
+cd $libdir
+
+echo "pwd = " `pwd`
+
+# make sure everything is build from scratch
+# i've seen examples where things have gone totally wrong
+# when doing this.
+# CONSIDER USING make clean !!!
+
+# Fri Aug 12 16:07:24 NST 2005 - trying without rm
+# Mon Aug 15 09:44:00 NST 2005 - i dont trust it on SGI
+find $FLUENT_ARCH -type f -exec rm -f {} \;
+
+# now, do build
+make "FLUENT_ARCH=$FLUENT_ARCH" "RELEASE=$vers"
+cd -

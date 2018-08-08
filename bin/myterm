@@ -1,0 +1,34 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+# Smart way of starting xterm - including hostname and any given
+# argumrnts in the name (title)
+#
+# History.
+# Thu Oct 14 08:30:09 NST 2004
+#  using winterm on sgi. means name must be _one_ word
+# Tue Jan 18 10:07:05 NWT 2005
+#  going back to xterm on sgi because winterm has lost 'arrow-up' functionality
+###############################################################################
+
+
+$name = `hostname`;
+chomp($name);
+
+
+if ($^O =~ /lin/i) {
+   if (@ARGV > 0) {
+      $name .= ' : ' . join(' ', @ARGV);
+   }
+   $rc = system("xterm -name '$name'");
+}
+else {
+   if (@ARGV > 0) {
+      $name .= '_' . join('_', @ARGV);
+   }
+   $rc = system("winterm -name '$name'");
+   #$rc = system("xterm -name '$name'");
+}
+
+print "could not open new terminal : $!" if $rc;
+

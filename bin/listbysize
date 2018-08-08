@@ -1,0 +1,5 @@
+#! /usr/bin/env tcsh
+
+find -type f -ls | sort -k 7 -n | awk '{print $7/1048576,"M",$11}'
+#find -type f -ls | sort -k 7 -n -r | awk '{print $7/1048576,"M",$11}'
+#find -type f -ls | sort -k 7 -n | awk 'split($7,a,".");{print $7/1048576,"M", a[3], $11}'

@@ -1,0 +1,85 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+#
+###############################################################################
+
+=head1 randmp3
+
+ plays randomly chosen mp3 files from the current directory and any
+ of its subdirectories.
+
+=cut
+
+use strict;
+
+use lib '/h/a111785/PerlModules';
+
+use PoorMan::Utils qw(getOpts);
+use PoorMan::Random;
+
+#======================= CONSTANTS ============================================
+
+
+#======================= GLOBAL VARIABLES =====================================
+
+my $_opts = getOpts(qw(help test name=s num=i dir=s ext=s));
+#======================= SUBROUTINES FOLLOW ===================================
+
+sub usage {
+   print <<THE_END;
+
+ usage: randmp3 
+
+ options:
+  --num  : max num of songs to play
+  --name : aka -name in find
+  --dir  : which directory find is gonna search
+  --test : dont play, just list the chosen songs
+
+THE_END
+
+}
+
+
+#======================= MAIN LOGIC ===========================================
+
+if ($_opts->{'help'}) {
+      usage();
+      exit;
+}
+   
+
+my $name = ($_opts->{'name'} || '*');
+my $num  = ($_opts->{'num'} || 0);
+my $ext  = ($_opts->{'ext'} || '.mp3');
+my $dir  = ($_opts->{'dir'} || '.');
+
+my $findstr = "find $dir -name '$name$ext'";
+print "findstr = $findstr\n";
+
+my @mp3 = qx($findstr);
+
+my $rand = new PoorMan::Random();
+$rand->load(\@mp3);
+
+my $song;
+my $cnt = 0;
+while ($song = $rand->next() ) {
+   chomp($song);
+
+   last if ($num && ++$cnt > $num);
+   
+   # need to escape whitespaces
+   $song =~ s/ /\\ /g;
+
+   if ($_opts->{'test'}) {
+      print "song = $song\n";
+      next;
+   }
+
+   # ok to play this one
+   qx(mpg321 $song);
+}
+
+

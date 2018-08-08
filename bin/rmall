@@ -1,0 +1,36 @@
+#!/usr/bin/perl -w
+
+# author: atle j. gyllensten
+#
+# history
+# 2006-05-09 : Ver 0.1 
+# 2006-07-27 : Changed output
+
+use strict;
+
+sub _usage
+{
+return <<THE_END;
+
+   usage: $0 <files>
+
+   removes _all_ files after conformation of all (at once).
+   directories are not touched (for safety reasons)
+
+THE_END
+}
+
+die _usage unless @ARGV;
+
+print map("$_\n",@ARGV),"\n";
+
+print "$0: Do you really want to delete those " . @ARGV ," files ? [no] : ";
+my $answer = <STDIN>;
+
+if ($answer && $answer =~ /^y/i) {
+   print STDERR "$0: deleting ...\n";
+   foreach my $file (@ARGV) {
+      #print STDERR "$0: deleting '$file' ...\n";
+      qx(rm -f $file);
+   }
+}

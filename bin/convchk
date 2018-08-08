@@ -1,0 +1,33 @@
+#!/usr/bin/perl -nw
+
+
+sub usage {
+
+   print <<THE_END;
+ usage: $0 < file.tra
+ reports number of iterations between each convergance in a transient
+ run in fluent. file.tra is a fluent transcript file
+
+THE_END
+}
+
+BEGIN {
+   $line = 0;
+   $prev = 0;
+   print "ITER_NO\tDELTA\n";
+   return unless @ARGV;
+   usage() if $ARGV[0] =~ /^-h/i;
+   exit;
+}
+
+next unless /^!/;
+
+next if (++$line % 2) == 0; # every converged 'line' is written twice
+
+# remove '!' and get first field which is the iteration no.
+s/^!//;
+(@f) = split;
+$no = $f[0];
+
+print "$no\t", $no - $prev, "\n";
+$prev = $no;

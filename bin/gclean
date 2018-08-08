@@ -1,0 +1,173 @@
+#!/usr/bin/perl
+
+###############################################################################
+#
+# 2004-07    : more options -> save and size functions
+# 2003-03-26 : change output from usage()
+# 2002-11-20 : add option for removing 'export' commands
+# 2002-11-20 : if -a(ll) is chosen, inverse all other options
+#
+###############################################################################
+
+use lib $ENV{EXT_PERL_MODULES};
+use strict;
+use Getopt::Std;
+#use PoorMan::Utils qw(debug);
+
+
+#======================= CONSTANTS ============================================
+
+
+#======================= GLOBAL VARIABLES =====================================
+
+my $_lastReset     = -1;
+my $_lastResetMesh = -1;
+
+my %_opts;
+my $_jouFile;
+
+#======================= SUBROUTINES FOLLOW ===================================
+
+
+
+###############################################
+# Read commandos from the journal file into an array.
+# Since long commands are spread over several lines,
+# they're cat'ed into one line per commando.
+# <- array ref
+###############################################
+sub readCommands() {
+
+	open(JOU, $_jouFile)
+	  or die "cannot open file $_jouFile : $!";
+	  
+	my @commands;
+	my $index = -1;
+	my $belongsToPrev = 0;
+	while(<JOU>) {
+		chomp;
+		
+		next if not $_;
+
+		if ($belongsToPrev) {
+			$commands[$index] .= $_;
+		}
+		else {
+			$commands[++$index] = $_;
+		}
+		
+		$_lastReset     = $index if m/reset$/;
+		$_lastResetMesh = $index if m/reset mesh$/;
+		
+		$belongsToPrev = (m/\\$/) ? 1 : 0;
+	}
+	
+   #debug("number of commands read was " . scalar(@commands) );
+   #debug("last reset was command " . ($_lastReset + 1) );
+   #debug("last reset of mesh was command " . ($_lastResetMesh + 1) );
+
+	return \@commands;
+}
+
+sub _isMeshCommand($) {
+   my $fields = shift;
+
+   return ($fields->[1] eq 'mesh' || $fields->[scalar(@$fields) - 1] eq 'onlymesh');
+}
+
+sub output($) {
+   my $cleaned = shift;
+
+   foreach (@$cleaned) {
+
+      # write it back into the original form - could be several lines pr command
+      my @lines = split(/\\/);
+
+      my $index = 0;
+      foreach my $line (@lines) {
+         print "$line";
+         print "\\" if (++$index < scalar(@lines) );
+         print "\n";
+      }
+   }
+}
+
+sub usage() {
+
+   return <<THE_END;
+Cleans a gambit journal file.
+
+Usage: $0 [-mwsliaeD] journalfile
+   
+   -m: remove mesh commands
+   -w: remove window commands
+   -l: remove list commands (that is lowercase L)
+   -z: remove summarizing commands
+   -i: remove identifing commands ('File Open')
+   -e: remove export commands
+   -s: remove save commands
+   -f: remove size function comands
+   -a: all above
+
+   if -a is chosen, all other options are inversed 
+
+THE_END
+}
+
+
+sub _opts() {
+
+   getopt('', \%_opts);
+
+   # if -a(ll) is chosen, inverse other options
+   if ($_opts{'a'} ) {
+      $_opts{'m'} = ($_opts{'m'}) ? 0 : 1;
+      $_opts{'w'} = ($_opts{'w'}) ? 0 : 1;
+      $_opts{'l'} = ($_opts{'l'}) ? 0 : 1;
+      $_opts{'z'} = ($_opts{'z'}) ? 0 : 1;
+      $_opts{'i'} = ($_opts{'i'}) ? 0 : 1;
+      $_opts{'e'} = ($_opts{'e'}) ? 0 : 1;
+      $_opts{'s'} = ($_opts{'s'}) ? 0 : 1;
+      $_opts{'f'} = ($_opts{'f'}) ? 0 : 1;
+   }
+
+   $PoorMan::Utils::_debug = $_opts{D};
+}
+
+#======================= MAIN LOGIC ===========================================
+
+_opts();
+
+$_jouFile = shift
+  or die usage();
+
+my $commands = readCommands();
+
+my @cleaned;
+my $index = -1;
+foreach (@$commands) {
+
+   # drop everything comming before a complete reset
+   next if ++$index < $_lastReset;
+
+   my @fields = split;
+
+   # drop more ?
+   next if ($_opts{'w'} && $fields[0] eq 'window');
+   next if ($_opts{'l'} && $fields[0] eq 'list');
+   next if ($_opts{'z'} && $fields[1] eq 'summarize');
+   next if ($_opts{'i'} && $fields[0] eq 'identifier');
+   next if ($_opts{'e'} && $fields[0] eq 'export');
+   next if ($_opts{'s'} && $fields[0] eq 'save');
+   next if ($_opts{'f'} && $fields[0] eq 'sfunction');
+   next if (_isMeshCommand(\@fields) && ($index < $_lastResetMesh || $_opts{'m'} ) );
+
+   # if we get down here, the command should be included
+   push(@cleaned, $_);
+}
+
+#debug('number of commands kept was ' . scalar(@cleaned) );
+
+output(\@cleaned);
+
+

@@ -1,0 +1,49 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+# calculates radius of a circle insubscribed by a 'mangekant'.
+# useful when creating a geometry in Gambit and it is important that the
+# area of a circle is correct.
+###############################################################################
+
+use strict;
+
+use lib $ENV{EXT_PERL_MODULES};
+
+#======================= CONSTANTS ============================================
+
+use constant PI => 3.141592;
+
+#======================= GLOBAL VARIABLES =====================================
+
+#======================= SUBROUTINES FOLLOW ===================================
+
+sub usage {
+   return <<THE_END;
+
+calculates radius of a circle insubscribed by a 'mangekant'
+
+usage: $0 radius number_of_edges
+
+THE_END
+}
+
+
+#======================= MAIN LOGIC ===========================================
+
+die usage unless @ARGV == 2;
+
+my $r = shift;
+my $n = shift;
+
+die "only positive radius allowed" unless $r > 0;
+die "minimum 3 egdes" unless $n > 2;
+
+my $r_new = $r * sqrt(2*PI / ($n*sin(2*PI/$n)));
+my $oldArea = $n*$r*$r*sin(2*PI/$n)/2;
+my $newArea = PI*$r*$r; # which is what we want
+
+print "old radius = $r , new radius = $r_new\n";
+print "old area = $oldArea , new area = $newArea\n";
+print "area ratio is ", $oldArea/$newArea, "\n";
+

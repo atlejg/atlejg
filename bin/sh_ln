@@ -1,0 +1,8 @@
+#!/usr/bin/perl -w
+# i want sh to do ln -s since tcsh uses absolute addresses (sh uses relative, like i want it)
+
+$file = shift || die "usage: $0 file";
+
+$cmd = "sh -c 'ln -s $file'";
+print "cmd= $cmd\n";
+system($cmd);

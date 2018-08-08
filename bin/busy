@@ -1,0 +1,18 @@
+#!/usr/bin/perl
+#
+# just a script that runs forever - writing some nonsense to
+# to STDERR.
+# i made this to make sure the router at home is kept busy
+# so that i dont loose the connection with the server.
+# very useful when doing interactive for, eg. with Fluent.
+#
+
+$count = 0;
+$stime = (shift || 2);
+
+while (1) {
+  print STDERR "busy : I have been running for about ", $stime*$count++, " seconds...";
+  print STDERR " Please kill me!\n";
+  sleep $stime;
+}
+

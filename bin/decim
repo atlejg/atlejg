@@ -1,0 +1,31 @@
+#!/usr/bin/perl -w
+#
+# atle.j.gyllensten@hydro.com
+#
+# HISTORY
+# Wed Oct 25 09:10:37 NST 2006
+#  version 1.0
+
+use Getopt::Std;
+
+sub _usage
+{
+   return <<THE_END;
+ synopsis : decimate files
+ usage: $0 -n<n> filelist
+  where every n file will be kept
+
+THE_END
+}
+
+getopt('n');
+
+die _usage() unless $opt_n;
+
+$cmd = "decims -m $opt_n -n $opt_n ";
+foreach (@ARGV) {
+   $cmd .= " $_";
+}
+
+#print "$cmd\n";
+system($cmd);

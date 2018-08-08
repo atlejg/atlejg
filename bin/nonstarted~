@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+'''
+atle j. gyllensten
+june 2013
+'''
+
+usage = '''
+ checking if any eclipse jobs that was started has stopped unexpectedly.
+ usage: sys.argv[0] 'A*'  (from command line - with fnutter)
+'''
+
+import sys
+import AtlejgTools.Utils as UT
+
+if len(sys.argv) == 1:
+   print usage
+   sys.exit(1)
+
+pattern = sys.argv[1]
+
+datafiles  = UT.glob('%s.DATA'%pattern, sortit=True)
+printfiles = UT.glob('%s.PRT'%pattern, sortit=True)
+
+if len(datafiles) == len(printfiles):
+   print 'all jobs were started (%i == %i)' % ( len(datafiles), len(printfiles))
+else:
+   for datafile in datafiles:
+      if not datafile.replace('.DATA', '.PRT') in printfiles:
+         print datafile, 'not started'

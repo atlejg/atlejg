@@ -1,0 +1,22 @@
+#!/bin/tcsh
+
+# for por017lin.
+# lists which users are using cpu's (more than 50% wcpu)
+
+top -n1 -b | awk 'NR>11 {if($9>50) print $2}' | sort | awk 'NR==1{usr=$1;n=1;tot=1;system("finger " $1 "| grep Name")} NR>1{if (usr==$1) {++n;++tot} else {printf("%s\t%i\t\t| %i\n",usr,n,tot);usr=$1;n=1;++tot;system("finger " $1 "| grep Name")}} END{printf("%s\t%i\n==============\nTOTAL\t%i\n",usr,n,tot)}'
+
+# this one tries to count cpu percentage in stead ...
+#top -n1 -b | awk 'NR>11 {print $2,$9}' | sort | awk 'NR==1{usr=$1;n=$2;tot=$2;system("finger " $1 "| grep Name")} NR>1{if (usr==$1) {n+=$2;tot+=$2} else {printf("%s\t%i\t\t| %i\n",usr,n/96,tot/96);usr=$1;n=$2;tot+$2;system("finger " $1 "| grep Name")}} END{printf("%s\t%i\n==============\nTOTAL\t%i\n",usr,n/96,tot/96)}'
+
+# problem here ...
+#top -n1 -b | awk 'NR>11 {if($9>50) print $2}' | sort | awk 'NR==1{usr=$1;n=1;tot=1} NR>1{if (usr==$1) {++n;++tot} else {printf("%s\t%i\n",usr,n);system("finger " user " | head -1 | awk \'{print $7}\'");usr=$1;n=1;++tot}} END{printf("%s\t%i\n==============\nTOTAL\t%i\n",usr,n,tot)}'
+
+# and some fun ...
+#echo "\n\nand now fortune ..."
+#/h/a111785/bin/fortune ~a111785/Misc/share/fortune/fortune-starwars/starwars
+#/h/a111785/bin/fortune ~a111785/Misc/share/fortune/miscellaneous
+
+# logging
+set logfile = '/h/agy/Misc/loglist'
+date >> $logfile
+echo "$0 $USER" >> $logfile

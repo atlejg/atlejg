@@ -1,0 +1,33 @@
+#!/usr/bin/perl -w
+
+use File::Basename;
+use Getopt::Std;
+
+sub _usage {
+   return <<THE_END;
+ usage: $0 tui_command [-c] [-t<transcript>] <dat-files>
+ -c option gives hardcopy with basename from the dat-file
+ -t option starts and stops a transcript file
+
+ ex: $0 -c _contours Data/1*dat (where _contours is a predifined macro)
+THE_END
+}
+
+our($opt_c,$opt_t);
+
+getopts('ct:');
+
+$tui_cmd = shift || die _usage();
+
+@suffixlist = qw(.dat .dat.gz);
+
+print "fi start-t $opt_t y\n" if $opt_t;
+foreach $datfile (@ARGV) {
+   ($base,$_,$_) = fileparse($datfile,@suffixlist);
+   print "rd $datfile y\n";
+   print "$tui_cmd\n";
+   print "di hc $base.png y\n" if $opt_c;
+}
+print "fi stop-t\n" if $opt_t;
+
+

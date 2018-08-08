@@ -1,0 +1,33 @@
+#!/local/bin/perl -w
+
+use Getopt::Std;
+
+$_debug = 0;
+$_def_n = 5;
+
+sub _usage
+{
+   return <<THE_END;
+ synopsis : zero-pad numbers inside filenames (so that xxx3453yyy goes to xxx03453yyy)
+ usage: $0 [-n<n>] filelist
+  if not -n is specified, it will 0-pad with default value ($_def_n)
+  filename _must_ have pattern *_<number>.*
+
+THE_END
+}
+
+getopt('n');
+
+$n = ($opt_n) ? $opt_n : $_def_n;
+
+die _usage() if $#ARGV < 0;
+
+foreach (@ARGV) {
+   ($pre,$num,$post) = /(^.*_)(\d*)(.*)/;
+   $format = '%s%0'.$n.'d%s';
+   $new = sprintf($format,$pre,$num,$post);
+   print "_= $_ pre= $pre num= $num post= $post new= $new\n" if $_debug;
+
+   print "$0 : $_ ==> $new\n";
+   qx/mv $_ $new/;
+}

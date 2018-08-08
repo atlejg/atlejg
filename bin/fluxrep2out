@@ -1,0 +1,18 @@
+#!/bin/awk -f
+#awk '/Net/{print ((++iteration)*10),$2}' Monit/3_oilflow.out | cat ~/Fluent/outfile.head - | sed 's/XXX/massflow/' > Monit/3_oilflow_.out
+
+# usage: $0 -v title=<title> -v xlabel=<xlabel> -v ylabel=<ylabel> -v xscaler=<xscaler> -v yscaler=<yscaler> massfluxfile > monitorfile
+
+BEGIN {
+   printf("\"Convergence history of %s\"\n", title);
+   printf("\"Iteration\" \"%s\"\n",title)
+   iter = 0;
+}
+
+/Net/ {
+   ++iter;
+   x = iter * xscaler;
+   y = $2   * yscaler;
+
+   print x,y
+}

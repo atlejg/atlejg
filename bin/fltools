@@ -1,0 +1,267 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+#
+###############################################################################
+
+use strict;
+
+
+use lib $ENV{EXT_PERL_MODULES};
+use PoorMan::Utils qw(getOpts getLog get);
+use PoorMan::TUI;
+
+
+#======================= GLOBAL VARIABLES =====================================
+
+my $_log = getLog();
+my $_opts = getOpts('loglevel=i');
+
+$_log->logLevel($_opts->{'loglevel'}) if $_opts->{'loglevel'};
+
+
+
+
+package Grid;
+
+#======================= CONSTANTS ============================================
+
+use constant MAX_STRETCH_FACTOR => 1.2;
+use constant MAX_ITERATIONS     => 100;
+use constant TOLERANCE          => 0.01;
+
+
+#======================= SUBROUTINES FOLLOW ===================================
+
+
+sub grid {
+
+=head2 grid 
+
+-> Total length of interval
+
+-> Length of first interval
+
+-> Start of interval
+
+=cut
+
+   my $l = (shift or main::get('Total length of interval') );
+   my $fl = (shift or main::get('Length of first interval') );
+   my $s = shift;
+      
+   $s = main::get('Start of interval') unless defined $s;
+
+   my $r = MAX_STRETCH_FACTOR; # ratio
+
+   # number of intervals with this ratio
+   my $n = log( ($l/$fl)*($r-1) + 1) / log($r);
+
+   # round n
+   my $decim = $n - int($n);
+   $n = int($n);
+
+   # make sure number of intervals is 'big enough'
+   $n++ unless $decim < 0.1;
+
+   $_log->debug("n=$n");
+
+   # find the ratio that suits the chosen number of intervals
+   $r = _solve($l, $fl, $n);
+
+   _outputGrid($s, $n, $fl, $r);
+}
+
+sub _outputGrid {
+   my $start  = shift;
+   my $n      = shift;
+   my $first  = shift;
+   my $ratio  = shift; $_log->debug("start=$start n = $n , first = $first, ratio= $ratio");
+
+   my $it = 0;
+   my $new = $start;
+   foreach (0..$n ) {
+      printf("grid add %4E\n",$new);
+      $new += $first*pow($ratio, $it++);
+   }
+}
+
+# solves r^n -ar + b = 0 wrt. r, using a=$l/$fl
+#                                      b=a-1
+# uses newtons interpolation method.
+sub _solve($$$) {
+   my $l = shift;
+   my $fl = shift;
+   my $n  = shift;
+
+   # initial guess
+   my $r = MAX_STRETCH_FACTOR;
+
+   my $a = $l / $fl;
+   my $b = $a - 1;
+
+   my $it = 1;
+   for (1..MAX_ITERATIONS) {
+      my $newl = $fl * (pow($r,$n) - 1) / ($r -1);
+      my $diff1 = $l - $newl;
+      my $diff2 = pow($r,$n) - $a*$r +$b;
+      $_log->debug("it = $it, rn= $r, diff2 = $diff2 diff1 = $diff1, newl = $newl");
+      last if abs( $newl - $l) < $fl*TOLERANCE;
+      $r = $r - (pow($r,$n) - $a*$r + $b) / ($n*pow($r,$n-1) - $a);
+      $it++;
+   }
+
+   $_log->info("nof iterations = $it, ratio = $r");
+   $_log->error("Did not converge!!") if $it > MAX_ITERATIONS;
+
+   return $r;
+}
+
+# calculates a^x
+sub pow($$) {
+   my $a = shift;
+   my $x = shift;
+
+   return exp($x*log($a));
+}
+
+sub test() {
+
+   grid(@ARGV);
+
+   print "=================\n";
+
+   _outputGrid(0, 3, 1, 1.2);
+   
+}
+
+
+# end of package Grid;
+
+
+package Macro;
+
+sub create {
+
+=head2 create
+
+Creates the macro based on a text input file
+that should look like this:
+
+# module 1
+BEGIN MODULE01 100 100 0
+CY 5 5 0 1 10 X
+CY 10 5 0 1 10 X
+CY 15 5 0 1 10 X
+BO 5 5 10 1 10 2
+BO 5 5 15 1 10 2
+BO 5 5 20 1 10 2
+END MODULE01
+# module 2
+BEGIN MODULE02 200 200 0
+CY 5 5 0 1 10 Z
+CY 10 5 0 1 10 Z
+CY 15 5 0 1 10 Z
+BO 5 5 10 1 10 2
+BO 5 5 15 1 10 2
+BO 5 5 20 1 10 2
+END MODULE02
+
+Notice that all positions inside a module are relative
+to the position of the module itself!
+
+Lines starting with a '#' are regarded as comments and hence
+ignored.
+
+=cut
+
+   my $file = (shift or main::get('Filename of macro template', 1) );
+   my $macro = (shift or main::get('Filename of macro to be created', 1) );
+
+   open(TEMPLATE, $file)
+     or die "cannot open template file '$file' : $!";
+   
+   open(MACRO, ">$macro")
+     or die "cannot create macro file '$macro' : $!";
+
+   # declare
+   my($dooh, $objNm, $Xpos, $Ypos, $Zpos);
+   my $nPrimitives = 0;
+
+   while (<TEMPLATE>) {
+
+      chomp;
+      s/^\s*//; # remove leading whitespaces 
+
+      if (/^begin/i) {
+         # start of a new object
+         ($dooh, $objNm, $Xpos, $Ypos, $Zpos) = split;
+         $_log->debug("objNm=$objNm,Xpos=$Xpos,Ypos=$Ypos,Zpos=$Zpos");
+
+         print MACRO"DATABASE NEW OBJECT $objNm\n";
+      }
+      elsif(/^end/i) {
+         # end of current object
+         print MACRO "FILE EXIT Y Y\n";
+         $nPrimitives = 0;
+      }
+      elsif(/^#/) {
+         # comment line
+         next;
+      }
+      else {
+         # add a new primitive
+
+         $nPrimitives++;
+
+         if (/^c/i) {
+            # its a cylinder
+
+            my($dooh, $xpos, $ypos, $zpos, $diam, $lng, $dir, $apor1, $apor2, $vpor) = split;
+            # set porosities to 0 unless they have been specified
+            $apor1 = 0 unless defined $apor1;
+            $apor2 = 0 unless defined $apor2;
+            $vpor = 0 unless defined $vpor;
+
+            # adjust position of primitive relative to the position of this object
+            $xpos += $Xpos;
+            $ypos += $Ypos;
+            $zpos += $Zpos;
+
+            print MACRO "ADD CYL $xpos $ypos $zpos $diam $lng $dir $apor1 $apor2 $vpor\n";
+         }
+
+         else {
+            # its a box
+
+            my($dooh, $xpos, $ypos, $zpos, $delx, $dely, $delz, $apor1, $apor2, $apor3, $vpor, $nDiams) = split;
+            # set porosities to 0 unless they have been specified
+            $apor1 = 0 unless defined $apor1;
+            $apor2 = 0 unless defined $apor2;
+            $apor3 = 0 unless defined $apor3;
+            $vpor = 0 unless defined $vpor;
+            $nDiams = 0 unless defined $nDiams;
+
+            # adjust position of primitive relative to the position of this object
+            $xpos += $Xpos;
+            $ypos += $Ypos;
+            $zpos += $Zpos;
+
+            print MACRO "ADD BOX $xpos $ypos $zpos $delx $dely $delz $apor1 $apor2 $apor3 $vpor $nDiams\n";
+         }
+
+         # remember adding the union!
+         print MACRO "ADD UNION\n" if ($nPrimitives > 1);
+      }
+
+   }
+
+   close TEMPLATE;
+   close MACRO;
+
+}
+
+#======================= MAIN LOGIC ===========================================
+package main;
+#test();
+PoorMan::TUI::run();

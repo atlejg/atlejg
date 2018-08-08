@@ -1,0 +1,46 @@
+#!/usr/bin/env tcsh
+#
+# extracts monitor values from fluent transcript file
+#
+# atle.j.gyllensten@hydro.com
+# History:
+#
+# Thu Mar 30 08:38:14 NWT 2006
+#  version 0.1
+#
+# Tue Oct 10 10:31:51 NST 2006
+#  number-of-fields is now input since it is not always 2
+#     (it's a bit more involved than i like :-(
+#  also changed "$name " to "$name" in 'grep'
+# Fri Jun  5 07:47:42 NST 2009
+#  'grep' now has "\<$name\>" to distinguish names like outlet and outlet_gas
+
+if ($# < 3) then
+   echo "usage: $0 transcript-basename zone-name number-of-fields [dt]";
+   echo "ex: $0 1 _mon-point01 (note: not 1.tra)";
+   exit 1
+endif
+
+if ($# == 4) then
+   set dt = $4;
+   set legend = 'time';
+else
+   set dt = 1;
+   set legend = 'iteration';
+endif
+
+set base = $1;
+set name = $2;
+set nf   = $3;
+
+set out = "${base}_$name.out";
+
+echo "$0 : creating monitor file $out";
+
+echo '"'$name'"' >! $out
+echo '"'$legend'"' '"' '"' >> $out
+echo 0 0 0 0 >> $out
+
+
+#grep "$name " $base.tra | awk -vdt=$dt -vnf=$nf 'NF==nf {t+=dt;print t,$2}' >> $out
+grep "\<$name\>" $base.tra | awk -vdt=$dt -vnf=$nf 'NF==nf  {t+=dt;print t,$0}' | perl -nae 'print $F[0]," ",$F[-1],"\n"' >> $out;

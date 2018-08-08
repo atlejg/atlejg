@@ -1,0 +1,650 @@
+#!/usr/bin/perl -w
+
+#==============================================================================
+# atle.j.gyllensten@hydro.com
+# Version 1.1
+#
+# History
+#   2003-08-27
+#   Changed the order of getLog and getOpts according to changes in Utils.pm
+#
+#   2003-06-17
+#   Bugfixes
+#    1. Shockwave kills were not registered because log entry did not
+#    have a 'by' before the shotby-name. Removed 'by' ++ from regexp.
+#    2. Replaced nKills with nKilled...
+#    Another feature incorpated, is that when the script is run in debug
+#    mode (loglevel=5), no files are 'commited'. It turns out this does
+#    not work like it should... Testing needed on that SafeFile...
+#
+#   2003-06-01
+#   Version 1.1   
+#   Introducing commit() and rollback() to get an all-or-nothing approach. 
+#   Also, we now use the KILLS/WAS_KILLED ratio to rank the players.
+#   Some minor changes elsewhere.
+#   
+#   
+#   2003-05-28
+#   Version 1.0
+#   
+#==============================================================================
+
+=head1 Synopsis
+
+bzstat [--user] [--team] [--date] <bzlog-file>
+
+Date should be on the format yyyymmdd.
+
+=cut
+
+=head1 Description
+
+This program analysis the output from a bzflag session (which can be obtained
+by giving bzflag the -echo option and redirect this output to file, eg. 
+bzflag -echo > 20030509.log ).
+
+It basically reports (in html format) who shot who and which flags each player picked up .
+It also accumulates the results from earlier sessions.
+
+It sorts the players according to their 'kill-ratio', which is a dimensionless variable.
+
+=cut
+
+use strict;
+
+use lib $ENV{'EXT_PERL_MODULES'};
+use PoorMan::Utils qw(getOpts getLog pad);
+use PoorMan::FileUtils qw(rdump wdump);
+use PoorMan::SafeFile qw(rollbackAll commitAll);
+
+use FileHandle;
+use File::Basename;
+
+#use CGI::Pretty qw(:html3); not on SGI :-(
+#use Data::Dumper; not on SGI :-(
+
+#======================= CONSTANTS ============================================
+
+use constant DATA_PATH => $ENV{'HOME'}.'/Bzlogs/';
+use constant HTML_PATH => $ENV{'HOME'}.'/public_html/Bzflag/';
+
+#======================= GLOBAL VARIABLES =====================================
+ 
+$PoorMan::SafeFile::tmp = DATA_PATH; # cross-drive problems on PC
+my $_opts = getOpts qw(self=s bzlog=s team=s date=i);
+my $_log = getLog();
+
+# the files we'll be using - to be set in init()
+my $_accum_dmp;
+my $_accum_html;
+my $_results_dmp;
+my $_results_html;
+
+# the lazy way of producing hashes...
+my %_goodFlags = map { $_ => '1' } qw(HS QT OO RF MG GM L SB ST C IB
+                                      T N SH SR SW PZ G I);
+my %_badFlags = map { $_ => '1' } qw(CB O LTO RTO M B J WA);
+
+#======================= SUBROUTINES FOLLOW ===================================
+
+
+
+###############################################
+# 
+# note: 
+#  1. to make sure the team of the player who run this program on the log
+#   from his bz-session shows up, the '--team' option must be used. the program
+#   will rowy to find it, but if this player does not shot anyone, it cannot be
+#   found...
+#  2. also, players with nickname consisting only of spaces will not be handled
+#   properly...
+#  3. because all players that were already playing when _this_ player started,
+#   it is kind of difficult to find all players... it's not enough to look for
+#   'joining' - must check every name every time :-( same goes for the team
+#   name.
+###############################################
+sub readBzLog($) {
+   my $bzlog = shift;
+
+   open(BZLOG, $bzlog)
+     or die "cannot open bzlog '$bzlog': $!";
+
+   my $results = {};
+   my $player = {};
+
+   # user has the chance to make sure he is included
+   # in the statistics
+   if (my $self = $_opts->{'self'}) {
+      $results->{$self} = _newPlayer($self, $_opts->{'team'} );
+   }
+
+   my $name;
+   while (<BZLOG>) {
+      chomp;
+      my (@words) = split;
+
+      # skip messages
+      next if (/^\[/ || /^\w*:/);
+
+      # check if we should take any action for this line
+
+      if (/joining/) {
+         # new player entered the game. notice that we do not allow
+         # re-entering...
+         
+         $name = $words[0];
+         $results->{$name} = _newPlayer($name, _team($_) )
+           unless $results->{$name};
+      }
+
+      # unfortunately, different distributions of the client reports
+      # differently when someone is killed:-(
+      # there's a bug here if someone has a ' in his name - like killer'n !!
+         elsif (/(\w*)\'s/ or / destroyed by / ) {
+         # someone was killed...
+
+         my $shotby = ($1) ? $1 : pop(@words);
+         $name = shift(@words);
+         
+         $_log->debug("$name shot by $shotby");
+
+         # are any of these two registered already ?
+         $results->{$shotby} = _newPlayer($shotby)
+           unless $results->{$shotby};
+         $results->{$name} = _newPlayer($name)
+           unless $results->{$name};
+         $results->{$name}->{'team'} = _team($_)
+           unless $results->{$name}->{'team'};
+
+         # update 
+         $results->{$shotby}->{'shot'}->{$name}++;
+         $results->{$name}->{'nWasKilled'}++;
+         unless (/teammate/) {
+            $results->{$shotby}->{'nKilled'}++;
+         }
+         else {
+            $results->{$shotby}->{'nKilled'}--;
+         }
+      }
+
+      elsif (/grabbed (.*) flag/) {
+         # someone grabbed a flag
+
+         $name = $words[0];
+
+         # is this player registered already ?
+         $player = ($results->{$name}) ? $results->{$name} : _newPlayer($name);
+         $player->{'team'} = _team($_)
+           unless $player->{'team'};
+
+         # check flag
+         my $flag = _flag($1);
+
+         $player->{'flags'}->{$flag}++;
+
+         if ($_goodFlags{$flag}) {
+            $player->{'nGood'}++;
+         }
+         else {
+            $player->{'nBad'}++;
+         }
+
+         # remember to keep new player...
+         $results->{$name} = $player
+           unless $results->{$name};
+      }
+
+      elsif (/blew myself up/) {
+         # someone shot himself
+
+         $name = $words[0];
+
+         # is this one registered already ?
+         $results->{$name} = _newPlayer($name)
+           unless $results->{$name};
+         $results->{$name}->{'team'} = _team($_)
+           unless $results->{$name}->{'team'};
+
+         # want this to be negative to make life a bit
+         # easier when i'm gonna sum all up later
+         $results->{$name}->{'shot'}->{$name}--;
+         $results->{$name}->{'nWasKilled'}++;
+      }
+
+
+   }
+
+   close BZLOG;
+   
+   return $results;
+} # end readBzLog
+
+sub process {
+   my $results = shift;
+
+   foreach my $player (values %$results) {
+
+      if ($player->{'nWasKilled'} > 0) {
+         $player->{'killRatio'} = $player->{'nKilled'}/$player->{'nWasKilled'};
+      }
+      else {
+         # havent been killed...
+         # we'll give him the number of kills + 1. the rationale for this is
+         # that he is better than anyone who has as many kills, but has been
+         # killed once. also, this makes sure 0/0 == 1.
+         $player->{'killRatio'} = $player->{'nKilled'} + 1;
+      }
+
+      $player->{'diff'} = $player->{'nKilled'} - $player->{'nWasKilled'};
+   }
+
+} #end process()
+         
+
+sub updateMainHtml {
+   my $accum = shift;
+
+   $_accum_html->print(_startHtml() );
+   $_accum_html->print("<p>ACCUMULATED RESULTS\n");
+
+   _outputResultsTable($accum, $_accum_html);
+            
+   $_accum_html->print("<p>DETAILS\n<p>\n");
+   _outputList($_accum_html);
+
+   $_accum_html->print(_endHtml() );
+}
+
+sub createHtml {
+   my $results = shift;
+   
+   $_results_html->print(_startHtml() );
+
+   $_results_html->print("<p>COMPILED RESULTS");
+   _outputResultsTable($results, $_results_html);
+   
+   $_results_html->print("<p>WHO SHOT WHO\n");
+
+   # want to present results according to kill-ratio
+   my @names = reverse sort 
+     {$results->{$a}->{'killRatio'} <=> $results->{$b}->{'killRatio'} } keys %$results;
+   
+   my @table;
+   my $header = td();
+   my $lastRow = td('WAS KILLED');
+
+   foreach my $name (@names) {
+      my $player = $results->{$name};
+
+      my $color = _color($player->{'team'} );
+      my $row = td({'bgcolor'=>$color}, $name);
+      $header .= td({'bgcolor'=>$color}, $name);
+      
+      foreach my $victim (@names) {
+         my $nKills = ($player->{'shot'}->{$victim} or 0);
+         $row .= td($nKills);
+      }
+      $row .= td($player->{'nKilled'});
+      $lastRow .= td($player->{'nWasKilled'});
+      push(@table, $row);
+   }
+
+   $header .= td('KILLS');
+   unshift(@table, $header);
+   push(@table, $lastRow);
+   _outputTable($_results_html, @table);
+
+   # output flags
+
+   foreach my $case ('good','bad') {
+
+      $_results_html->print("<p>" . uc($case) ." FLAGS\n");
+
+      my @flags;
+      if ($case eq 'good') {
+         @flags = sort keys %_goodFlags;
+      }
+      else {
+         @flags = sort keys %_badFlags;
+      }
+      
+      $header = td();
+      @table = ();
+      
+      foreach my $flag (@flags) {
+         $header .= td($flag);
+      }
+      push(@table, $header . td('TOTAL'));
+
+      foreach my $name (@names) {
+         my $player = $results->{$name};
+         my $row = td($name);
+
+         foreach my $flag (@flags) {
+            my $nFlags = ($player->{'flags'}->{$flag} or 0);
+            $row .= td($nFlags);
+         }
+         $row .= td($player->{'n'.ucfirst($case)} || 0);
+         push(@table, $row);
+      }
+
+      _outputTable($_results_html, @table);
+
+   }
+
+   $_results_html->print(_endHtml() );
+}
+
+# outputs links to all html results file
+sub _outputList {
+   my $fh = shift;
+
+   my @fileList = reverse glob(HTML_PATH.'*html');
+
+   # add the one we just created (it has not been commit'ed yet...)
+   unshift(@fileList, $_results_html->file() );
+
+   foreach my $file (@fileList) {
+      next if ( $file eq $_accum_html->file() );
+      my($date) = ($file =~ /(\d{8})/);
+      $file = basename($file);
+      $fh->print("<a href='$file'> $date</a><br>");
+   }
+}
+
+sub _outputResultsTable {
+   my $results = shift;
+   my $file = shift;
+
+   my (@table, $row);
+   
+   $row = td('NAME') . 
+          td('KILL-RATIO') .
+          td('KILLS') .
+          td('WAS KILLED') .
+          td('DIFF') .
+          td('GOOD FLAGS') .
+          td('BAD FLAGS');
+   push(@table, $row);
+
+   # want to present results according to kill-ratio
+   my @names = reverse sort 
+     {$results->{$a}->{'killRatio'} <=> $results->{$b}->{'killRatio'} } keys %$results;
+     
+   foreach my $name (@names) {
+      $row = td($name) . 
+             td(sprintf("%.2f",$results->{$name}->{'killRatio'}) ).
+             td($results->{$name}->{'nKilled'}) .
+             td($results->{$name}->{'nWasKilled'}) .
+             td($results->{$name}->{'diff'}) .
+             td($results->{$name}->{'nGood'}) .
+             td($results->{$name}->{'nBad'});
+      push(@table, $row);
+   }
+
+   _outputTable($file,@table);
+}
+    
+sub _color {
+   my $team = shift;
+
+   return ($team eq 'Rogue') ? 'yellow' : $team;
+}
+
+# extracts the team name from an entire line. it is enclosed in parantheses.
+sub _team {
+   $_ = shift;
+   my ($team) = /\((\w*)\s*\w*\)/;
+   $_log->debug("team = $team");
+
+   return $team;
+}
+
+# each player is represented by a hash with given fields.
+sub _newPlayer {
+   my $name = shift;
+   my $team = shift;
+
+   my %player;
+
+   $player{'name'} = $name;
+   $player{'team'} = ($team || '');
+   $player{'flags'} = {};
+   $player{'nBad'} = 0; # number of bad flags
+   $player{'nGood'} = 0; # number of Good flags
+   $player{'nKilled'} = 0;
+   $player{'killRatio'} = 1;
+   $player{'nWasKilled'} = 0;
+   $player{'diff'} = 0; # nKilled - nWasKilled
+
+   $_log->debug("player '$name' entered");
+
+   return \%player;
+}
+   
+# abbreviates flag name by looking at its upper case chars
+sub _flag {
+   my $flag = shift;
+
+   my $abbrev = '';
+   for my $index (0..length($flag) -1 ) {
+      my $char = substr($flag,$index,1);
+      $abbrev .= $char if ($char =~ /[A-Z]/);
+   }
+   # this one does not pick up more than one upper case...
+   #($abbrev) = ($flag =~ /([A-Z])/ ); 
+
+   # many flags starting with S...
+   if ($abbrev =~ /^S/) {
+      $abbrev = "SR" if ($flag =~ /^Steam/);
+      $abbrev = "SH" if ($flag =~ /^Shield/);
+      $abbrev = "ST" if ($flag =~ /^Stealth/);
+   }
+   # and a few with C
+   elsif ($abbrev =~ /^C/) {
+      if ($flag =~ /^Color/) {
+         $abbrev = "CB";
+      }
+      else {
+         $abbrev = "C";
+      }
+   }
+
+   $_log->debug("flag=$flag - abbrev=$abbrev");
+
+   return $abbrev;
+}
+
+# accumulates the results from this bz-session to the
+# previous ones (if any). note that this is done
+# reading an existing dump file.
+sub accumulate {
+   my $results = shift;
+
+   my $accum;
+
+   if (-e $_accum_dmp->file() ) {
+      $accum = rdump($_accum_dmp);
+   }
+   else {
+      $accum = {};
+   }
+
+   while ( my($name, $player) = each %$results ) {
+      $accum->{$name}->{'nKilled'} += $player->{'nKilled'};
+      $accum->{$name}->{'nWasKilled'} += $player->{'nWasKilled'};
+      $accum->{$name}->{'nBad'} += $player->{'nBad'};
+      $accum->{$name}->{'nGood'} += $player->{'nGood'};
+   }
+
+   #$_log->debug("accum = " . Dumper($accum) );
+
+   return $accum;
+}
+
+sub _today {
+
+   my($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
+   return ($year+1900) . pad($mon+1) . pad($mday);
+}
+
+sub _startHtml {
+   #'Content-type: text/html';
+   #'Pragma: no-cache';
+   return <<THE_END;
+<html>
+<body>
+THE_END
+}
+
+sub _endHtml {
+   return <<THE_END;
+</body>
+</html>
+THE_END
+}
+
+# outputs an html table.
+sub _outputTable {
+   my $fh = shift; # filehandle
+
+   $fh->print(_startTable());
+   
+   foreach my $row (@_){
+      $fh->print(Tr({'align'=>'center'}, $row) );
+   }
+
+   $fh->print(_endTable());
+}
+
+sub _startTable() {
+   return '<table border="1" bordercolor="#201E5C" style="border-collapse: collapse" cellpadding="2">' . "\n";
+}
+
+sub _endTable() {
+   return '</table>' . "\n";
+}  
+
+sub _resultsFile {
+   my $date = $_opts->{'date'} || _today();
+   return  DATA_PATH . $date . '.dmp';
+}
+
+sub _htmlFile {
+   my $date = $_opts->{'date'} || _today();
+   return  HTML_PATH . $date . '.html';
+}
+
+sub _usage {
+   system("perldoc $0");
+   return ' ';
+}
+
+# this one should be replaced by CGI::Pretty - when we're rid of the
+# old sgi-machines...
+sub td {
+   my $thingy = shift;
+   my $content;
+   
+   my $attribs = ' ';
+   if (ref $thingy) {
+      foreach my $key (keys %$thingy) {
+         $attribs .= "$key = '".$thingy->{$key}."' ";
+      }
+      $content = shift;
+   }
+   else {
+      $content = $thingy;
+   }
+   $_log->debug("attribs = $attribs");
+   
+   $content = ' ' unless defined $content; # avoid warnings...
+   return "\t<td $attribs>$content</td>\n";
+}
+
+# this one should be replaced by CGI::Pretty - when we're rid of the
+# old sgi-machines...
+sub Tr {
+   my $thingy = shift;
+   my $content;
+   
+   my $attribs = ' ';
+   if (ref $thingy) {
+      foreach my $key (keys %$thingy) {
+         $attribs .= "$key = '".$thingy->{$key}."' ";
+      }
+      $content = shift;
+   }
+   else {
+      $content = $thingy;
+   }
+   $_log->debug("attribs = $attribs");
+   
+   $content = ' ' unless defined $content; # avoid warnings...
+   return "<tr $attribs>$content</tr>\n";
+}
+
+sub init {
+   my $bzlog = shift;
+
+   # part 1. check file.
+   die "logfile $bzlog has already been processed"
+     if (-e _resultsFile()  && ! $_log->debug());
+
+   # part 2. instanciate SafeFile's
+   my $date = ($_opts->{'date'} or _today() );
+   $_accum_dmp = new PoorMan::SafeFile(DATA_PATH."accum.dmp");
+   $_accum_html = new PoorMan::SafeFile(HTML_PATH."index.html");
+   $_results_dmp = new PoorMan::SafeFile(DATA_PATH."$date.dmp");
+   $_results_html = new PoorMan::SafeFile(HTML_PATH."$date.html");
+}
+
+#======================= MAIN LOGIC ===========================================
+
+=head1 Note
+
+The results for each session is written to a 'dump' file.
+This serves two purposes.
+
+1. It makes sure that the accumulation is done only once (since
+we can check if the dump file exists before accumulating).
+
+2. It gives an easy way of using the results across programs - or
+if I eventually get a cgi version of this program up and running.
+
+The bad thing about this is that changes in the reading of the log
+will not be reflected into the dump files.
+
+=cut
+
+my $bzlog = shift
+  or die _usage();
+
+eval {
+   init($bzlog);
+
+   my $results = readBzLog($bzlog);
+   wdump($results, _resultsFile() );
+   process($results);
+   createHtml($results);
+
+   my $accum = accumulate($results);
+   wdump($accum, $_accum_dmp);
+   process($accum);
+   updateMainHtml($accum);
+};
+
+unless ($@) {
+   commitAll() unless $_log->debug();
+}
+else {
+   $_log->fatal("bzstat: Error occured: $@");
+   rollbackAll();
+}
+
+=head1 To be done
+
+Add --reset option.
+
+=cut
+

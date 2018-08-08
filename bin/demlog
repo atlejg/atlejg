@@ -1,0 +1,17 @@
+#!/bin/tcsh
+
+if ($# < 1) then
+   echo "usage: $0 <run> (no .tra ending)"
+   exit 1;
+endif
+
+set run     = $1;;
+set tra     = "$run.tra";
+set demlog  = "$run.demlog";
+
+echo "$0 handling $tra ...";
+
+grep -e '## ' -e Flow -e WARN $tra >! $demlog;
+
+#echo "$demlog created";
+ls -l $demlog

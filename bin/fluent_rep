@@ -1,0 +1,9 @@
+#!/bin/tcsh
+
+if ($# != 3) then
+   echo "usage: $0 <case> <bc-file> <version>"
+   echo "  ex: $0 vim_hj hj24.bc 3ddp"
+   exit 1
+endif
+
+echo "rc $1\nfi rbc $2\nreport summary yes $2.sum y\nex y\n" | fluent $3 -g

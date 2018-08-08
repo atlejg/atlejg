@@ -1,0 +1,17 @@
+#!/bin/tcsh
+
+if ($# < 1) then
+   echo "usage: $0 file-extension";
+   exit 1;
+endif
+
+set ext = $1;
+
+if ($# == 2) then
+   set dir = $2;
+else
+   set dir = '.';
+endif
+
+find $dir -name "*$1*"
+

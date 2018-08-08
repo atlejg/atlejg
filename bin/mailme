@@ -1,0 +1,14 @@
+#!/usr/bin/perl
+
+# this one is useful because i could not make 
+#  find ~/ -name 'readme.txt' -ctime -1 -exec 'mail -s {} atle.j.gyllensten@hydro.com < {} ' \;
+# work :(
+
+
+$file = shift || die "need a file!";
+
+$cmd = "mail -s $file atle.j.gyllensten\@hydro.com < $file";
+print STDERR "$cmd\n";
+
+system($cmd);
+

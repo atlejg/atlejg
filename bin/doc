@@ -1,0 +1,21 @@
+#!/usr/bin/perl -w
+
+# replaces fdoc which was kind of an overkill.
+#
+# what is basically does is to open or create a
+# write protected file - usually readme.txt or 
+# whatever the user specified - using vi.
+
+$vi =  ($^O =~ /lin/ ? 'vim' : 'vi'); # vim is only on linux...
+
+my $docfile = (shift || 'readme.txt');
+
+if (-e $docfile) {
+   chmod(0644,$docfile);
+}
+
+system("$vi $docfile")
+   && die "$vi $docfile failed";
+
+chmod(0444, $docfile);
+

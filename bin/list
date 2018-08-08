@@ -1,0 +1,42 @@
+#!/usr/bin/perl -w
+
+use strict;
+use Getopt::Std;
+use vars '$opt_h';
+
+sub usage {
+   return <<THE_END;
+ usage : $0 nChars [pattern]
+  
+  Pattern must be quoted if it contains wildcards.
+  Lists all unique filenames that have been truncated to only nChars characters.
+
+  For some reason it does not work under perl, version 5.004_04 built for IP27-irix
+
+THE_END
+}
+ 
+
+getopts('h');
+
+if ($opt_h) {
+   print usage();
+   exit;
+}
+
+my $nChars = shift || die usage();
+my $pattern = (shift || '*');
+print "list: pattern = $pattern\n";
+
+# dont want to user ARGV since list could be too long ...
+my @list = sort glob($pattern);
+
+print "list: Number of files to consider = " . @list . "\n";
+
+my $prev = ' ';
+foreach my $name (@list) {
+   $name = substr($name,0,$nChars);
+   print "$name\n" if $name ne $prev;
+   $prev = $name;
+}
+

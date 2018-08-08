@@ -1,0 +1,38 @@
+#!/usr/bin/perl -w
+use Getopt::Std;
+
+our ($opt_h);
+
+sub _usage
+{
+   return <<THE_END;
+ usage: $0 < file.txt
+  where file.txt has (at least) 2 lines only 2 first line are checked if they are equal
+  (useful when comparing fluent bc-files)
+
+THE_END
+}
+
+getopts('h');
+
+if ($opt_h) {
+   print _usage();
+   exit;
+}
+
+$line1 = <STDIN>;
+$line2 = <STDIN>;
+
+#print "line1= $line1 line2= $line2\n";
+
+for ($i=0; $i < length($line1); ++$i) {
+   $c1 = substr($line1,$i,1);
+   $c2 = substr($line2,$i,1);
+   if ($c1 ne $c2) {
+      printf("%s: line1 differs from line2 at postition %d (%s != %s)\n",$0,$i+1,$c1,$c2);
+      exit 1;
+   }
+}
+
+# if we get down here, lines are equal
+print "line1 equals line2\n";

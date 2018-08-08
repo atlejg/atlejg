@@ -1,0 +1,19 @@
+#!/bin/tcsh
+#  compares two runs for DEM model; like $0 ng10_12 ng10_13
+if ($# != 2) then
+   echo "usage: $0 run1 run2";
+   exit 1;
+endif
+
+set run1 = $1;
+set run2 = $2;
+
+set cmd = "diff $run1.bc $run2.bc";
+echo $cmd
+$cmd
+set cmd = "diff $run1.params $run2.params"
+echo "\n$cmd"
+$cmd
+set cmd = "diff run_$run1.jou run_$run2.jou"
+echo "\n$cmd"
+$cmd

@@ -1,0 +1,66 @@
+#!/usr/bin/perl -w
+
+use strict;
+use constant DEBUG_LVL => 0;
+use Getopt::Std;
+
+sub _debug
+{
+   my $lvl = shift;
+
+   return if $lvl < DEBUG_LVL;
+
+   print "$0: ",@_,"\n";
+}
+
+sub _mkdir
+{
+   my $dir = shift;
+   _debug(1,"creating dir= $dir");
+
+   mkdir $dir;
+}
+
+sub _usage
+{
+   return <<THE_END;
+ usage: $0 -p<directory-prefix> -m<max-size> files
+
+THE_END
+}
+
+our ($opt_p, $opt_m);
+getopt('mp');
+
+my $_max_size = $opt_m ||  die _usage;
+my $_prefix   = $opt_p ||  die _usage;
+my $tot_size = 0;
+my $count    = 1;
+my $size     = 0;
+my $cmd      = '';
+my $dvd_dir = sprintf('%s%04d',$_prefix,$count);
+
+_mkdir $dvd_dir;
+
+foreach my $file (@ARGV) {
+   next unless -f $file;
+
+   ($_,$_,$_,$_,$_,$_,$_,$size, $_,$_,$_,$_,$_) = stat($file);
+   $tot_size += $size;
+
+   _debug(0,"#1 tot_size= $tot_size dvd_dir= $dvd_dir");
+   
+   if ($tot_size > $_max_size) {
+      ++$count;
+      $dvd_dir = sprintf('%s%04d',$_prefix,$count);
+      _mkdir $dvd_dir;
+      _debug(1,"#2 tot_size= $tot_size dvd_dir= $dvd_dir");
+      $tot_size = 0;
+   }
+
+   $cmd = "mv $file $dvd_dir;ln -s $dvd_dir/$file";
+
+   _debug(1,"cmd= $cmd");
+
+   #qx/$cmd/;
+}
