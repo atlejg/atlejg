@@ -11,17 +11,18 @@ if (! ${?prompt}) goto end    # could i do exit instead of goto ??
 
 # 
 setenv ATLEJG $HOME/Tools/atlejg
-setenv ACTIVE /project/RCP/active/fluent/
+setenv ACTIVE 
 setenv TMP $ACTIVE/TMP
 setenv RC $ACTIVE/Atle_Resources
 
-# make sure $RC and $ACTIVE is available
-if ! $?RC then
-   setenv RC $HOME
-endif
-if ! $?ACTIVE then
+if (! -f /project/RCP/active/fluent/) then
+   setenv ACTIVE /project/RCP/active/fluent/
+   setenv RC $ACTIVE/Atle_Resources
+else
    setenv ACTIVE $HOME
+   setenv RC $HOME/Tools
 endif
+
 
 # ---------------------- based on /etc/csh.cshrc for Cygwin
 
