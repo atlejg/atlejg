@@ -139,7 +139,7 @@ alias x11big2 "xrandr --size 5120x1600"
 
 # PYTHON STUFF
 #
-setenv PYTHONPATH "${PYTHONPATH}:$ATLEJG/lib/Python"                                # my stuff
+setenv PYTHONPATH "${PYTHONPATH}:$ATLEJG/lib/"                                  # my stuff
 setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip"                           # vegard kippe stuff
 setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/lib/python2.7/site-packages"    # things i've installed myself
 
@@ -165,6 +165,20 @@ alias gambit_  'echo "REMEMBER: GOTO /tmp"; setenv FLUENT_ARCH lnx86; setenv LM_
 setenv KRISTINE /project/RCP/active/reservoir_simulations/krhal/ERT/ert/Simulations
 setenv TT /project/RCP/active/reservoir_simulations/agy/Peregrino/Shoebox/Simul/Version12
 setenv PY $HOME/Tools/lib/Python/AtlejgTools/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # OLD STUFF ...
 #
