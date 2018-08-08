@@ -58,7 +58,7 @@ setenv WORK /project/RCP/work/$USER
 setenv FLUENT_JOU  ~/Fluent/Jou
 # make sure correct license is used (for fluent)
 setenv LM_LICENSE_FILE 7241@st-linlic02.st.statoil.no:1055@st-vlic01.st.statoil.no
-setenv PATH "${PATH}:${RC}/bin"
+setenv PATH "${PATH}:${HOME}/bin"
 setenv PATH "${PATH}:/prog/Fluent/i686/Fluent.Inc/bin"
 setenv PATH "${PATH}:/prog/ecl/grid/macros/"
 setenv ECLHOME /prog/ecl/grid
