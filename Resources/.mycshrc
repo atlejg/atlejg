@@ -1,12 +1,19 @@
 #
 # atle j. gyllensten
-# Tue Apr 10 07:29:23 MDT 2018
+# Wed Aug  8 09:33:39 MDT 2018
 #
 # what to do when interrupted (ctrl-c)
 onintr -
 
 # Check if this is an interactive session
 if (! ${?prompt}) goto end    # could i do exit instead of goto ??
+
+
+# 
+setenv ATLEJG $HOME/Tools/atlejg
+setenv ACTIVE /project/RCP/active/fluent/
+setenv TMP $ACTIVE/TMP
+setenv RC $ACTIVE/Atle_Resources
 
 # make sure $RC and $ACTIVE is available
 if ! $?RC then
@@ -102,7 +109,7 @@ alias ssh_crontab 'ssh -X stj-linrgs039.stj.statoil.no'        # need to be here
 #
 alias workbench 'unalias FLUENT_ARCH; /prog/Fluent/ansys_inc/v150/Framework/bin/Linux64/runwb2 ' # workbench starts fluent on its own, dont use environment variables
 alias @floviz '@floviz -local -version 2009.2'
-alias cmds 'vi $RC/atlejg/Resources/cmds'
+alias cmds 'vi $ATLEJG/Resources/cmds'
 alias bookshelf 'acroread /prog/ecl/grid/2016.2/manuals/bookshelf.pdf'
 alias killps '/prog/script/killps agy'
 alias pkill pkill -u $USER  # only kill my jobs
@@ -131,7 +138,7 @@ alias x11big2 "xrandr --size 5120x1600"
 
 # PYTHON STUFF
 #
-setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python"                                # my stuff
+setenv PYTHONPATH "${PYTHONPATH}:$ATLEJG/lib/Python"                                # my stuff
 setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip"                           # vegard kippe stuff
 setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/lib/python2.7/site-packages"    # things i've installed myself
 
@@ -157,7 +164,6 @@ alias gambit_  'echo "REMEMBER: GOTO /tmp"; setenv FLUENT_ARCH lnx86; setenv LM_
 setenv KRISTINE /project/RCP/active/reservoir_simulations/krhal/ERT/ert/Simulations
 setenv TT /project/RCP/active/reservoir_simulations/agy/Peregrino/Shoebox/Simul/Version12
 setenv PY $HOME/Tools/lib/Python/AtlejgTools/
-setenv GITHOME $RC/atlejg
 
 # OLD STUFF ...
 #
@@ -219,6 +225,8 @@ setenv GITHOME $RC/atlejg
 #xset b off
 #alias lmstat1 'lmstat -a | grep "Users of fluentall"'
 #alias lmstat2 'lmstat -f fluentall'
+#setenv FLUENT_ARCH lnx86
+#source /prog/LSF/conf/cshrc.lsf # included by John Hybertsen to be able to start eclipse from unix shell
 
 # goto-label...
 end:
