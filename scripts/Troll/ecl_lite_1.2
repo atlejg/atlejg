@@ -427,18 +427,16 @@ def _analyze(paramfiles):
       fnm = 'Figs/profile_%s.png'%varnm
       savefig(fnm)
       figs.append(fnm)
-      yl = ylim()
       close()
-      PP.analyze('contours', varnm, ymin, ymax, True, *paramfiles)
-      fnm = 'Figs/contours_%s.png'%varnm
-      savefig(fnm)
-      figs.append(fnm)
-      close()
-   #
+      for paramfile in paramfiles:
+         PP.analyze('contours', varnm, ymin, ymax, True, paramfile)
+         fnm = 'Figs/contours_%s_%s.png'%(varnm, paramfile)
+         savefig(fnm)
+         figs.append(fnm)
+         close()
    figs.sort()
    #os.system('gthumb %s &' % ' '.join(figs))
    PP.UI.show_fig = True    # useful when run interactively
-   print figs
 
 
 if __name__ == '__main__' :
