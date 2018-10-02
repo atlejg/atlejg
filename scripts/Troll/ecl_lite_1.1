@@ -1,0 +1,382 @@
+#!/usr/bin/env python
+
+import sys, os, pdb
+
+is_linux = 'linux' in sys.platform
+
+libpath = '/private/agy/Tools/lib/Python'
+if not libpath in sys.path: sys.path.append(libpath)
+
+from pylab import *
+import glob, re, string
+import xlrd
+from datetime import datetime
+import scipy.interpolate
+import AtlejgTools.EclipseTools.Gridding             as GR
+import AtlejgTools.Utils                             as UT
+import AtlejgTools.NetoolTools.Utils                 as NU
+import AtlejgTools.SimulationTools.GOC_functions     as GOC
+import AtlejgTools.SimulationTools.UnitConversion    as U
+if is_linux: import AtlejgTools.EclipseTools.Utils   as ECL
+
+JOINT_LENGTH = 12.
+LICD_MAX     = 9999.   # should make ICD behave as blank. but we also SHUT in compdat..
+GRAVITY      = 9.8
+
+def _create_gridfile(p):
+   """
+   creates an adaptive grid for eclipse. by adaptive, i mean that cell size is growing
+   outwards from a predfined face (in the xz-plane) that is to contain the well.
+   #
+   note1: well is in the y-direction
+   note2: z-direction is downwards
+   #
+   returns a tuple containg:
+   - a string defining the grid
+   - the grid dimensions nx, ny, nz
+   - grid size along the well (dy)
+   - the indices for the well centers (in eclipse coordinates)
+   #
+   note: you need to set DIMENS manually (it cannot be in GRID-section)
+   """
+   # x-direction (perpendicual to well)
+   xs, ix = GR.get_coord(p.width, p.width/2., p.dx0, p.kx, p.dx_max)
+   if p.use_symmetry:
+      xs = xs[:len(xs)/2+1]
+      # need to make well-cell half-width to respect grid-spec
+      dx = (xs[-1]-xs[-2]) / 2.
+      xs[1:-1] += dx
+   dxs = diff(xs)
+   nx = len(dxs)
+   # z-direction (vertical)
+   zmin = min(p._tvds) - p.dz_above
+   zmax = max(p._tvds) + p.dz_below
+   h_gas = p._goc_min - zmin
+   h_oil = zmax - p._goc_min
+   nzo = int(h_oil/p.dz_oil) + 1
+   zoil = zmax - linspace(0, h_oil, nzo)
+   zgas = zoil[-1] - GR.get_coord(h_gas, p.dz_oil/2., p.dz_oil, p.kz, p.dz_gas)[0]
+   p._zs = concatenate((zoil, zgas[1:]))[::-1]
+   dz = diff(p._zs)
+   nz = len(dz)
+   izs = array([UT.find_closest_index(p._zs, tvd) for tvd in p._tvds])
+   if max(izs) == len(p._zs)-1: raise Exception('You need to increase zmax to cover the well')
+   #
+   # build grid-string
+   txt  = 'DYV\n'
+   txt += ' %i*%.2f\n' % (p._ny, p.dy)
+   txt += '/\n\n'
+   txt += 'DXV\n'
+   for dx in dxs:
+      txt += " %.2f\n" % dx
+   txt += '/\n\n'
+   txt += 'DZ\n'
+   for dz_ in dz:
+      txt += " %i*%.2f\n" % (nx*p._ny, dz_)
+   txt += '/\n\n'
+   txt += 'BOX\n 1 %i 1 %i 1 1 /\n' % (nx, p._ny)
+   txt += 'TOPS\n %i*%.2f /\n' % (nx*p._ny, zmin)
+   txt += 'ENDBOX\n'
+   #
+   # keep some data. some for later use - some for debug
+   p._dxs = dxs
+   p._dz  = dz
+   p._xs  = xs
+   return (txt, nx,nz, ix+1,izs+1)
+
+def _permweighted_flow(K, q_tot, expon=0.5):
+   '''
+   find flowrates q s.t. q_i = q_j * (K_i/K_j)**expon and sum(q) = q_tot.
+   '''
+   q = K**expon
+   q *= q_tot / sum(q) # normalize
+   return q
+
+def _update_from_ntlcase(p):
+   nc = NU.read_ntlcase(p.ntlcase)
+   br = nc.get_branches([p.branch_nm])[0]
+   # make regular perm-vector and screen-vector
+   j1 = br.screens.nonzero()[0][0]                  # first screen
+   y1 = br.mds[j1]
+   j2 = br.screens.nonzero()[0][-1]                 # last screen
+   y2 = br.mds[j2]
+   ny_padding = int(p.y_padding/p.dy)
+   pad =  ny_padding*p.dy
+   y1 = int(y1/p.dy) * p.dy                      # want clean numbers
+   y2 = int(y2/p.dy) * p.dy                      # want clean numbers
+   ny = int((y2-y1 +2*pad) / p.dy)
+   mds, ks   = NU.block_data(br.mds, br.ks, y1-pad, y2+pad, ny)
+   screens = NU.block_data(br.mds, br.screens, y1, y2, ny-2*ny_padding)[1]
+   #
+   p._ny = len(mds)
+   p._iy = UT.find_closest_index(mds, y1) + 1
+   p._nsegm = len(screens)
+   p._ymax = len(mds)*p.dy
+   #
+   # keep some data. some for later use - some for debug
+   p._permxs = ks
+   p._screens = screens
+   p._mds = mds
+   p._br = br
+   # TVD for well.
+   tvds = NU.block_data(br.mds, br.path[:,2], y1, y2, ny-2*ny_padding)[1]
+   m = min(tvds)
+   p._tvds = tvds - (m - int(m))  # move it to so that its highest point is at an integer
+
+def get_permx_func(p, expon, L):
+   '''
+   will return a function that takes i-index as input and returns a permeability
+   in the range K0 - K_avg, where K0 is the value of the current well-cell (given by y-index j)
+   and K_avg is the mean value of well-permeabilities.
+   values will change gradually from K0 to K_avg as you move away from the well in x-direction.
+   the rate of change is determined by the value of the exponent (expon). a high value gives
+   fast transition. a value of of 1 gives linear change, a value of 0 gives no change.
+   also, the length scale (L) decided how far out you have to go to get exactly the value K_avg
+   #
+   # input
+   p    : the parameter-struct
+   j    : y-index of current well-cell
+   expon: exponent in expression a * x**1/n
+   L    : how far out you have to go to get exactly K_avg
+   # returns
+   f    : permx-function that gives permeability for x-index i and y-index j (eclipse counting 1, 2, ...)
+   '''
+   K_avg = mean(p._permxs)                     # for convinience
+   #
+   # need the midpoints of cells. using symmetry - starts in the middle going right
+   dxs = p._dxs[::-1] if p.use_symmetry else p._dxs[len(p._dxs)/2:]
+   xs = [0]
+   n = len(dxs)
+   for i in range(1,n): xs.append(dxs[0]/2. + sum(dxs[1:i]) + dxs[i]/2.)
+   def f(i, j):
+      K0 = p._permxs[j-1]                      # for convinience
+      if expon == 0: return K0                 # avoid problems later : handle expon = 0 first
+      a = L**(-1./expon)                       # function scaler : a * x**1/n so that f(L) = K_avg
+      ii = abs(i-n)                            # using symmetry
+      K = K0 + (K_avg-K0)*a*xs[ii]**(1./expon) # function value
+      if K0 < K_avg: return min(K, K_avg)      # need bounds
+      else         : return max(K, K_avg)      # need bounds
+   return f
+
+def _permx(p):
+   pf = get_permx_func(p, p.permscale_exp, p.permscale_lng)
+   s = 'EQUALS\n'
+   for j in range(1, p._ny+1):
+      for i in range(1, p._nx+1):
+         s+= ' PERMX %6i   %i %i  %i %i  1 %i /\n' % (pf(i, j), i,i, j,j, p._nz)
+   return s + '/\n'
+
+def _eqlnum(p):
+   s = 'EQUALS\n'
+   for i in range(p._ny):
+      s+= ' EQLNUM %g   1 %i  %i %i  1 %i /\n' % (i+1, p._nx, i+1, i+1, p._nz)
+   return s + '/\n'
+
+def _wconprod(p, grat):
+   orat = p.orat/2. if p.use_symmetry else p.orat
+   return '''
+-- Name     Open?   Control       Orat     Wrat     Grat  Lrat RFV  BHP
+WCONPROD
+  %s       OPEN        %s          %i  1*       %i 2* %i /
+/
+''' % (p.wellnm, p.well_control, orat, grat, p.bhp_min)
+
+def _sched(p):
+   grat = p.grat/2. if p.use_symmetry else p.grat
+   s = ''
+   if p.rampup_n > 0:
+      dt = p.rampup_t / float(p.rampup_n)
+      dgrat = grat / float(p.rampup_n)
+      for i in range(1, p.rampup_n):
+         s += _wconprod(p, i*dgrat)
+         s += 'TSTEP\n %.1f /\n' % dt
+   s += _wconprod(p, grat)
+   s += 'TSTEP\n %s\n' % p.tstep
+   return s
+
+
+def _rcp_templ(p):
+   a = p._br.segments.aicd_a.get_array()[0]
+   x = p._br.segments.aicd_x.get_array()[0]
+   y = p._br.segments.aicd_y.get_array()[0]
+   rho_cal = p._br.segments.aicd_rho_cal.get_array()[0]
+   mu_cal = p._br.segments.aicd_mu_cal.get_array()[0] * 1000. # Si -> cP
+   d = p._br.segments.aicd_d.get_array()[0]
+   e = p._br.segments.aicd_e.get_array()[0]
+   f = p._br.segments.aicd_f.get_array()[0]
+   g = p._br.segments.aicd_g.get_array()[0]
+   h = p._br.segments.aicd_h.get_array()[0]
+   i = p._br.segments.aicd_i.get_array()[0]
+   return " %s %%5g %%5g %8g %%7.1f %7g %5g 5* %5g %5g %5g %5g %5g %5g %5g %5g /\n" % \
+            (p.wellnm, a, rho_cal, mu_cal, x, y, d, e, f, g, h, i)
+
+def _openup(j, p):
+   # returns True if *this* segment is to be opened
+   y = p._mds[j+p._iy]
+   for y1,y2 in p.open_here:
+      if y1 <= y < y2: return True
+   return False   # default
+
+def _equil(p):
+   s = ''
+   for md in p._mds:
+      goc = p.goc_func(md)
+      dp = p.rho_gas * GRAVITY * (goc-p._goc_min) / U.BAR
+      s += " %.1f   %.2f  9999.0   0.0    %.1f  0.0    0    0   20 /\n" % (goc, p.p_init+dp, goc)
+   return s
+
+def _from_excel(xlsfile, sheets=['main', 'extra']):
+   book = xlrd.open_workbook(xlsfile)
+   inp = UT.Struct()
+   for sheet in sheets:
+      sh = book.sheet_by_name(sheet)
+      typs   = sh.col_values(0, 1, 9999)
+      names  = sh.col_values(1, 1, 9999)
+      values = sh.col_values(2, 1, 9999)
+      for typ, nm, value in zip(typs, names, values):
+         if   typ == 'float': value = float(value)
+         elif typ == 'bool' : value = True if 'true' in value.lower() else False
+         elif typ == 'int'  : value = int(value)
+         elif typ == 'eval' : value = eval(value)
+         inp.__dict__[nm] = value
+   return inp
+
+def get_parameters(paramfile):
+   #pdb.set_trace()
+   if paramfile.endswith('.inp'):
+      p = UT.InputValues(paramfile, import_statement='import scipy.interpolate; import AtlejgTools.SimulationTools.GOC_functions as GOC')
+   else:
+      p = _from_excel(paramfile)
+   p.paramfile = paramfile
+   #
+   # defaults:
+   # just make it more easy to introduce new parameters
+   if not 'honour_blanks' in p.__dict__.keys(): p.honour_blanks = True
+   if not 'vpj_func'      in p.__dict__.keys(): p.vpj_func      = lambda x: x
+   if not 'open_here'     in p.__dict__.keys(): p.open_here     = []
+   if not 'startdate'     in p.__dict__.keys(): p.startdate     = '01 JAN 2019'
+   if not 'p_init'        in p.__dict__.keys(): p.p_init        = 120.
+   if not 'goc_fname'     in p.__dict__.keys(): p.goc_fname     = ''
+   if not 'y_padding'     in p.__dict__.keys(): p.y_padding     = 4
+   if not 'permscale_exp' in p.__dict__.keys(): p.permscale_exp = 0
+   if not 'permscale_lng' in p.__dict__.keys(): p.permscale_lng = 0
+   if not 'use_symmetry'  in p.__dict__.keys(): p.use_symmetry  = True
+   if not p.honour_compl:
+      # map screen_density to VPJ (1:1 => 0.5 etc)
+      n_scr, n_blanks = [int(x) for x in p.screen_density.split(':')]
+      p._vpj = n_scr / float(n_scr + n_blanks)
+      n_scr, n_blanks = [int(x) for x in p.screen_density2.split(':')]
+      p._vpj2 = n_scr / float(n_scr + n_blanks)
+   return p
+
+def create_datafiles(paramfiles, overwrite=False):
+   datafiles = []
+   for paramfile in paramfiles:
+      print 'reading paramfile', paramfile
+      p = get_parameters(paramfile)
+      #
+      _update_from_ntlcase(p)
+      #
+      # some useful variables
+      p._goc_min = min([p.goc_func(md) for md in p._mds])
+      p._gocs    = p.goc_func(p._mds)
+      #
+      casenm = UT.basename(paramfile)
+      rpl = []
+      #
+      # GRID
+      grid, p._nx, p._nz, p._ix, p._izs = _create_gridfile(p)
+      rpl.append(('$GRID$', grid))
+      rpl.append(('$DIMENS$', '%i %i %i' % (p._nx,p._ny,p._nz)))
+      rpl.append(('$PERMX$', _permx(p)))
+      rpl.append(('$MULTPV_G$', str(p.multpv_g)))
+      rpl.append(('$MULTPV_W$', str(p.multpv_w)))
+      rpl.append(('$NX$', '%i'%p._nx))
+      rpl.append(('$NY$', '%i'%p._ny))
+      rpl.append(('$NZ$', '%i'%p._nz))
+      rpl.append(('$NXNY$', '%i'%(p._nx*p._ny)))
+      rpl.append(('$NXNZ$', '%i'%(p._nx*p._nz)))
+      rpl.append(('$NXNYNZ$', '%i'%(p._nx*p._ny*p._nz)))
+      #
+      # WELL
+      rpl.append(('$WELLNM$', p.wellnm))
+      rpl.append(('$N_TOT_SEGM$', '%i'%(2*p._nsegm + 10)))
+      txt = "%s PROD  %i %i 1* OIL 2* SHUT YES 1* SEG 0 /\n" % (p.wellnm, p._ix, p._iy)
+      rpl.append(('$WELSPECS$', txt))
+      #
+      txt = ''
+      for j in arange(p._nsegm):
+         if p._screens[j] > 0 or (not p.honour_compl and not p.honour_blanks) or _openup(j, p): mode = 'OPEN'
+         else                                                                                 : mode = 'SHUT'
+         txt += " %8s       1* %3i %3i %3i  %s   1*      1*     %7.3f  1*      2*      Y              1*    /\n" \
+            % (p.wellnm, p._iy+j, p._izs[j], p._izs[j], mode, p.wellbore_diam)
+      rpl.append(('$COMPDAT$', txt))
+      #
+      txt = ''
+      for j in arange(p._nsegm):
+         start = '%7.1f'%p._tvds[0] if j == 0 else '1*'
+         txt += " %3i %3i %3i  %3i    %s    1*   Y   %3i  %5.1f /\n" % (p._ix, p._iy+j, p._izs[j], j+2, start, p._iy+j, p._tvds[j])
+      rpl.append(('$COMPSEGS$', txt))
+      #
+      pipe_diam = p.pipe_diam/sqrt(2) if p.use_symmetry else p.pipe_diam
+      txt = ''
+      segm_no = 2
+      for segm_no in arange(p._nsegm) + 2:
+         txt += "  %3i    %3i    1     %3i      %5.1f   %.2f  %5.2f 1.5E-05   /\n" \
+             % (segm_no, segm_no, segm_no-1, p.dy, 0, pipe_diam)
+      txt += '--\n--here comes the aicd-branches\n--\n'
+      for segm_no in arange(p._nsegm) + p._nsegm + 2:
+         txt += "  %3i    %3i    %3i    %3i      0.1   0  %5.2f  1.50E-05   /\n" \
+            % (segm_no, segm_no, segm_no-p._nsegm, segm_no-p._nsegm, pipe_diam)
+      rpl.append(('$WELSEGS$', txt))
+      #
+      wsegaicd = 'WSEGAICD\n'
+      if p.use_symmetry: wsegaicd += '-- NOTE! Using symmetry (so licd *= 2)\n'
+      rcp = _rcp_templ(p)
+      for i,vpj in enumerate(p._screens):
+         if p.honour_compl:
+            # use Netool values - possibly adjusted by given function
+            if vpj > 0:         licd = JOINT_LENGTH / p.vpj_func(vpj)
+            elif _openup(i, p): licd = JOINT_LENGTH / p._vpj2
+            else:               licd = LICD_MAX
+         else:
+            # use given vpj-value
+            if vpj == 0 and p.honour_blanks:
+               if _openup(i, p): licd = JOINT_LENGTH / p._vpj2
+               else            : licd = LICD_MAX
+            else:
+               licd = JOINT_LENGTH / p._vpj
+         if p.use_symmetry and licd != LICD_MAX: licd *= 2
+         wsegaicd += rcp % (p._nsegm+2+i, p._nsegm+2+i, licd)
+      wsegaicd += "/\n"
+      rpl.append(('$INFLOWCONTROL$', wsegaicd))
+      #
+      # SOLUTION
+      rpl.append(('$EQUIL$', _equil(p)))
+      rpl.append(('$ECLNUM$', _eqlnum(p)))
+      #
+      # SCHEDULE
+      rpl.append(('$STARTDATE$', p.startdate))
+      rpl.append(('$SCHED$', _sched(p)))
+      #
+      # CREATE FILE
+      fname = UT.basename(paramfile) + '.DATA'
+      UT.replace_in_file(rpl, p.template, fname)
+      print 'creating', fname
+      datafiles.append(fname)
+   return datafiles, p
+
+
+if __name__ == '__main__' :
+
+   from optparse  import OptionParser
+   parser = OptionParser('')
+   parser.add_option("-r", "--norun", dest="norun", action="store_true")
+   (opts, args) = parser.parse_args()
+
+   paramfiles = UT.glob(args, sortit=1)
+   datafiles, p = create_datafiles(paramfiles)
+   if not opts.norun:
+      if is_linux: ECL.lsf_run3(datafiles)
+      else       : print 'Can only run case on linux...'
+
