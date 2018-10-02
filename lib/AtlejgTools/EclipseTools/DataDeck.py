@@ -1,8 +1,16 @@
 import os, inspect
 import pylab as pl
+import pdb
 
-DELIM        = '/' # end-of-record for Eclipse input
-SECTIONS = ('RUNSPEC', 'GRID', 'EDIT', 'PROPS', 'REGIONS', 'SOLUTION', 'SUMMARY', 'SCHEDULE', 'OPTIMIZE')
+# end-of-record for Eclipse input
+DELIM       = '/' 
+
+# the main sections of the DATA-file
+SECTIONS    = ['RUNSPEC', 'GRID', 'EDIT', 'PROPS', 'REGIONS', 'SOLUTION', 'SUMMARY', 'SCHEDULE', 'OPTIMIZE']
+
+# some keywords (like EQUALS) are special because they are followed by lines with other keywords (like PERMX)
+# as their first entry. this is problematic and must be handled specially
+SPECIAL_KWS = ['EQUALS', 'ADD', 'COPY', 'MULTIPLY'] 
 
 class DataDeck:
    '''
@@ -30,6 +38,11 @@ class DataDeck:
      been found (like COMPDAT-1, WELSEGS-1, WELSEGS-2 ...)
    note4: another problem is that you are allowed to put several records in one line (separated by DELIM) and also that you are
      allowed to write comments after the DELIM. use remove_after_delim if you have one line per record and comments after DELIM.
+   note5: for the SPECIAL_KWS (like EQUALS) it assumes the format is like this (with the ending '/' on a separate line):
+      EQUALS
+       PERMX 1000 1 11 1 19 1 1 /
+       PORO  0.3  /
+      /
    '''
    ALL_KEYWORDS = [] # all existing Eclipse keywords
 #
@@ -44,11 +57,18 @@ class DataDeck:
       self._kw_counter = {}                   # must handle multiple keyword-entries (like WELSEGS)
       self.fname       = fname
       key = ''                                # current hash key
+      #pdb.set_trace()
       for line in open(fname):
          line = line.strip()                  # 2016-10-26: changed from 'rstrip'
-         if not line             : continue   # remove empty lines
-         if line.startswith('--'): continue   # remove comments
+         if not line             : continue   # skip empty lines
+         if line.startswith('--'): continue   # skip comments
+         # need to treat specials separately
+         if self._dekey(key) in SPECIAL_KWS:
+            if line.startswith(DELIM): key = ''
+            else                     : self._chunks[key].append(line)
+            continue
          w = line[:8].rstrip()                # look for keywords
+         # usually we get here
          if w in self.ALL_KEYWORDS:
             key = self._make_key(w)
             self._chunks[key] = []
@@ -62,8 +82,8 @@ class DataDeck:
       reads all existing Eclipse keywords into ALL_KEYWORDS, from file.
       can be forced to re-read, but usually it is done only once.
       '''
-      if self.ALL_KEYWORDS and not force_update_: return  # dont redo
-      self.ALL_KEYWORDS = ['RUNSPEC', 'GRID', 'EDIT', 'PROPS', 'REGIONS', 'SOLUTION', 'SUMMARY', 'SCHEDULE', 'OPTIMIZE']  # section keywords must be included
+      if self.ALL_KEYWORDS and not force_update: return  # dont redo
+      self.ALL_KEYWORDS = SECTIONS  # section keywords must be included
       self.ALL_KEYWORDS += xtra_kws
       dirname = os.path.dirname(inspect.getfile(self.__init__))
       fname = '%s/eclipse_keywords.%s' % (dirname, version)
@@ -75,9 +95,15 @@ class DataDeck:
          print 'here is what i found:', UT.glob('%s/eclipse_keywords.*'%dirname)
 #
    def _make_key(self, kw):
+      # make keyword on the format COMPDAT-1 etc
       if self._kw_counter.has_key(kw): self._kw_counter[kw] += 1
       else                           : self._kw_counter[kw] = 1
       return '%s-%i' % (kw, self._kw_counter[kw])
+#
+   def _dekey(self, kw):
+      # get back the original keyword from the format obtained from _make_key
+      # - eg COMPDAT-1 => COMPDAT
+      return kw.split('-')[0]
 #
    def _clean(self, remove_after_delim):
       for key in self._chunks.keys():
@@ -137,7 +163,8 @@ class DataDeck:
       #
       kw     : keyword (like WELSEGS)
       identif: unique identifier (like well name)
-      get_all: if multiple entries exists, get all (but then you cannot use raw2values directly...)
+      get_all: if multiple entries exists, get everything
+               (but then you cannot use raw2values so be prepared to do some parsing of the result..)
       '''
       # - handle all special cases first
       if not self.has_kw(kw):
@@ -148,7 +175,7 @@ class DataDeck:
          # -get all chunks
          raws = []
          for i in range(1, self._kw_counter[kw]+1):
-            raws.append(self._raw_data(self._chunk(kw, i)))
+            raws.extend(self._raw_data(self._chunk(kw, i)))
          return raws
       if self._kw_counter[kw] > 1 and not identif:
          # -more than 1 chunk, need identifier
@@ -212,13 +239,14 @@ class DataDeck:
       '''
       an easy way of getting data (often sufficient) - more simple than dd.raw2values(dd.get_raw_data(...)),
       but not as versatile
-      note that EQUALS is handled specially since it is often used. must have identif in this case (e.g. 'PORO' or 'PERMX')
+      note1: EQUALS is handled specially since it is often used. must have identif in this case (e.g. 'PORO' or 'PERMX')
+      note2: if it fails to give you want you need, try using get_raw_data instead - maybe with get_all=True
       '''
       if kw == 'EQUALS':
          ll = self.get_raw_data('EQUALS', get_all=True)
          for l in ll[0]:
             if l[0] == identif:
-               return [float(x) for x in l[col1-1:col2]]
+               return [float(x) for x in l[col1:col2+1]]
          print 'Did not find identifier %s in EQUALS' % identif
          return []
       return self.raw2values(self.get_raw_data(kw, identif), col1, col2, skip=skip, matrix=matrix)

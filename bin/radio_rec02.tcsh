@@ -1,6 +1,6 @@
 #!/usr/bin/env tcsh
 if ($#argv < 5) then
-	echo "usage: $0 channel n_minutes directory prefix bitrate [dateformat]"
+	echo "usage: $0 channel n_minutes directory prefix quality [dateformat]"
 	echo "legal choices for channel are: "
 	echo " p1"
 	echo " p2"
@@ -21,7 +21,7 @@ if ($#argv < 5) then
 	echo " sport"
 	echo ' OR p4 !!'
 	echo " "
-	echo " and bitrate is either l, m or h (low, medium, high). not applicable for p4"
+	echo " and quality is either l, m or h (low, medium, high). not applicable for p4"
    echo " datefmt is like %Y%m%d_%H%M"
 
 	exit 1

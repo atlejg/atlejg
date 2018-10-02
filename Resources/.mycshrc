@@ -123,11 +123,11 @@ alias bak do -q \'cp -p \$_ \$_.bak\;ls -l \$_.bak\'
 alias cut "cut -d ' '"
 alias free 'free -m' # report in Mb
 alias du_ 'find . -type d -exec du -s {} \; | sort -n'
-# i want do to be verbose - and use tcsh
-alias do 'do -vc'
-# print full path of the file
-alias fnm 'readlink -f'
+alias do 'do -vc'                      # i want do to be verbose - and use tcsh
+alias fnm 'readlink -f'                # print full path of the file
 alias eclipse '++ $ACTIVE/../reservoir_simulations/agy; pwd; echo "see ~/Misc/cmds for typical eclipse related commands"'
+# this couuld be something to check/consider
+# source /prog/ecl/script/eclrun.cshrc
 alias octave /prog/rdtoolbox/octave/octave
 #
 # useful for RGS session (got it from Håkon Kyte)
@@ -159,7 +159,7 @@ alias cfdpost /prog/Fluent/ansys_inc_V16.2/ansys_inc/v162/CFD-Post/bin/cfx5post
 # Wed Jan 13 12:03:05 MET 2016
 # gambit will only work on selected disks... for now, i use /tmp. remember copying afterwards!!
 # must use LD_PRELOAD as well. for documentation see $HOME/Tools/memcpy-preload.c
-alias gambit_  'echo "REMEMBER: GOTO /tmp"; setenv FLUENT_ARCH lnx86; setenv LM_LICENSE_FILE 7241@st-vlic01.st.statoil.no; setenv LD_PRELOAD $HOME/Tools/memcpy-preload.so; /prog/Fluent/i686/Fluent.Inc/bin/gambit'
+alias gambit_  'echo "REMEMBER: GOTO /tmp"; setenv FLUENT_ARCH lnx86; setenv RELEASE 2.3.16; setenv LM_LICENSE_FILE 7241@st-vlic01.st.statoil.no; setenv LD_PRELOAD $HOME/Tools/memcpy-preload.so; /prog/Fluent/i686/Fluent.Inc/bin/gambit'
 
 # useful directories
 setenv KRISTINE /project/RCP/active/reservoir_simulations/krhal/ERT/ert/Simulations

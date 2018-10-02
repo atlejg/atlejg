@@ -69,6 +69,8 @@ def get_summary(case):
    case could be a directory, a file-name, or a casename. if it is a filename with
    an extension, this extension is replaced with UNSRMY so that summary may be read.
    if it is a directory, it assumes there is only one summary file in this directory.
+   for performance reasons, it will hold startdate in a separate array since the 
+   DataDeck operation could be very slow.
    '''
    if os.path.isdir(case):
       localdir = case
@@ -83,10 +85,15 @@ def get_summary(case):
       raise Exception("No summary file for case %s" % case)
    s = CM1.add(smryfile, reread=UI.reread)
    os.chdir(cwd)
-   if UI.startdate: s.startdate = UI.startdate
+   if UI.startdate: ymd = UI.startdate       # year,month,date
    else:
-      d = ECL.DataDeck(case+'.DATA').get_raw_data('START')[0]
-      s.startdate = date2num(datetime(*_startdate(d)))
+      if STARTDATES.has_key(smryfile):
+         ymd = STARTDATES[smryfile]
+      else:
+         d = ECL.DataDeck(case+'.DATA').get_raw_data('START')[0]
+         ymd = _startdate(d)
+         STARTDATES[smryfile] = ymd
+   s.startdate = date2num(datetime(*ymd))
    return s
 
 def _fix(s, varnm):
@@ -146,7 +153,7 @@ UI.Bg           = 1.    # formation factor gas. to be done: should not be consta
 UI.Rs           = 1.    # resolved gas.         to be done: should not be constant
 UI.COMP_VARS    = []      # variables to be plotted with the 'compiled' functionality (like ['FOPR', 'WBHP'])
 UI.yscaler      = None    # if you want to scale any variable in 'xplot' and in 'segments'. use with care!!
-UI.startdate    = None    # use ['01', 'JAN', '2000']  if you want to overwrite START in DATA-file
+UI.startdate    = None    # use (yyyy, mm, dd)  if you want to overwrite START in DATA-file
 UI.reread       = True    # if True: will reread summary if file has changed since last access
 UI.plot_dates   = True    # if True: will use plot_date in xplot when x-variable is TIME
 
@@ -158,6 +165,9 @@ CM1 = UT.CacheManager(ECL.read_summary2) # experimental ...
 CM2 = UT.CacheManager(_funrst_reader)
 CM3 = UT.CacheManager(_init_reader)
 y_ = '' # useful for debugging or interactive use
+
+# for performance reasons - avoid calling DataDeck too often. setting the UI.startdate is the fastest
+STARTDATES = {}
 
 #icd_segments     = None  # function. should be set externally. usually _icd_segments below is what you want
 #well_segments    = None  # function. should be set externally. usually _well_segments below is what you want
@@ -483,7 +493,7 @@ def _connection_data_at_given_time(varnm, cases, t0, dx, plot_kwargs=None):
    n = 0
    for case in cases:
       dd = ECL.DataDeck(case)
-      ijks = dd.raw2values(dd.get_raw_data('COMPDAT'), 2,4, identif=WELLNM, match_col=1)
+      ijks = dd.raw2values(dd.get_raw_data('COMPDAT', get_all=True), 2,4, identif=WELLNM, match_col=1)
       case = UT.basename(case)
       r = get_summary(case)
       t0_indx = UT.find_closest_index(r.time, t0)
@@ -492,8 +502,8 @@ def _connection_data_at_given_time(varnm, cases, t0, dx, plot_kwargs=None):
       y_ = 0
       sep = ECL.SEPARATOR  # for convinience
       if varnm == 'CLFR':
-         m  = array([r.get('%s%s%s%s%i,%i,%i'%('COFR', sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
-         m += array([r.get('%s%s%s%s%i,%i,%i'%('CWFR', sep, WELLNM,ijk[0], sep, ijk[1],ijk[2])) for ijk in ijks]).T
+         m  =  array([r.get('%s%s%s%s%i,%i,%i'%('COFR', sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
+         m  += array([r.get('%s%s%s%s%i,%i,%i'%('CWFR', sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
       else:
          m = array([r.get('%s%s%s%s%i,%i,%i'%(varnm, sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
       for tix in tixs:
@@ -714,7 +724,7 @@ def _barplot_vals(varnm, cases, t0=-1, shift=0, mark_highest=True, rel_height=Fa
       yvals *= 100 # percent
    if mark_highest: colors[ind] = 'r'
    bar(arange(len(yvals))+0.5-shift, yvals, color=colors)
-   xticks(arange(len(yvals))+1,[UT.basename(x) for x in cases], rotation=90)
+   xticks(arange(len(yvals))+0.5,[UT.basename(x) for x in cases], rotation=90)
    if rel_height:
       ylabel('%s [%%] @ %i days' % (varnm, int(t0)))
    else:
@@ -2333,6 +2343,7 @@ def analyze(mode, *args):
    elif mode == 'compiled':
       ## creates a "1-pager" with a lot of plots
       ## example: analyze('compiled', 58, 75 'A?.DATA')
+      ## note: must make sure UI.COMP_VARS is set first
       if not enough_args(args, 3, mode): return
       segm1  = args[0]
       segm2  = args[1]
@@ -2456,6 +2467,16 @@ def create_files(templfile, keyw, vals, prefix=None, fmt='%.2f', overwrite=False
       fnms.append(fnm)
    return fnms
 
+def vpj2ratio(vpj):
+   '''
+   A function most useful for Troll... They use ratios like 1:1 instead of vpj=0.5
+   n1:n2 means n1 screens followed by n2 blanks
+   Note: only valid for vpj <= 1
+   '''
+   if vpj > 1: raise Exception('cannot handle vpj > 1')
+   n1, a2 = float.as_integer_ratio(vpj)
+   n2 = a2 - n1
+   return '%i:%i'%(n1,n2), n1, n2
 
 
 

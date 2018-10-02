@@ -26,7 +26,7 @@ foreach $datfile (@ARGV) {
    ($base,$_,$_) = fileparse($datfile,@suffixlist);
    print "rd $datfile y\n";
    print "$tui_cmd\n";
-   print "di hc $base.png y\n" if $opt_c;
+   print "di hc $base.tif y\n" if $opt_c;
 }
 print "fi stop-t\n" if $opt_t;
 

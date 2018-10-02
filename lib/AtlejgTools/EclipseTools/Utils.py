@@ -23,6 +23,7 @@ SEPARATOR    = ':' # separator for variable names (like WBHP:OP1, where SEPARATO
 JOINT_LENGTH = 12. # meter
 DELIM        = '/' # end-of-record for Eclipse input
 SECTIONS = ('RUNSPEC', 'GRID', 'EDIT', 'PROPS', 'REGIONS', 'SOLUTION', 'SUMMARY', 'SCHEDULE', 'OPTIMIZE')
+MONTH_MAP    = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12} # useful when converting dates
 
 def _read_lines(f, line):
    nvals_pr_column = 4 # hardcoded, will probably not change
@@ -535,12 +536,13 @@ class SummaryVectors() :
       self._icd_segms  = {} # list of icd-segments for each well
       self._well_segms = {} # list of well-segments for each well
       self.separator   = separator
-      self.sum = ecl.EclSum(nm)
-      if 'TIME' in self.sum.keys():
-         self.time = self.sum.get_vector('TIME').values
+      self._sum        = ecl.EclSum(nm)
+      self._datadeck   = None
+      if 'TIME' in self._sum.keys():
+         self.time = self._sum.get_vector('TIME').values
       else:
-         self.time = self.sum.get_vector('YEARS').values*365.25
-      for varnm in self.sum.keys():
+         self.time = self._sum.get_vector('YEARS').values*365.25
+      for varnm in self._sum.keys():
          if varnm.startswith('W'):
             wname = varnm.split(separator)[1]
             if not wname in self.wells: self.wells.append(wname)
@@ -553,10 +555,10 @@ class SummaryVectors() :
             if segm <= 1: continue  # should not be included. starting at 2.
             if not segm in self._segms[wname]: self._segms[wname].append(segm)
       # for convinience
-      if not 'TIME' in self.sum.keys():
-         self.time = self.sum.get_vector('YEARS').values * 365.25
+      if not 'TIME' in self._sum.keys():
+         self.time = self._sum.get_vector('YEARS').values * 365.25
       else:
-         self.time = self.sum.get_vector('TIME').values
+         self.time = self._sum.get_vector('TIME').values
       self.wells.sort()
       for wname in self._segms.keys():
          self._segms[wname].sort()
@@ -564,6 +566,10 @@ class SummaryVectors() :
          nsegms = len(self._segms[wname])
          self._well_segms[wname] = self._segms[wname][:nsegms/2]
          self._icd_segms[wname]  = self._segms[wname][nsegms/2:]
+#
+   def datadeck(self):
+      if self._datadeck == None: self._datadeck = DataDeck(self.nm+'.DATA')
+      return self._datadeck
 #
    def segments(self, wellnm):
       return pl.array(self._segms[wellnm])
@@ -575,37 +581,34 @@ class SummaryVectors() :
       return pl.array(self._well_segms[wellnm])
 #
    def unit(self, varnm) :
-      if varnm in self.sum.keys(): return self.sum.unit(varnm)
+      if varnm in self._sum.keys(): return self._sum.unit(varnm)
       else                        : return '-'
 #
    def get(self, varnm, cumul=False, scaler=1., Bo=1, Bg=1, Bw=1, Rs=1) :
       '''
       Get the vector
       '''
-      if not self.sum.has_key(varnm):
-         print 'WARNING: no such varnm:', varnm
-         return 0
       if 'SLFR' in varnm:           # total liquid production for well segments (not available in Eclipse)
          postfix = varnm.split('SLFR')[1] # f.ex. SLFR:Q21:17 -> :Q21:17
-         y = self.sum.get_vector('SOFR'+postfix).values \
-           + self.sum.get_vector('SWFR'+postfix).values
+         y = self._sum.get_vector('SOFR'+postfix).values \
+           + self._sum.get_vector('SWFR'+postfix).values
       elif 'SFFR' in varnm:           # total flow production for well segments (not available in Eclipse)
          postfix = varnm.split('SFFR')[1] # f.ex. SLFR:Q21:17 -> -Q21:17
-         y = self.sum.get_vector('SOFR'+postfix).values.copy()*Bo # gonna do +=, so need a copy()
-         if self.sum.has_key('SGFR'+postfix):
-            free_gas = self.sum.get_vector('SGFR'+postfix).values -y*Rs
+         y = self._sum.get_vector('SOFR'+postfix).values.copy()*Bo # gonna do +=, so need a copy()
+         if self._sum.has_key('SGFR'+postfix):
+            free_gas = self._sum.get_vector('SGFR'+postfix).values -y*Rs
             y += free_gas*Bg
-         if self.sum.has_key('SWFR'+postfix):
-            y += self.sum.get_vector('SWFR'+postfix).values*Bw
+         if self._sum.has_key('SWFR'+postfix):
+            y += self._sum.get_vector('SWFR'+postfix).values*Bw
       elif varnm.startswith('FSN'): # sigurds number: cumulative oil / cumulative water or gas
          if varnm.endswith('W'):
-            y = self.sum.get_vector('FOPT').values / self.sum.get_vector('FWPT').values # FSNW: water
+            y = self._sum.get_vector('FOPT').values / self._sum.get_vector('FWPT').values # FSNW: water
          else:
-            y = self.sum.get_vector('FOPT').values / self.sum.get_vector('FGPT').values # FSNG: gas
+            y = self._sum.get_vector('FOPT').values / self._sum.get_vector('FGPT').values # FSNG: gas
       elif varnm == 'TIME':
          y = self.time    # could be 'YEARS'...
       else:
-         y = self.sum.get_vector(varnm).values
+         y = self._sum.get_vector(varnm).values
       if cumul: return scaler*UT.cumulative(self.time, y)
       else    : return scaler*y
 #
@@ -613,13 +616,13 @@ class SummaryVectors() :
       '''
       Get list of vector names
       '''
-      return list(self.sum.keys())
+      return list(self._sum.keys())
 #
    def has_varname(self, varnm):
       '''
       Check if vector is available
       '''
-      return self.sum.has_key(varnm)
+      return self._sum.has_key(varnm)
 #
    def cross_plot(self, varnm1, varnm2, newfig=True, do_clf=False, scaler1=1., scaler2=1., marker=None):
       '''
@@ -1254,9 +1257,13 @@ def lsf_run2(datafiles, version='2012.2', max_running=0, lsf=True):
       print datafile
    que.block_waiting()    # que is running in separate thread. must make sure all jobs are started (i think ...)
 
-def lsf_run3(datafiles):
+def lsf_run3(datafiles, version=None):
    if type(datafiles) is str: datafiles = [datafiles]
-   cmd = 'run_eclipse ' + ' '.join(datafiles)
+   datafiles.sort()
+   cmd = 'run_eclipse '
+   if version: cmd += '-v %s ' % version
+   cmd += ' '.join(datafiles) + ' &'
+   print cmd
    UT.tcsh(cmd)
 
 def lcl_run(datafile, version='2016.1'):
@@ -1746,6 +1753,7 @@ def create_vfp_table3(q, q_func, wc, wc_func, gfr, gfr_func, dp_max, ref_depth, 
    the shift term is added.
    gfr: note! must be @ standard conditions
    note: flow is pr. segment. so length of segments and valves pr. joint must be handled elsewhere.
+   nomenclature: q is flow, dp is pressure drop, wc is water-cut, gfr is gas-fraction
    '''
    q_   = format_long_line(' '.join(['%.1f'%x  for x in q]))
    wc_  = format_long_line(' '.join(['%.2f'%x  for x in wc]))
@@ -3291,15 +3299,17 @@ class EclipseCoupling(object):
       - You do at least one time-step before entering READDATA
       - Use RPTONLY to force eclipse to write summary-files (eg A1.S000x) only at report-times
         (not at every time-step)
+      - It seems RPTRST must be present. To minimize <casenm>.X* files, use BASIC=1 (in RPTRST)
       - There is at least one statement (other than TSTEP or END) after READDATA
       - You provide this class with a simulation state instance. This class *must* have
-         casenm                    : just the basename of the simulation
-         next_tstep(tstep_no, trn) : returns next tstep. return None when you want to stop.
-                                     trn: an open transcript file (or None)
-         new_schedule(tstep, trn)  : returns a formatted string that is the schedule-part. tstep is from next_tstep.
-                                     typically, this function will read output from eclipse (should use read_summary2 for this)
-                                     to adjust some input in the schedule section
-                                     trn: an open transcript file (or None)
+         casenm                          : just the basename of the simulation
+         next_tstep(self, tstep_no, trn) : returns next tstep. return None when you want to stop.
+                                           trn: an open transcript file (or None)
+         new_schedule(self, tstep, trn)  : returns a formatted string that is the schedule-part. tstep is from next_tstep.
+                                           typically, this function will read output from eclipse (should use read_summary2 for this)
+                                           to adjust some input in the schedule section
+                                           nb! this one 
+                                           trn: an open transcript file (or None)
    #
    Example usage (this naive example will only run a simulation with fixed time-steps)
    #
@@ -3310,12 +3320,12 @@ class EclipseCoupling(object):
          self.tstep        = tstep
          self.simtime      = 0.
       #
-      def next_tstep(self, tstep_no):
+      def next_tstep(self, tstep_no, trn):
          self.simtime += self.tstep
          return self.tstep if self.simtime < self.maxtime else None
       #
-      def new_schedule(self):
-         return '\nTSTEP\n %.2e \n/' % self.tstep
+      def new_schedule(self, tstep, trn):
+         return ''
    #
    ss = SimState(casenm)
    ec = ECL.EclipseCoupling(ss, trn=True)
@@ -3343,11 +3353,13 @@ class EclipseCoupling(object):
       self.sleeptm2 = sleeptm2
       self.trn = open('%s.trn'%self.casenm, 'w') if trn else None
 #
-   def _write_schedule_for_readdata(self, txt):
+   def _write_schedule_for_readdata(self, txt, tstep=None):
       '''
       writes a schedule file for READDATA
       txt should be a valid eclipse schedule section - or empty
+      if tstep is given, it will add the TSTEP keyword
       '''
+      if tstep: txt += '\nTSTEP\n %g \n/' % tstep
       fnm =  '%s.I%04i' % (self.casenm, self.tstep_no)     # ala A01.I0002
       f = open(fnm, 'w')
       f.write(txt)
@@ -3368,32 +3380,42 @@ class EclipseCoupling(object):
       time.sleep(self.sleeptm2)  # make sure eclipse is done...
       if self.trn: print >>self.trn, 'found', sumfile
 #
-   def run(self, run_eclipse=True, ecl_version='2016.2'):
+   def _notify_eclipse(self):
+      '''
+      this is the signal to eclipse to pick up the schedule-file
+      '''
+      f = open('%s.OK'%self.casenm, 'w')
+      f.write('')
+      f.close()
+#
+   def run(self, run_mode='local', ecl_version='2016.2'):
       '''
       this is the main engine of the EclipseCoupling. does the ping-pong.
-      if run_eclipse is True, it will fork out a process to run the eclipse case.
-      this is sometimes unstable...
-      (TODO??: To make sure eclipse is done with its part, we could check simulation time from the report-file)
+      if run_mode is 'local', it will fork out a process to run the eclipse case.
+      if run_mode is 'cluster', it will start Eclipse on cluster. for some reason this seems to be *very* slow (why??)
+      TODO??: To make sure eclipse is done with its part, we could check simulation time from the report-file, or (as suggested
+              by Juan), test if <casenm>.X* file has been created
       '''
+      if not run_mode in ('local', 'cluster'): print 'Time to start eclipse-case'
       print '## main loop'
-      if not run_eclipse: print 'Time to start eclipse-case'
       while True:
          self._write_schedule_for_readdata('')                                  # empty schedule-file so eclipse will wait for new instructions
-         if run_eclipse:
-            run_eclipse = False                                                 # must only be done once
-            # run eclipse in parallel
-            pid = os.fork()
+         if run_mode == 'local':
+            pid = os.fork()                                                     # run eclipse in parallel
             if pid == 0:                                                        # this is the child process
                lcl_run(self.casenm+'.DATA', version=ecl_version)
                os._exit(0)                                                      # hard stop of the child process
+         elif run_mode == 'cluster':
+            lsf_run3(self.casenm+'.DATA', version=ecl_version)
+         run_mode = ''                                                          # startup of simulation must only be done once
          self._wait_for_reportstep(self.tstep_no)                               # make sure eclipse has finished its time-step
-         tstep = self.simstate.next_tstep(self.tstep_no, trn=self.trn)
+         tstep = self.simstate.next_tstep(self.tstep_no, self.trn)
          if self.trn: print >>self.trn, 'tstep=', tstep
          if tstep:
-            self._write_schedule_for_readdata(self.simstate.new_schedule(tstep, trn=self.trn)) # new schedule part to eclipse
+            self._write_schedule_for_readdata(self.simstate.new_schedule(tstep, self.trn), tstep) # new schedule part to eclipse
          else:
             self._write_schedule_for_readdata('RPTONLY')                        # dummy schedule part to eclipse
-         os.system('touch %s.OK'%self.casenm)                                   # a signal to eclipse to pick up schedule file
+         self._notify_eclipse()                                                 # give control back to eclipse
          print ' # main loop', self.tstep_no, tstep
          self.tstep_no += 1
          if not tstep: break

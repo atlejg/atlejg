@@ -122,14 +122,20 @@ def plot_monitorfiles(fnames, skip=0, xscaler=1, yscaler=1, use_pylab=True) :
    '''
    plot_xyfiles(fnames, skip - 2, use_pylab=use_pylab, yscaler=yscaler, xscaler=xscaler)
 
-def plot_xyfiles(fnames, skip=0, xscaler=1, yscaler=1, use_pylab=True) :
+def plot_xyfiles(fnames, skip=0, xscaler=1, yscaler=1, use_pylab=True, vary_style=True):
    '''
    about use_pylab: see read_xyfile
+   vary_style: if many files, try to make each plot-style unique
    '''
    pl.figure()
+   if vary_style: ps = UT.PlotStyle()
    for fname in fnames:
       d = read_xyfile(fname, skip, use_pylab=use_pylab)
-      pl.plot(d[:,0]*xscaler, d[:,1]*yscaler, label=fname)
+      ps.next()
+      if vary_style:
+         pl.plot(d[:,0]*xscaler, d[:,1]*yscaler, color=ps.colour(), marker=ps.marker(), label=fname)
+      else:
+         pl.plot(d[:,0]*xscaler, d[:,1]*yscaler, label=fname)
    pl.legend(loc='best')
    pl.gca().grid()
    #pl.show() # probably need this for windows

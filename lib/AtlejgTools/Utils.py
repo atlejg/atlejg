@@ -8,34 +8,32 @@ import string
 
 class Struct: pass
 
-COLOURS = ('b', 'g', 'r', 'c', 'm', 'y', 'k', '0.3', '0.6', '0.9') # '0.x' gives grayscale
+COLOURS = ('b', 'g', 'r', 'c', 'm', 'y', 'k', '0.1', '0.3', '0.5', '0.7', '0.9') # '0.x' gives grayscale
+MARKERS = ('', '*', 'o', 's')
 
 class PlotStyle(object):
-   colours = COLOURS
-   markers = ('-', '*', '*-', '.', '--*')
-
+#
    def __init__(self, ci=0, mi=0):
       self.ci  = ci # color index
       self.mi  = mi # marker index
-
-   def next_marker(self):
-      self.mi = (self.mi + 1) % len(PlotStyle.markers)
-
-   def next_color(self):
-      self.ci = (self.ci + 1) % len(PlotStyle.colours)
-
-   def prev_marker(self):
-      self.mi = (self.mi - 1) % len(PlotStyle.markers)
-
-   def prev_color(self):
-      self.ci = (self.ci - 1) % len(PlotStyle.colours)
-
-   def fmt(self, shift_color=True, shift_marker=False):
-      if shift_color : self.next_color()
-      if shift_marker: self.next_marker()
-      str = PlotStyle.colours[self.ci] + PlotStyle.markers[self.mi]
-      return str
-
+#
+   def next(self):
+      self.ci += 1
+      if self.ci == len(COLOURS):
+         self.ci = 0
+         self.mi += 1
+      if self.mi == len(MARKERS):
+         self.mi = 0
+#
+   def colour(self):
+      return COLOURS[self.ci]
+#
+   def marker(self):
+      return MARKERS[self.mi]
+#
+   def format(self):
+      return self.colour() + self.marker()
+#
    def reset(self):
       self.ci = 0
       self.mi = 0
@@ -362,6 +360,10 @@ class CacheManager(object):
       self.coll          = {}              # collection of data-objects
       self.read_function = read_function   # function for obtaining data-objects from file
       self.verbose       = verbose         # silent or not?
+#
+   def holds(self, fname):
+      return self.coll.has_key(fname)
+#
    def add(self, fname, reread=True, **kwargs):
       '''
       assumes that the supplied read_function handles non-existing file etc.
@@ -369,22 +371,25 @@ class CacheManager(object):
       '''
       fname = fullpath(fname)
       timestamp = os.path.getmtime(fname)
-      if (not self.coll.has_key(fname)) or (reread and self.coll[fname]['timestamp'] < timestamp):
+      if (not self.holds(fname)) or (reread and self.coll[fname]['timestamp'] < timestamp):
          if self.verbose: print "adding '%s'" % fname
          data = self.read_function(fname, **kwargs)
          self.coll[fname] = {'data':data, 'timestamp':timestamp}
       elif self.verbose: print "'%s' already here" % fname 
       return self.coll[fname]['data']
+#
    def get(self, fname, **kwargs):
       """
       just an alias for add...
       """
       return self.add(fname, **kwargs)
+#
    def delete(self, fname):
       if not self.coll.has_key(fname):
          print "delete(): did not find key '%s'" % fname
          return
       self.coll.pop(fname)['data']
+#
    def reset(self):
       for key in self.coll.keys():
          self.delete(key)
@@ -570,7 +575,7 @@ class InputValues(object):
             value = rec[1].strip()
             if verbose: print varnm, '=', value
             if   typ == 'float': value = float(value)
-            elif typ == 'bool' : value = bool(eval(value)) # note: bool('0') is True...
+            elif typ == 'bool' : value = True if 'true' in value.lower() else False
             elif typ == 'int'  : value = int(value)
             elif typ == 'eval' : value = eval(value)
          self.add_variable(varnm, value, typ)
