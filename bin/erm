@@ -22,6 +22,7 @@ datafiles = [fname for fname in args.files if fname.endswith('.DATA')]
 
 SMALL = ('DBG', 'LOG', 'ERR', 'dbprtx', 'ECLEND', 'done', 'MSG')
 BIG   = ('UNRST','INIT','EGRID','GRID', 'SAVE', 'RFT')
+KEEP  = ('DATA', 'ini', 'inp', 'xls', 'xlsx')
 
 for datafile in datafiles:
    bname = UT.basename(datafile)
@@ -37,11 +38,11 @@ for datafile in datafiles:
          if args.v: print 'deleting', fname
          os.unlink(fname)
          continue
-      if args.most and ext not in ('DATA', 'ini', 'inp'):  # typical input-files
+      if args.most and ext not in KEEP:      # typical input-files
          if args.v: print 'deleting', fname
          os.unlink(fname)
          continue
-      if args.small and ext in SMALL:  # typical input-files
+      if args.small and ext in SMALL:        # typical input-files
          if args.v: print 'deleting', fname
          os.unlink(fname)
          continue
