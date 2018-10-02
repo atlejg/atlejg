@@ -156,7 +156,7 @@ UI.yscaler      = None    # if you want to scale any variable in 'xplot' and in 
 UI.startdate    = None    # use (yyyy, mm, dd)  if you want to overwrite START in DATA-file
 UI.reread       = True    # if True: will reread summary if file has changed since last access
 UI.plot_dates   = True    # if True: will use plot_date in xplot when x-variable is TIME
-UI.show_fig     = True    # if True: will show() figure. set to False if you want to create hardcopies without showing figures
+UI.show_fig     = True    # if True: will display figure. set to False if you want to save hardcopy without showing figure
 
 # useful for debugging and accessing data outside the program
 DBG = UT.Struct()
@@ -2396,7 +2396,7 @@ def analyze(mode, *args):
       _statistics(varnm, t0, plot_all, ref_value, descr, case_groups)
    else:
       print "no such mode: " + mode
-   if UI.show_fig: show()  # on ipython 0.12, this must be done explicitely:-(
+   if UI.show_fig: show()
 
 def xplots(varnms, *args):
    cases = UT.glob(args[0:])
