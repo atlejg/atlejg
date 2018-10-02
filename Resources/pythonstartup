@@ -1,0 +1,29 @@
+# -- coding: utf-8     # handle filenames with norwegian special characters
+import os, sys
+if 'win' in sys.platform:
+   # use insert to put these first
+   sys.path.insert(0, '\\\\statoil.net\\unix_tr\\Project\\RCP\\active\\fluent\\Atle_Resources\\lib\\Python')
+   sys.path.insert(0, '\\\\statoil.net\\unix_tr\\Project\\RCP\\active\\fluent\\Atle_Resources\\lib\\Python\\vkip')
+   sys.path.insert(0, '\\\\statoil.net\\unix_tr\\Project\\RCP\\active\\fluent\\Atle_Resources\\atlejg\\lib')
+else:
+   sys.path.append('/private/agy/Tools/lib/Python/')
+
+from pylab import *
+import AtlejgTools.FluentUtils as FL
+import AtlejgTools.Utils as UT
+import AtlejgTools.RCP_project.Valve_characteristics as VC
+import AtlejgTools.SimulationTools.UnitConversion as U
+
+if 'win' not in sys.platform:
+   import AtlejgTools.EclipseTools.Utils as ECL
+   import AtlejgTools.SimulationTools.PostProcessing as PP
+   import AtlejgTools.SimulationTools.ParameterStudy as PS
+
+rcParams['figure.figsize'] = 9, 5
+rcParams['lines.linewidth'] = 5    # orig: 1
+
+#from vim import vim    # useful for testing snippets of code. consider using %edit (ed) instead
+# dont need these for iptyhon 0.12
+#print "\n\n\n     CLOSE THAT WINDOW!\n\n"
+#figure()
+#show()
