@@ -157,6 +157,7 @@ UI.startdate    = None    # use (yyyy, mm, dd)  if you want to overwrite START i
 UI.reread       = True    # if True: will reread summary if file has changed since last access
 UI.plot_dates   = True    # if True: will use plot_date in xplot when x-variable is TIME
 UI.show_fig     = True    # if True: will display figure. set to False if you want to save hardcopy without showing figure
+UI.silent       = False   # if True: will be as quiet as possible
 
 # useful for debugging and accessing data outside the program
 DBG = UT.Struct()
@@ -294,7 +295,7 @@ def _xplot(varnm1, varnm2, cases, refcase=None, plot_kwargs=None, nolegend=False
          kwargs['markeredgewidth'] = 0
       if UI.accum: y2 = UT.cumulative(y1, y2)
       if UI.yscaler:
-         print 'Warning: UI.yscaler = ', UI.yscaler
+         if not UI.silent: print 'Warning: UI.yscaler = ', UI.yscaler
          y2 *= UI.yscaler
       if varnm1 == 'TIME' and UI.plot_dates:
          y1 += r.startdate

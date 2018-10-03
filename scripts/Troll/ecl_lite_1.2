@@ -438,6 +438,22 @@ def _analyze(paramfiles):
    #os.system('gthumb %s &' % ' '.join(figs))
    PP.UI.show_fig = True    # useful when run interactively
 
+def _bjobs():
+   lines = [x.split() for x in commands.getstatusoutput('bjobs')[1].split('\n')[1:]]
+   year = datetime.now().year
+   jobs = []
+   for line in lines:
+      j = UT.Struct()
+      j.id = line[0]
+      h, m = [int(x) for x in line[-1].split(':')]
+      j.tstamp = datetime(year, MONTH[line[8]], int(line[9]), h, m)
+      j.name = line[7]
+      jobs.append(j)
+   return jobs
+
+
+
+
 
 if __name__ == '__main__' :
 
