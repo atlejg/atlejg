@@ -469,7 +469,7 @@ def _segment_data_at_given_time(varnm, cases, t0, plot_kwargs=None, adjust_to_ze
          x = segments + 1  # 26/4-17: removed adjustment of x-variable
          xlbl = 'segment# [-]'
       if UI.yscaler:
-         print 'Warning: UI.yscaler = ', UI.yscaler
+         if not UI.silent: print 'Warning: UI.yscaler = ', UI.yscaler
          y_ *= UI.yscaler
       plot(x, y_, label=os.path.splitext(case)[0], **kwargs)
       n += 1
