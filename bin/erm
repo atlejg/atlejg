@@ -22,7 +22,7 @@ datafiles = [fname for fname in args.files if fname.endswith('.DATA')]
 
 SMALL = ('DBG', 'LOG', 'ERR', 'dbprtx', 'ECLEND', 'done', 'MSG')
 BIG   = ('UNRST','INIT','EGRID','GRID', 'SAVE', 'RFT')
-KEEP  = ('DATA', 'ini', 'inp', 'xls', 'xlsx')
+KEEP  = ('DATA', 'ini', 'inp', 'xls', 'xlsx', 'csv')
 
 for datafile in datafiles:
    bname = UT.basename(datafile)
