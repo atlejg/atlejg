@@ -158,6 +158,7 @@ UI.reread       = True    # if True: will reread summary if file has changed sin
 UI.plot_dates   = True    # if True: will use plot_date in xplot when x-variable is TIME
 UI.show_fig     = True    # if True: will display figure. set to False if you want to save hardcopy without showing figure
 UI.silent       = False   # if True: will be as quiet as possible
+UI.segm_length  = None    # if plot_md is True, you need to set this. segm_length = segm_length(casenm)
 
 # useful for debugging and accessing data outside the program
 DBG = UT.Struct()
@@ -461,7 +462,7 @@ def _segment_data_at_given_time(varnm, cases, t0, plot_kwargs=None, adjust_to_ze
       if adjust_to_zero: y_ -= min(y_)
       if UI.md_accum: y_ = cumsum(y_)
       if UI.plot_md:
-         sl = _segm_length(case)
+         sl = UI.segm_length(case)
          x = cumsum(sl)
          y_ /= sl        # flow pr. meter
          xlbl = 'md [m]'
@@ -658,7 +659,7 @@ def _contours(varnm, cases, accum, zmin=None, zmax=None, t_end=None, relative=Fa
       if use_icd_segm: segments = icd_segments(case, WELLNM)
       else           : segments = well_segments(case, WELLNM)
       r = get_summary(case)
-      ax = r.contour_plot(varnm, WELLNM, segments, zmin=zmin, zmax=zmax, accum=accum, relative=relative, Bg=UI.Bg, Rs=UI.Rs)
+      ax = r.contour_plot(varnm, WELLNM, segments, zmin=zmin, zmax=zmax, accum=accum, relative=relative, Bg=UI.Bg, Rs=UI.Rs, segm_length_func=UI.segm_length)
       titl = '%s %s %s' % (os.path.splitext(case)[0], WELLNM, varnm)
       if accum: titl += ' accum.'
       if varnm == 'SFFR': titl += ' (in situ)'

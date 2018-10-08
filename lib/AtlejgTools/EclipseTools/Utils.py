@@ -716,7 +716,7 @@ class SummaryVectors() :
 #
    def contour_plot(self, varnm, wellnm, segments,
                     zmin=None, zmax=None, scaler=1., Bo=1., Bg=1., Bw=1., Rs=1.,
-                    accum=False, relative=False, transpose=True):
+                    accum=False, relative=False, transpose=True, segm_length_func=None):
       z = self.get_segm_data(varnm, wellnm, segments, Bo=Bo, Bg=Bg, Bw=Bw, Rs=Rs)
       if relative:
          z /= max(z.flatten())
@@ -728,12 +728,12 @@ class SummaryVectors() :
          z = z.T
          ylbl = 'TIME [days]'
          xlbl = 'segment # [-]'
-         x = segments
+         x = segm_length_func(segments) if segm_length_func else segments
          y = self.time
       else:
          xlbl = 'TIME [days]'
          ylbl = 'segment # [-]'
-         y = segments
+         y = segm_length_func(segments) if segm_length_func else segments
          x = self.time
       ax =  PU.contourf(x, y, z, zmin=zmin, zmax=zmax)
       titl = '%s - %s - %s' % (self.shortnm, wellnm, varnm)
