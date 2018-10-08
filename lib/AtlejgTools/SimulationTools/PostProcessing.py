@@ -659,7 +659,9 @@ def _contours(varnm, cases, accum, zmin=None, zmax=None, t_end=None, relative=Fa
       if use_icd_segm: segments = icd_segments(case, WELLNM)
       else           : segments = well_segments(case, WELLNM)
       r = get_summary(case)
-      ax = r.contour_plot(varnm, WELLNM, segments, zmin=zmin, zmax=zmax, accum=accum, relative=relative, Bg=UI.Bg, Rs=UI.Rs, segm_length_func=UI.segm_length)
+      if UI.plot_md: segm_length_func = lambda segments: cumsum(UI.segm_length(case))
+      else         : segm_length_func = None
+      ax = r.contour_plot(varnm, WELLNM, segments, zmin=zmin, zmax=zmax, accum=accum, relative=relative, Bg=UI.Bg, Rs=UI.Rs, segm_length_func=segm_length_func)
       titl = '%s %s %s' % (os.path.splitext(case)[0], WELLNM, varnm)
       if accum: titl += ' accum.'
       if varnm == 'SFFR': titl += ' (in situ)'
