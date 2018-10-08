@@ -727,13 +727,21 @@ class SummaryVectors() :
       if transpose:
          z = z.T
          ylbl = 'TIME [days]'
-         xlbl = 'segment # [-]'
-         x = segm_length_func(segments) if segm_length_func else segments
+         if segm_length_func:
+            x = segm_length_func(segments)
+            xlbl = 'MD [m]'
+         else:
+            x = segments
+            xlbl = 'segment # [-]'
          y = self.time
       else:
          xlbl = 'TIME [days]'
-         ylbl = 'segment # [-]'
-         y = segm_length_func(segments) if segm_length_func else segments
+         if segm_length_func:
+            y = segm_length_func(segments)
+            ylbl = 'MD [m]'
+         else:
+            y = segments
+            ylbl = 'segment # [-]'
          x = self.time
       ax =  PU.contourf(x, y, z, zmin=zmin, zmax=zmax)
       titl = '%s - %s - %s' % (self.shortnm, wellnm, varnm)
