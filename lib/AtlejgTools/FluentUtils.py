@@ -566,6 +566,22 @@ def simtime(caseid, dname, pattern, ext='.dat', scaler=3600.):
       cputime.append(int(os.path.getmtime(f)-t0))
    return pl.array(stime), pl.array(cputime)/scaler
 
+def create_dpm_injection_file(fname, points, velocity, diam, massflow=1, temp=U.DEG_ZERO+20, verbose=True):
+   '''
+   creates a file of named particles. to be used for injections of type 'file'.
+   points.
+   input:
+    points: list of (x,y,z)
+    velocity: function s.t. vx,vy,vz = velocity(x,y,z)
+   '''
+   f = open(fname, 'w')
+   np = 0
+   for x,y,z in points:
+      np += 1
+      vx, vy, vz = velocity(x,y,z)
+      f.write('(( %g %g %g %g %g %g %g %g %g) P%05i)\n' % (x,y,z, vx,vy,vz, diam, temp, massflow, np))
+   f.close()
+   if verbose: print fname, 'was created'
 
 # testing code
 if __name__ == '__main__':

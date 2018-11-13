@@ -141,7 +141,8 @@ alias x11big2 "xrandr --size 5120x1600"
 #
 setenv PYTHONPATH "${PYTHONPATH}:$ATLEJG/lib/"                                  # my stuff
 setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip"                           # vegard kippe stuff
-setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/lib/python2.7/site-packages"    # things i've installed myself
+setenv PYTHONPATH "${PYTHONPATH}:/project/res/komodo/$KOMODO_RELEASE/root/lib/python${PYTHON_SHORT}/site-packages"
+#setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/lib/python2.7/site-packages"    # things i've installed myself. no - messes things up for jupyter etc.
 
 # vim stuff
 #
@@ -242,6 +243,7 @@ setenv PY $HOME/Tools/lib/Python/AtlejgTools/
 #alias lmstat2 'lmstat -f fluentall'
 #setenv FLUENT_ARCH lnx86
 #source /prog/LSF/conf/cshrc.lsf # included by John Hybertsen to be able to start eclipse from unix shell
+#alias porsgrunn 'pors-linfluent01.pors.statoil.no'
 
 # goto-label...
 end:
