@@ -539,9 +539,9 @@ class SummaryVectors() :
       self._sum        = ecl.EclSum(nm)
       self._datadeck   = None
       if 'TIME' in self._sum.keys():
-         self.time = self._sum.get_vector('TIME').values
+         self.time = self._sum.numpy_vector('TIME')
       else:
-         self.time = self._sum.get_vector('YEARS').values*365.25
+         self.time = self._sum.numpy_vector('YEARS')*365.25
       for varnm in self._sum.keys():
          if varnm.startswith('W'):
             wname = varnm.split(separator)[1]
@@ -556,9 +556,9 @@ class SummaryVectors() :
             if not segm in self._segms[wname]: self._segms[wname].append(segm)
       # for convinience
       if not 'TIME' in self._sum.keys():
-         self.time = self._sum.get_vector('YEARS').values * 365.25
+         self.time = self._sum.numpy_vector('YEARS') * 365.25
       else:
-         self.time = self._sum.get_vector('TIME').values
+         self.time = self._sum.numpy_vector('TIME')
       self.wells.sort()
       for wname in self._segms.keys():
          self._segms[wname].sort()
@@ -590,25 +590,25 @@ class SummaryVectors() :
       '''
       if 'SLFR' in varnm:           # total liquid production for well segments (not available in Eclipse)
          postfix = varnm.split('SLFR')[1] # f.ex. SLFR:Q21:17 -> :Q21:17
-         y = self._sum.get_vector('SOFR'+postfix).values \
-           + self._sum.get_vector('SWFR'+postfix).values
+         y = self._sum.numpy_vector('SOFR'+postfix) \
+           + self._sum.numpy_vector('SWFR'+postfix)
       elif 'SFFR' in varnm:           # total flow production for well segments (not available in Eclipse)
          postfix = varnm.split('SFFR')[1] # f.ex. SLFR:Q21:17 -> -Q21:17
-         y = self._sum.get_vector('SOFR'+postfix).values.copy()*Bo # gonna do +=, so need a copy()
+         y = self._sum.numpy_vector('SOFR'+postfix).copy()*Bo # gonna do +=, so need a copy()
          if self._sum.has_key('SGFR'+postfix):
-            free_gas = self._sum.get_vector('SGFR'+postfix).values -y*Rs
+            free_gas = self._sum.numpy_vector('SGFR'+postfix) -y*Rs
             y += free_gas*Bg
          if self._sum.has_key('SWFR'+postfix):
-            y += self._sum.get_vector('SWFR'+postfix).values*Bw
+            y += self._sum.numpy_vector('SWFR'+postfix)*Bw
       elif varnm.startswith('FSN'): # sigurds number: cumulative oil / cumulative water or gas
          if varnm.endswith('W'):
-            y = self._sum.get_vector('FOPT').values / self._sum.get_vector('FWPT').values # FSNW: water
+            y = self._sum.numpy_vector('FOPT') / self._sum.numpy_vector('FWPT') # FSNW: water
          else:
-            y = self._sum.get_vector('FOPT').values / self._sum.get_vector('FGPT').values # FSNG: gas
+            y = self._sum.numpy_vector('FOPT') / self._sum.numpy_vector('FGPT') # FSNG: gas
       elif varnm == 'TIME':
          y = self.time    # could be 'YEARS'...
       else:
-         y = self._sum.get_vector(varnm).values
+         y = self._sum.numpy_vector(varnm)
       if cumul: return scaler*UT.cumulative(self.time, y)
       else    : return scaler*y
 #
@@ -813,7 +813,7 @@ def read_summary(sumryfile):
    data = None
    sum = ecl.EclSum(casenm)
    for varnm in sum.keys():
-      y = sum.get_vector(varnm).values
+      y = sum.numpy_vector(varnm)
       if data is None: data = y
       else           : data = pl.vstack((data, y))
       # dont know where to find units. hardcoded!!!
