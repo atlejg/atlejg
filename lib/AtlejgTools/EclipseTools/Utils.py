@@ -2641,6 +2641,8 @@ def write_decimated_grid(coord, zcorn, box, fname, mapaxes=None, ncols=6):
 
 def shift_schedule_section(datafile, box, fname=None, sched_only=True, remove_after_delim=True):
    '''
+   Returns schedule in formatted string.
+   If fname is given, it will write schedule to this file.
    Note1: schedule part must be in the datafile - not in an include
    Note2: will not work for LGRs
    '''
@@ -2685,10 +2687,10 @@ def shift_schedule_section(datafile, box, fname=None, sched_only=True, remove_af
    for x in data:
       wells.append(x[0])
       s2 += ' %s %s' % (x[0], x[1])
-      for i in range(2,5):
+      for i in range(2,4):
          if x[i] == '1*': s2 += ' %s' % x[i]
          else           : s2 += ' %i' % (int(x[i])-box[2*(i-2)]+1)
-      s2 += ' ' + ' '.join(x[5:]) + ' /\n'
+      s2 += ' ' + ' '.join(x[4:]) + ' /\n'
    s2 += '/\n'
    #
    #  -- COMPDAT
@@ -3316,7 +3318,6 @@ class EclipseCoupling(object):
          new_schedule(self, tstep, trn)  : returns a formatted string that is the schedule-part. tstep is from next_tstep.
                                            typically, this function will read output from eclipse (should use read_summary2 for this)
                                            to adjust some input in the schedule section
-                                           nb! this one 
                                            trn: an open transcript file (or None)
    #
    Example usage (this naive example will only run a simulation with fixed time-steps)

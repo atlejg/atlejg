@@ -202,20 +202,22 @@ class WellData(object):
       if keepit: self.__dict__[varnm+'f'] = fy
       return fy
 #
-   def calc_steps(self, flowvar, q_shut, q_min, dt0, dt1, dt2, grad_lim, q_sc):
+   def calc_steps(self, flowvar, q_shut, q_min, dp_min, dt0, dt1, dt2, grad_lim, q_monoton=True):
       '''
       finds steps in flowrate, typically before / after shutins.
       units: any. just make sure it's consistent
       the steps are stored in two list: step_ups and step_downs
       # input
-         flowvar : typically 'ql' or 'qt'
-         q_shut  : shut-level. ideally 0...
-         q_min   : discard if production-level is below this
-         dt0     : smoothing window length when looking for hi/lo levels. dont set it too low
-         dt1     : min. stable period before jump. must be > sampling-length
-         dt2     : min. stable period after jump. must be > sampling-length
-         grad_lim: how steep is a jump?
-         q_sc    : how stable should the flow-rate be before / after shutin
+         flowvar   : typically 'ql' or 'qt'
+         q_shut    : shut-level. ideally 0...                               [m3/d]
+         q_min     : discard if production-level is below this              [m3/d]
+         q_min     : discard if dp is less than this                        [bar]
+         dt0       : smoothing window length when looking for hi/lo levels.
+                     must be > sampling-length, but dont set it too low.    [d]
+         dt1       : min. stable period before jump. must be > dt0.         [d]
+         dt2       : min. stable period after jump. must be > dt0.          [d]
+         grad_lim  : how steep should the jump be?                          [m3/d / d]
+         q_monoton : boolean. make sure flow-rate is also monotonic
       # output
         none. but it sets self.step_downs and self.step_ups
       # note1
@@ -223,6 +225,8 @@ class WellData(object):
         flowrate smoothed right (forwards). if the difference is big, it means we have a
         major step in flowrate. then we filter these steps to make sure periods before and
         after the step are stable (enough).
+      # note 2
+        this could be quite time consuming. may use get_steps to filter 'unwanted' data.
       '''
       #
       # prepare data
@@ -260,17 +264,23 @@ class WellData(object):
          if r == rds: rds = tmp
          else:        rus = tmp
       #
-      # make sure the periodes before and after jump is long enough. and that the jump is steep enough
+      # make sure the periodes before and after jump is long enough,
+      # that the jump is steep enough, and monotonic behavior
       #  - ramp-downs
       self.step_downs = []
       for ix in rds:
          if pl.mean(qs[ix:ix+n2]) > q_shut:     continue   # not shut-in after jump
          grad = abs(dqs[ix]) / self.dt
          if grad < grad_lim:                    continue   # shutting too slowly
-         qm  = max(qs[ix+-n2:ix])                          # long open window before shutin
+         qm  = pl.mean(qs[ix+n2:ix])                       # long open window before shutin
          if qm < q_min:                         continue   # rate too small
-         qm0 = max(qs[ix-n:ix])                            # short open window before shutin
-         if qm0/qm > q_sc or qm/qm0 > q_sc:     continue
+         pm1 = pl.mean(self.p[ix+n:ix+2*n])                # short periode in the early part
+         pm2 = pl.mean(self.p[ix+n2-n:ix+n2])              # short periode at the end
+         if pm1 - pm2 < dp_min:                 continue   # too small step (or non-monotonic)
+         if q_monoton:
+            qm1 = pl.mean(qfs[ix+n:ix+2*n])                # short periode in the early part
+            qm2 = pl.mean(qfs[ix+n2-n:ix+n2])              # short periode at the end
+            if qm1 < qm2:                       continue   # not monotonic in flowrate
          # if we get here, this index is ok
          self.step_downs.append(ix)
       #  - ramp-ups
@@ -279,10 +289,15 @@ class WellData(object):
          if pl.mean(qs[ix-n1:ix]) > q_shut:     continue   # not shut-in before jump
          grad = abs(dqs[ix]) / self.dt
          if grad < grad_lim:                    continue   # opening too slowly
-         qm  = max(qs[ix+1:ix+1+n2])                       # long open window after shutin
+         qm  = pl.mean(qs[ix+1:ix+1+n2])                   # long open window after shutin
          if qm < q_min:                         continue   # rate too small
-         qm0 = max(qs[ix+1:ix+1+n])                        # short open window after shutin
-         if qm0/qm > q_sc or qm/qm0 > q_sc:     continue
+         pm1 = pl.mean(self.p[ix+n:ix+2*n])                # short periode in the early part
+         pm2 = pl.mean(self.p[ix+n2-n:ix+n2])              # short periode at the end
+         if pm2 - pm1 < dp_min:                 continue   # too small step (or non-monotonic)
+         if q_monoton:
+            qm1 = pl.mean(qfs[ix+n:ix+2*n])                # short periode in the early part
+            qm2 = pl.mean(qfs[ix+n2-n:ix+n2])              # short periode at the end
+            if qm1 > qm2:                       continue   # not monotonic in flowrate
          # if we get here, this index is ok
          self.step_ups.append(ix)
       #
@@ -300,10 +315,16 @@ class WellData(object):
          direction: 'up' or 'down' for step_ups and step_downs, respectively
       # output
          list of step-indices
+      # note:
+         -if any of dt1, dt2, p1, p2 is None, then it will just give step_ups or step_downs (unfiltered)
+         -calc_steps also takes dt1 and dt2 as input, so it does not make sense to have dt1,dt2 wider than this
+         -this method is provided to do quick 'filtering' since calc_steps is soo slow
       '''
       #
       if direction == 'up': ixs = self.step_ups
       else:                 ixs = self.step_downs
+      if dt1 == None or dt2==None or p1 == None or p2 == None:
+         return ixs
       n1 = int(dt1/self.dt)
       n2 = int(dt2/self.dt)
       steps = []
@@ -312,18 +333,20 @@ class WellData(object):
             steps.append(ix)
       return steps
 #
-   def get_shutins(self, dt1, dt2, p1, p2):
+   def get_shutins(self, dt1=None, dt2=None, p1=None, p2=None):
       '''
       see docs for get_steps
       '''
-      self.shutins = self.get_steps(dt1, dt2, p1, p2, direction='down')
+      if self.typ == TYPE_PROD: self.shutins = self.get_steps(dt1, dt2, p1, p2, direction='up')
+      else                    : self.shutins = self.get_steps(dt1, dt2, p1, p2, direction='down')
       return self.shutins
 #
-   def get_startups(self, dt1, dt2, p1, p2):
+   def get_startups(self, dt1=None, dt2=None, p1=None, p2=None):
       '''
       see docs for get_steps
       '''
-      self.startups = self.get_steps(dt1, dt2, p1, p2, direction='up')
+      if self.typ == TYPE_PROD: self.startups = self.get_steps(dt1, dt2, p1, p2, direction='down')
+      else                    : self.startups = self.get_steps(dt1, dt2, p1, p2, direction='up')
       return self.startups
 #
    def datestr(self, ix):

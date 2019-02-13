@@ -151,7 +151,7 @@ if has("autocmd")
   filetype plugin indent on
 
   " For all text files set 'textwidth' to 78 characters.
-  autocmd FileType text setlocal textwidth=78
+  " autocmd FileType text setlocal textwidth=78
 
   " When editing a file, always jump to the last known cursor position.
   " Don't do it when the position is invalid or when inside an event handler
@@ -160,6 +160,9 @@ if has("autocmd")
     \ if line("'\"") > 0 && line("'\"") <= line("$") |
     \   exe "normal g`\"" |
     \ endif
+  
+  " make sure tabstop = 3 is respected for python
+  autocmd FileType python setlocal shiftwidth=3 tabstop=3 softtabstop=3 expandtab
 
 endif " has("autocmd")
 

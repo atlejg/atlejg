@@ -150,6 +150,7 @@ UI.legend        = None  # function. should be set externally.
 UI.use_in_situ   = False # plot rates at reservoir conditions. to be implemented!!
 UI.Bo           = 1.    # formation factor oil. to be done: should not be constant
 UI.Bg           = 1.    # formation factor gas. to be done: should not be constant
+UI.Bw           = 1.    # formation factor wat. to be done: should not be constant
 UI.Rs           = 1.    # resolved gas.         to be done: should not be constant
 UI.COMP_VARS    = []      # variables to be plotted with the 'compiled' functionality (like ['FOPR', 'WBHP'])
 UI.yscaler      = None    # if you want to scale any variable in 'xplot' and in 'segments'. use with care!!
@@ -448,17 +449,17 @@ def _segment_data_at_given_time(varnm, cases, t0, plot_kwargs=None, adjust_to_ze
       r = get_summary(case)
       if t0 > 0: tix = UT.find_closest_index(r.time, t0)
       else     : tix = len(r.time) # last one
-      #print r.nm, 't_seek= ', t0, 't_actual= ', r.time[maxind]    # sometimes its useful to know if we are 'right on time'
       if accum:
          tixs = range(tix)   # time indices
          m = r.get_segm_data(varnm, WELLNM, segments)[:, tixs]
          y_ = array([UT.cumulative(r.time[tixs], m[i,:])[-1] for i in range(len(segments))])
+      elif varnm == 'SGVF':
+         y_ = _gvf_segmentdata(r, segments, tix)
       else:
          y_ = r.get_segm_data(varnm, WELLNM, segments)[:, tix]
       if   plot_kwargs              : kwargs = plot_kwargs(case, cases)
       elif len(cases) > len(COLOURS): kwargs = {'color':(red[n], 0, 1-red[n])}
       else                          : kwargs = {'color':COLOURS[n]}
-      #kwargs['marker'] = '*'
       if adjust_to_zero: y_ -= min(y_)
       if UI.md_accum: y_ = cumsum(y_)
       if UI.plot_md:
@@ -611,6 +612,12 @@ def _prod_pr_part(varnm, case, pr_segment, accum):
    if pr_segment: titl += ' (pr. segment)'
    title(titl)
 
+def _gvf_segmentdata(r, segments, ind):
+   o = r.get_segm_data('SOFR',  WELLNM, segments, scaler=UI.Bo)[:, ind]
+   g = r.get_segm_data('SGFRF', WELLNM, segments, scaler=UI.Bg)[:, ind]
+   w = r.get_segm_data('SWFR',  WELLNM, segments, scaler=UI.Bw)[:, ind]
+   return g/(g+o+w)
+
 def _segment_data_for_given_case(varnm, case, times, adjust_to_zero=False, onefig=True, use_icd_segm=True):
    global y_
    r = get_summary(case)
@@ -626,17 +633,15 @@ def _segment_data_for_given_case(varnm, case, times, adjust_to_zero=False, onefi
       # requested values
       ind = UT.find_closest_index(r.time, t)
       t0 = r.time[ind]
-      if varnm in ('SGOR', 'SGLR', 'SGVF')  : scaler = UI.Bg / UI.Bo  # get in-situ values
-      else                                  : scaler = 1.
       if varnm == 'SGVF':
-         o = r.get_segm_data('SOFR', WELLNM, segments, scaler=UI.Bo)[:, ind]
-         g = r.get_segm_data('SGFRF', WELLNM, segments, scaler=scaler)[:, ind]
-         w = r.get_segm_data('SWFR', WELLNM, segments, scaler=1.)[:, ind]
-         y_ = g/(g+o+w) # this is gvf
+         y_ = _gvf_segmentdata(r, segments, ind)
          ylbl = 'SGVF [-]'
       else:
-         y_ = r.get_segm_data(varnm, WELLNM, segments, scaler=scaler)[:, ind]
+         y_ = r.get_segm_data(varnm, WELLNM, segments)[:, ind]
          ylbl = '%s [%s]' % (varnm, r.unit('%s-%s-%i'%(varnm, WELLNM, segments[0])))
+      if UI.yscaler:
+         if not UI.silent: print 'Warning: UI.yscaler = ', UI.yscaler
+         y_ *= UI.yscaler
       if adjust_to_zero: y_ -= min(y_)
       if not onefig:
          f = figure()

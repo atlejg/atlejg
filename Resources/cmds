@@ -245,7 +245,7 @@ erm                           # my script
 # usage:
 # crontab $HOME/Tools/crontab.txt
 # 
-# crontab example
+# crontab example:
 # crontab -e   
     # Use the hash sign to prefix a comment
     # +---------------- minute (0 - 59)

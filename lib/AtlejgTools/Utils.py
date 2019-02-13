@@ -8,7 +8,7 @@ import string
 
 class Struct: pass
 
-COLOURS = ('b', 'g', 'r', 'c', 'm', 'y', 'k', '0.1', '0.3', '0.5', '0.7', '0.9') # '0.x' gives grayscale
+COLOURS = ('b', 'g', 'r', 'c', 'm', 'y', '0.8', '0.65', '0.5', '0.3', '0.1', 'k') # '0.x' gives grayscale
 MARKERS = ('', '*', 'o', 's')
 
 class PlotStyle(object):
@@ -329,7 +329,7 @@ def cumulative(t, y):
    and it uses the same principle as trapz.
    it handles NaNs by making a copy and replacing them with 0
    '''
-   ixs = pl.find(pl.isnan(y))
+   ixs = pl.where(pl.isnan(y))[0]
    if len(ixs):
       y = y.copy()
       y[ixs] = 0.
@@ -532,7 +532,8 @@ class InputValues(object):
    def __init__(self, fname='', verbose=False, import_statement=None):
       self.varnms = []
       self.types  = {}
-      if fname: self.read_input_file(fname, verbose, import_statement)
+      self.fname = fname
+      if fname: self.read_input_file(verbose, import_statement)
 #
    def __str__(self, fname=''):
       s = ''
@@ -552,10 +553,10 @@ class InputValues(object):
       f.close()
       print 'creating input file %s' % fname
 #
-   def read_input_file(self, fname, verbose=False, import_statement=None):
-      if verbose: print 'reading input file %s' % fname
+   def read_input_file(self, verbose=False, import_statement=None):
+      if verbose: print 'reading input file %s' % self.fname
       if import_statement: exec(import_statement)
-      f = open(fname)
+      f = open(self.fname)
       for line in f:
          # handle comments
          line = line.strip().split('#')[0]
@@ -580,6 +581,9 @@ class InputValues(object):
             elif typ == 'eval' : value = eval(value)
          self.add_variable(varnm, value, typ)
       f.close()
+#
+   def has_key(self, key):
+      return self.__dict__.has_key(key)
 
 def perturb(v):
    '''

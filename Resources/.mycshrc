@@ -63,10 +63,6 @@ setenv use_proxy on
 setenv EXT_PERL_MODULES $RC/PerlModules    # for: use lib $ENV{'EXT_PERL_MODULES'};
 setenv PASSIVE /project/RCP/passive/fluent/
 setenv WORK /project/RCP/work/$USER
-setenv FLUENT_JOU  ~/Fluent/Jou
-# make sure correct license is used (for fluent)
-setenv LM_LICENSE_FILE 7241@st-linlic02.st.statoil.no:1055@st-vlic01.st.statoil.no
-setenv PATH "${PATH}:${HOME}/bin"
 setenv PATH "${PATH}:/prog/Fluent/i686/Fluent.Inc/bin"
 setenv PATH "${PATH}:/prog/ecl/grid/macros/"
 setenv ECLHOME /prog/ecl/grid
@@ -108,7 +104,6 @@ alias stavanger     'ssh -X st-linrgs047.st.statoil.no'
 alias rio 'ssh -X rio-linrgsn008.rio.statoil.no'
 alias ssh_crontab 'ssh -X stj-linrgs039.stj.statoil.no'        # need to be here for crontab
 #
-alias workbench 'unalias FLUENT_ARCH; /prog/Fluent/ansys_inc/v150/Framework/bin/Linux64/runwb2 ' # workbench starts fluent on its own, dont use environment variables
 alias @floviz '@floviz -local -version 2009.2'
 alias cmds 'vi $ATLEJG/Resources/cmds'
 alias bookshelf 'acroread /prog/ecl/grid/2016.2/manuals/bookshelf.pdf'
@@ -139,10 +134,12 @@ alias x11big2 "xrandr --size 5120x1600"
 
 # PYTHON STUFF
 #
+#alias python /prog/sdpsoft/python2.7.14/bin/python
 setenv PYTHONPATH "${PYTHONPATH}:$ATLEJG/lib/"                                  # my stuff
 setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip"                           # vegard kippe stuff
 setenv PYTHONPATH "${PYTHONPATH}:/project/res/komodo/$KOMODO_RELEASE/root/lib/python${PYTHON_SHORT}/site-packages"
 #setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/lib/python2.7/site-packages"    # things i've installed myself. no - messes things up for jupyter etc.
+alias pip_ "setenv PYTHON_VERSION "2.7.14"; source /prog/sdpsoft/env.csh; pip"  # need a different python version to make pip work
 
 # vim stuff
 #
@@ -155,7 +152,12 @@ alias vimdiff "vimdiff -c 'syntax off'"  # focus on differences - not syntax
 setenv FLUENT_ARCH lnamd64
 alias fluent /prog/Fluent/ansys_inc_V16.2/ansys_inc/v162/fluent/bin/fluent -cc
 alias cfdpost /prog/Fluent/ansys_inc_V16.2/ansys_inc/v162/CFD-Post/bin/cfx5post
-
+setenv FLUENT_JOU  ~/Fluent/Jou
+# make sure correct license is used (for fluent)
+#setenv LM_LICENSE_FILE 7241@st-linlic02.st.statoil.no:1055@st-vlic01.st.statoil.no   # does not seem to be necessary anymore. jan 2019. -atle,
+alias /prog/Fluent/ansys_inc_V16.2/ansys_inc/shared_files/licensing/lic_admin/anslic_admin anslic_admin       # this is the tool to check fluent licenses
+setenv PATH "${PATH}:${HOME}/bin"
+alias workbench 'unalias FLUENT_ARCH; /prog/Fluent/ansys_inc/v150/Framework/bin/Linux64/runwb2 ' # workbench starts fluent on its own, dont use environment variables
 # GAMBIT stuff
 # Wed Jan 13 12:03:05 MET 2016
 # gambit will only work on selected disks... for now, i use /tmp. remember copying afterwards!!
@@ -163,7 +165,6 @@ alias cfdpost /prog/Fluent/ansys_inc_V16.2/ansys_inc/v162/CFD-Post/bin/cfx5post
 alias gambit_  'echo "REMEMBER: GOTO /tmp"; setenv FLUENT_ARCH lnx86; setenv RELEASE 2.3.16; setenv LM_LICENSE_FILE 7241@st-vlic01.st.statoil.no; setenv LD_PRELOAD $HOME/Tools/memcpy-preload.so; /prog/Fluent/i686/Fluent.Inc/bin/gambit'
 
 # useful directories
-setenv KRISTINE /project/RCP/active/reservoir_simulations/krhal/ERT/ert/Simulations
 setenv TT /project/RCP/active/reservoir_simulations/agy/Peregrino/Shoebox/Simul/Version12
 setenv PY $HOME/Tools/lib/Python/AtlejgTools/
 

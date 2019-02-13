@@ -37,6 +37,8 @@ source /project/res/SDP_cshrc                  # "geriljavirksomhet under radare
 source /project/res/komodo/stable/enable.csh   # komodo as of june 2018 (Joakim Hove - Yammer 15/6-18)
 #source /project/res/komodo/testing/enable.csh   # hot from the press..
 #
+
+# see pip_ in .mycshrc
 #setenv PYTHON_VERSION "2.7.14"                 # needs this to make pip work...
 #source /prog/sdpsoft/env.csh                   # needs this to make pip work... and have also been recommended to do this anyway...
 
