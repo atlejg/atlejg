@@ -2527,7 +2527,7 @@ class SimpleSectorModel(object):
       includestr = ''
       for i in range(len(kws)):
          kw = kws[i]
-         fmt = '%i' if kw in ('SATNUM', 'ACTCELL', 'PVTNUM', 'DOMAINS') else '%.3e'
+         fmt = '%i' if (kw in ('ACTCELL', 'DOMAINS') or kw.endswith('NUM')) else '%.3e'
          if kw == 'ACTCELL': kw = 'ACTNUM'
          fname = '%s/%s.grdecl' % (self._incname(box), kw)
          write_property2(data[i][i1-1:i2,j1-1:j2,k1-1:k2], kw, fname, fmt)
