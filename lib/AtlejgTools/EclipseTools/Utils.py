@@ -2295,7 +2295,11 @@ class SimpleSectorModel(object):
       It exports the needed properties using FloViz.
       You will get a stand-alone model that is put in a separate directory (see create()).
       #
-      Note1: Will not work for LGRs
+      Note1: The time-step (tstep) is the Eclipse time-step index (not restart-index). 
+             So it could very often be very large (if you want to base SimpleSectorModel on a restart)
+      Note2: Will not work for LGRs
+      Note3: For more complex models you could often end up with
+             ssm = ECL.SimpleSectorModel('B10', tstep=2557,solkws=['SWAT', 'PRESSURE'], grkws=['OPERNUM','PORO', 'PERMZ', 'PERMY', 'PERMX', 'NTG', 'ActiveCell','SWL'], regkws=['SATNUM', 'FIPSAT', 'FIPFAC', 'FIPZAF', 'PVTNUM','FIPALL'])
       #
       casenm : full field model to create sector from
       tstep  : time step to read initial solution from. default is 0 - which is the initial solution
@@ -2527,7 +2531,10 @@ class SimpleSectorModel(object):
       includestr = ''
       for i in range(len(kws)):
          kw = kws[i]
-         fmt = '%i' if (kw in ('ACTCELL', 'DOMAINS') or kw.endswith('NUM')) else '%.3e'
+         if kw in ('ACTCELL', 'DOMAINS') or kw.endswith('NUM') or kw.startswith('FIP'):
+            fmt = '%i' 
+         else:
+            fmt = '%.3e'
          if kw == 'ACTCELL': kw = 'ACTNUM'
          fname = '%s/%s.grdecl' % (self._incname(box), kw)
          write_property2(data[i][i1-1:i2,j1-1:j2,k1-1:k2], kw, fname, fmt)
