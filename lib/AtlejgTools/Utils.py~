@@ -903,12 +903,7 @@ def find_minima(y, lookahead, delta=0):
 
 def plot_multiple(x, ys, ylabels, units, ylims, xlabel='', title='', xoffset=60, loc='best', figsz=(12,7), showit=True):
    '''
-   x     : common x-axis variable
-   ys    : list of y-axis variables
-   units : list of y-labels
-   ylims : could be list of []'s
-   xlabel: x-label
-   showit: True if figure is to be shown (not just a hardcopy - which must be done outside this routine)
+   ylims could be list of []'s
    '''
    offset = r_[xoffset, 0]
    fig = figure(figsize=figsz)
