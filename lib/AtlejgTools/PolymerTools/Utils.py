@@ -5,9 +5,10 @@ from datetime import datetime
 from scipy.interpolate import interp1d
 import AtlejgTools.SimulationTools.WellData as WellData
 
-PPM_M       = 300e3 # PPM_M: ppm in mother-solution
-MAX_VISC    = 50.
-MONTH_MAP   = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12} # useful when converting dates
+PPM_M        = 300e3 # PPM_M: ppm in mother-solution
+MAX_VISC     = 50.
+MAX_INJ_RATE = 1250.
+MONTH_MAP    = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12} # useful when converting dates
 
 def date2num1(date):                                             # date on format mm/dd/yyyy
    '''
@@ -123,9 +124,9 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
    #
    # must handle polymer-period 2 separately :-(
    ix = (t < pl.date2num(datetime(2019,2,13))).nonzero()[0][-1]
-   qw = concatenate((qc[:ix], qs[ix:]))
+   qw = pl.concatenate((qc[:ix], qs[ix:]))
    # also: remove highest values (not realistic)
-   qw = minimum(qw, MAX_INJ_RATE)
+   qw = pl.minimum(qw, MAX_INJ_RATE)
    # for some reason it has inj-rate before well is opened...
    ixs = t > pl.date2num(datetime(2014,6,1))
    #    create WellData object
