@@ -53,13 +53,6 @@ def get_bsw_wct(fnm, winsz=31, wc_func_only=True, date2num_func=date2num1):
    if wc_func_only: return wc_func
    else           : return wc_func, t, wc, wcf
 
-def adjust_injrate1(t, q):
-   # adjust injection rate in-place
-   t1, t2 = [pl.date2num(datetime(2018,1,6)), pl.date2num(datetime(2018,4,15))]
-   ixs1 = pl.find(t>=t1)
-   ixs2 = pl.find(t<=t2)
-   ixs  = list(set.intersection(set(ixs1), set(ixs2)))
-   q[ixs] *= 1.6
 
 def read_pilot_area_wells(db_file, include_mothersolution=True):
    '''
@@ -109,9 +102,6 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
    qs = pl.interp(t, tqs, qs)
    p  = pl.interp(t, tp, p)
    #
-   qt = qc + qs        # total flow rate. qc is 0 when qs > 0 and vice versa
-   adjust_injrate1(t, qt)
-   #
    #    viscosity
    ppm                          = PPM_M * qm / qs
    ppm[pl.find(ppm>PPM_M/60.)]  = 0.
@@ -129,8 +119,15 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
    qw = pl.minimum(qw, MAX_INJ_RATE)
    # for some reason it has inj-rate before well is opened...
    ixs = t > pl.date2num(datetime(2014,6,1))
+   # adjust inj-rate for first polymer-phase
+   t1, t2 = [pl.date2num(datetime(2018,1,6)), pl.date2num(datetime(2018,4,15))]
+   ixs1 = pl.find(t>=t1)
+   ixs2 = pl.find(t<=t2)
+   ixs  = list(set.intersection(set(ixs1), set(ixs2)))
+   qw[ixs] *= 1.6
+   #
    #    create WellData object
-   a11 = WellData.WellData('A11', welltype='inj', t=t, qw=qt, p=p, dt=dt)
+   a11 = WellData.WellData('A11', welltype='inj', t=t, qw=qw, p=p, dt=dt)
    #    add some properties
    a11.ppm  = ppm
    a11.visc = visc 
