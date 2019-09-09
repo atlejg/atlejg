@@ -3,11 +3,11 @@ import pylab as pl
 import h5py
 from datetime import datetime
 from scipy.interpolate import interp1d
-import AtlejgTools.EclipseTools.Utils as ECL
 import AtlejgTools.SimulationTools.WellData as WellData
 
 PPM_M       = 300e3 # PPM_M: ppm in mother-solution
 MAX_VISC    = 50.
+MONTH_MAP   = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12} # useful when converting dates
 
 def date2num1(date):                                             # date on format mm/dd/yyyy
    '''
@@ -27,7 +27,7 @@ def date2num2(date):                                             # date on forma
    16-Aug-2014 0.006
    '''
    d, m, y = date.split('-')
-   m = ECL.MONTH_MAP[m.upper()]
+   m = MONTH_MAP[m.upper()]
    return pl.date2num(datetime(2000+int(y), m, int(d)))
 
 def get_bsw_wct(fnm, winsz=31, wc_func_only=True, date2num_func=date2num1):
@@ -108,7 +108,6 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
    qs = pl.interp(t, tqs, qs)
    p  = pl.interp(t, tp, p)
    #
-   #qs = qi + qm + qd   # skid flow rate
    qt = qc + qs        # total flow rate. qc is 0 when qs > 0 and vice versa
    adjust_injrate1(t, qt)
    #
@@ -120,6 +119,15 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
    visc                         = 4e-6*ppm**2 - 0.0029*ppm + 2.4097   # excel trendline from kjetil E spread-sheet 
    visc[pl.find(visc<0)]        = pl.NaN
    visc[pl.find(visc>MAX_VISC)] = pl.NaN
+   # do some modifications since data is bad..
+   #
+   # must handle polymer-period 2 separately :-(
+   ix = (t < pl.date2num(datetime(2019,2,13))).nonzero()[0][-1]
+   qw = concatenate((qc[:ix], qs[ix:]))
+   # also: remove highest values (not realistic)
+   qw = minimum(qw, MAX_INJ_RATE)
+   # for some reason it has inj-rate before well is opened...
+   ixs = t > pl.date2num(datetime(2014,6,1))
    #    create WellData object
    a11 = WellData.WellData('A11', welltype='inj', t=t, qw=qt, p=p, dt=dt)
    #    add some properties
@@ -179,5 +187,5 @@ def read_polymerconc_yngve(fnm='/project/peregrino/users/agy/InputData/PolymerCo
       if line.startswith('--'): continue
       r = line.strip().split()
       if len(r) == 1: concs.append(float(r[0]))
-      else:           dates.append(datetime(int(r[2]), ECL.MONTH_MAP[r[1].replace("'","")], int(r[0])))
+      else:           dates.append(datetime(int(r[2]), MONTH_MAP[r[1].replace("'","")], int(r[0])))
    return dates, concs
