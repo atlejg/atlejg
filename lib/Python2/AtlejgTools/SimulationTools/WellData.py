@@ -6,6 +6,10 @@ agy@statoil.com
 Generic module to hold typical well data. See WellData
 Assumes that all variables has the same sampling as the time vector. (This is *not* usually the case)
 
+Latest version:
+   2019-09-16
+   Latest version:
+      2019-09-16 
 '''
 
 import sys, os
@@ -51,9 +55,9 @@ class WellData(object):
    In addition, qoc is cumulutive oil rate (etc.) if this is asked for
    '''
 #
-   def __init__(self, wellnm, startdate=0, t=[], qo=[], qg=[], qw=[], ql=[], p=[], T=[],
+   def __init__(self, wellnm, startdate=0, t=[], qo=[], qg=[], qw=[], ql=[], p=[], T=[], gor=[], wc=[],
                 visc_func=unitf, dens_func=unitf, unit_conv=unitf, welltype=TYPE_PROD,
-                z_gauge=0., z_ref=0., rho_ref=1000., dt=None, cumul=False, dt_medfilt=None):
+                z_gauge=0., z_ref=0., rho_ref=1000., dt=None, cumul=True, dt_medfilt=None):
       '''
       # input
          wellnm        : well name
@@ -78,8 +82,16 @@ class WellData(object):
       self.t  = startdate + (t  if len(t)  else pl.arange(self.np))
       # initialize
       self.qo = qo if len(qo) else pl.zeros(self.np)
-      self.qg = qg if len(qg) else pl.zeros(self.np)
-      self.qw = qw if len(qw) else pl.zeros(self.np)
+      if len(qg):
+         self.qg = qg
+      else:
+         if len(gor): self.qg = self.qo*gor
+         else:   self.qg = pl.zeros(self.np)
+      if len(qw):
+         self.qw = qw
+      else:
+         if len(wc): self.qw = self.qo*wc/(1-wc)
+         else:  self.qw = pl.zeros(self.np)
       self.p  = p  if len(p)  else 200*pl.ones(self.np)
       self.T  = T  if len(T)  else 60*pl.ones(self.np)
       if dt_medfilt != None:
