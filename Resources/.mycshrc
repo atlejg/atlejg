@@ -135,7 +135,7 @@ alias x11big2 "xrandr --size 5120x1600"
 # PYTHON STUFF
 #
 #alias python /prog/sdpsoft/python2.7.14/bin/python
-setenv PYTHONPATH "${PYTHONPATH}:$ATLEJG/lib/"                                  # my stuff
+setenv PYTHONPATH "${PYTHONPATH}:$ATLEJG/lib/Python2"                                  # my stuff
 setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip"                           # vegard kippe stuff
 setenv PYTHONPATH "${PYTHONPATH}:/project/res/komodo/$KOMODO_RELEASE/root/lib/python${PYTHON_SHORT}/site-packages"
 #setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/lib/python2.7/site-packages"    # things i've installed myself. no - messes things up for jupyter etc.
