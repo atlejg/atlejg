@@ -16,6 +16,8 @@ import AtlejgTools.Plotting.Utils                 as PU
 import ecl.ecl                                    as ecl
 import inspect
 import subprocess, signal, psutil
+import string
+from datetime import datetime, timedelta
 
 _log = AtlejgTools.LogTools.Log(AtlejgTools.LogTools.LOG_LEVEL_DEBUG)
 
@@ -2295,7 +2297,8 @@ class SimpleSectorModel(object):
       It exports the needed properties using FloViz.
       You will get a stand-alone model that is put in a separate directory (see create()).
       #
-      Note1: The time-step (tstep) is the Eclipse time-step index (not restart-index)
+      Note1: The time-step (tstep) is the Eclipse time-step index (not restart-index). 
+             So it could very often be very large (if you want to base SimpleSectorModel on a restart)
       Note2: Will not work for LGRs
       Note3: For more complex models you could often end up with
              ssm = ECL.SimpleSectorModel('B10', tstep=2557,solkws=['SWAT', 'PRESSURE'], grkws=['OPERNUM','PORO', 'PERMZ', 'PERMY', 'PERMX', 'NTG', 'ActiveCell','SWL'], regkws=['SATNUM', 'FIPSAT', 'FIPFAC', 'FIPZAF', 'PVTNUM','FIPALL'])
@@ -3444,6 +3447,87 @@ class EclipseCoupling(object):
       if self.trn and not self.trn.closed: self.trn.close()
       UT.tcsh('cat %s.I0* >! %s.sched' % (self.casenm, self.casenm))     # cat all sched-files created into one file
 
+def write_history(dates, producers, injectors, sched_fnm, wctrls, wts, dateshift=timedelta(1)):
+   '''
+   all wells *must* have the same sampling. but they dont need to cover the same time-span.
+   wctrls   : dict with well controls - aka 'LRAT', 'OILR' etc. for now only implemented for producers: {'A-22':'ORAT'}
+   wts      : well tracers. must be list of dicts in chronoglogical order
+              ex:{'wellnm':'A-11', 'nm':'WT0', 'date':datetime.datetime(2014,7,31),  'conc':41.8, 'tstep':0.5}
+   dateshift: typically, pandas resampling gives last day of month - we often want first day of month reporting in eclipse
+   '''
+   RATE_EPS = 1.0e-6
+   f = open(sched_fnm, 'w')
+   has_opened = {}
+   wts = wts[:]   # need a copy since we will delete items
+   for wnm in producers.keys()+injectors.keys(): has_opened[wnm]=False 
+   # first: remove those tracers that are not in given time-span
+   for wt in wts[:]:
+      if not dates[0] <= wt['date'] <= dates[-1]: wts.remove(wt)
+   #
+   for i,date in enumerate(dates):
+      ecl_date = date+dateshift    # note: adding 1 day to get from last day in month to first. more convinent
+      # handling tracers..
+      # note1: we inject double the rate in half a day (to avoid trouble if tracer has been injected on last day
+      #       of month or if we create daily schedule
+      # note2: it's tricky to handle first and last day of the month. hope this works...
+      # note3: will fail if more than one well had an injection on one day
+      if wts:
+         wt = wts[0]
+         if date >= wt['date']:
+            if i > 0 and wt['date'] > dates[i-1]+dateshift:
+               print >>f, 'DATES\n %s /\n /\n' % wt['date'].strftime("%d '%b' %Y").upper()
+            print >>f, 'WTRACER\n %s %s  %.2f /\n /\nTSTEP\n %.2f /\n/\nWTRACER\n %s %s  0. /\n/\n' % \
+                 (wt['wellnm'], wt['nm'], wt['conc'], wt['tstep'], wt['wellnm'], wt['nm'])
+            wts.remove(wt)
+      #
+      # new date
+      print >>f, 'DATES\n %s /\n/\n' % ecl_date.strftime("%d '%b' %Y").upper()
+      #
+      ### PRODUCERS        
+      #
+      #   WCONHIST
+      write_keyw = True
+      for wnm,w in producers.items():
+         if not date in w.index: continue
+         wopr, wwpr, wgpr, wbhp = w.loc[date]
+         if wopr < 0. or wwpr < 0. or wgpr < 0. or wbhp < 0.:         # skip negative values
+             continue
+         totr = wopr+wwpr+wgpr
+         if not has_opened[wnm] and abs(totr)<RATE_EPS:
+             continue
+         has_opened[wnm] = True
+         if write_keyw:
+             print >>f, 'WCONHIST'
+             write_keyw=False
+         print >>f, ' %s    OPEN    %s    %.1f   %.1f   %.1f   3*   %.1f   1*  /' % (wnm, wctrls[wnm], wopr, wwpr, wgpr, wbhp)
+      if not write_keyw: print >>f, '/\n'
+      #
+      ### INJECTORS
+      #
+      #   WCONINJH
+      write_keyw = True
+      for wnm, w in injectors.items():
+         if not date in w.index: continue
+         wwir, wbhp, wconc = w.loc[date]
+         if wwir < 0. or wbhp < 0.:                                  # skip negative values
+             continue
+         if not has_opened[wnm] and abs(wwir)<RATE_EPS:
+             continue
+         has_opened[wnm] = True
+         if write_keyw:
+             print >>f, 'WCONINJH'
+             write_keyw=False
+         print >>f, ' %s      WATER    OPEN   %.1f   %.1f   /\n' % (wnm, wwir, wbhp),
+      if not write_keyw: print >>f, '/\n'
+      #
+      #   WPOLYMER
+      for wnm,w in injectors.items():
+         if not has_opened[wnm]: continue
+         print >>f, 'WPOLYMER\n   %s  %.1f 0.0 /\n/\n' % (wnm, wconc)
+   #
+   f.close()
+
 # aliases
 load_rsm = read_rsm
 from AtlejgTools.EclipseTools.DataDeck import DataDeck
+

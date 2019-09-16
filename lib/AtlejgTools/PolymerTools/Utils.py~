@@ -3,11 +3,12 @@ import pylab as pl
 import h5py
 from datetime import datetime
 from scipy.interpolate import interp1d
-import AtlejgTools.EclipseTools.Utils as ECL
 import AtlejgTools.SimulationTools.WellData as WellData
 
-PPM_M       = 300e3 # PPM_M: ppm in mother-solution
-MAX_VISC    = 50.
+PPM_M        = 300e3 # PPM_M: ppm in mother-solution
+MAX_VISC     = 50.
+MAX_INJ_RATE = 1250.
+MONTH_MAP    = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12} # useful when converting dates
 
 def date2num1(date):                                             # date on format mm/dd/yyyy
    '''
@@ -27,7 +28,7 @@ def date2num2(date):                                             # date on forma
    16-Aug-2014 0.006
    '''
    d, m, y = date.split('-')
-   m = ECL.MONTH_MAP[m.upper()]
+   m = MONTH_MAP[m.upper()]
    return pl.date2num(datetime(2000+int(y), m, int(d)))
 
 def get_bsw_wct(fnm, winsz=31, wc_func_only=True, date2num_func=date2num1):
@@ -52,13 +53,6 @@ def get_bsw_wct(fnm, winsz=31, wc_func_only=True, date2num_func=date2num1):
    if wc_func_only: return wc_func
    else           : return wc_func, t, wc, wcf
 
-def adjust_injrate1(t, q):
-   # adjust injection rate in-place
-   t1, t2 = [pl.date2num(datetime(2018,1,6)), pl.date2num(datetime(2018,4,15))]
-   ixs1 = pl.find(t>=t1)
-   ixs2 = pl.find(t<=t2)
-   ixs  = list(set.intersection(set(ixs1), set(ixs2)))
-   q[ixs] *= 1.6
 
 def read_pilot_area_wells(db_file, include_mothersolution=True):
    '''
@@ -90,10 +84,10 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
       tqm = tqd
       qm  = pl.zeros(len(tqm))
    #
-   #    skid: total liquid rate
+   # q-skid is found in two ways
+   #    skid-1: outflow
    tqs = h5['A-11']['WWIRS'][:,0]       # time - inj-rate series
-   qs  = h5['A-11']['WWIRS'][:,1] * 24  # m3/h -> m3/d
-   #
+   qs1  = h5['A-11']['WWIRS'][:,1] * 24  # m3/h -> m3/d
    #    resampling and summing. note: we WILL extrapolate if some tag is missing data in either direction
    t1 = min(tqc[0], tqi[0], tqm[0], tqd[0], tqs[0])
    t2 = max(tqc[-1], tqi[-1], tqm[-1], tqd[-1], tqs[-1])
@@ -105,31 +99,49 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
    qi = pl.interp(t, tqi, qi)
    qm = pl.interp(t, tqm, qm)
    qd = pl.interp(t, tqd, qd)
-   qs = pl.interp(t, tqs, qs)
+   qs1 = pl.interp(t, tqs, qs1)
    p  = pl.interp(t, tp, p)
+   #    skid-2: adding inflows
+   qs2 = qi + qd + qm
    #
-   #qs = qi + qm + qd   # skid flow rate
-   qt = qc + qs        # total flow rate. qc is 0 when qs > 0 and vice versa
-   adjust_injrate1(t, qt)
    #
+   # do some modifications since data is bad..
+   #
+   # must handle polymer-period 2 separately :-(
+   ix = (t < pl.date2num(datetime(2019,2,13))).nonzero()[0][-1]
+   qw = pl.concatenate((qc[:ix], qs1[ix:]))
+   # also: remove highest values (not realistic)
+   qw = pl.minimum(qw, MAX_INJ_RATE)
+   # for some reason it has inj-rate before well is opened...
+   ixs = t < pl.date2num(datetime(2014,6,1))
+   qw[ixs] = 0.0
+   # adjust inj-rate for first polymer-phase
+   t1, t2 = [pl.date2num(datetime(2018,1,6)), pl.date2num(datetime(2018,4,15))]
+   ixs = pl.logical_and(t>=t1, t<=t2)
+   qw[ixs] = qs2[ixs]       # for the first polymer injection period, we must use qs2
+   qw[ixs] *= 1.6           # and scale it
+   #
+   # create WellData object
+   a11 = WellData.WellData('A11', welltype='inj', t=t, qw=qw, p=p, dt=dt)
+   # add some properties
    #    viscosity
-   ppm                          = PPM_M * qm / qs
+   ppm                          = PPM_M * qm / qw
    ppm[pl.find(ppm>PPM_M/60.)]  = 0.
    ppm[pl.find(ppm<0.)]         = 0.
-   ppm[pl.find(qs<200.)]        = 0.
+   ppm[pl.find(qw<200.)]        = 0.
    visc                         = 4e-6*ppm**2 - 0.0029*ppm + 2.4097   # excel trendline from kjetil E spread-sheet 
    visc[pl.find(visc<0)]        = pl.NaN
    visc[pl.find(visc>MAX_VISC)] = pl.NaN
-   #    create WellData object
-   a11 = WellData.WellData('A11', welltype='inj', t=t, qw=qt, p=p, dt=dt)
-   #    add some properties
+   #    other useful stuff
    a11.ppm  = ppm
    a11.visc = visc 
    a11.qi   = qi
    a11.qd   = qd
    a11.qm   = qm
-   a11.qs   = qs
+   a11.qs1  = qs1
+   a11.qs2  = qs2
    a11.qc   = qc
+   #
    # A18
    tp = h5['A-18']['WBHP'][:,0]
    p  = h5['A-18']['WBHP'][:,1]
@@ -146,6 +158,7 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
    qo = pl.interp(t, to, qo)
    qw = pl.interp(t, tw, qw)
    a18 = WellData.WellData('A18', welltype='prod', t=t, qo=qo, qw=qw, p=p, dt=dt)
+   #
    # A22
    tp = h5['A-22']['WBHP'][:,0]
    p  = h5['A-22']['WBHP'][:,1]
@@ -167,7 +180,6 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
    #
    h5.close()
    #
-   stop
    return {'A-11':a11, 'A-22':a22, 'A-18':a18}   # poor man's shelving
 
 def read_polymerconc_yngve(fnm='/project/peregrino/users/agy/InputData/PolymerConcentrations/polymer.dat'):
@@ -180,5 +192,5 @@ def read_polymerconc_yngve(fnm='/project/peregrino/users/agy/InputData/PolymerCo
       if line.startswith('--'): continue
       r = line.strip().split()
       if len(r) == 1: concs.append(float(r[0]))
-      else:           dates.append(datetime(int(r[2]), ECL.MONTH_MAP[r[1].replace("'","")], int(r[0])))
+      else:           dates.append(datetime(int(r[2]), MONTH_MAP[r[1].replace("'","")], int(r[0])))
    return dates, concs
