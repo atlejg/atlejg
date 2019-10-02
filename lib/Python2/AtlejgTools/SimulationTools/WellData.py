@@ -5,6 +5,7 @@ agy@statoil.com
 
 Generic module to hold typical well data. See WellData
 Assumes that all variables has the same sampling as the time vector. (This is *not* usually the case)
+All times/dates are in days from year 1 (as float)
 
 Latest version:
    2019-09-16
@@ -214,22 +215,23 @@ class WellData(object):
       if keepit: self.__dict__[varnm+'f'] = fy
       return fy
 #
-   def calc_steps(self, flowvar, q_shut, q_min, dp_min, dt0, dt1, dt2, grad_lim, q_monoton=True):
+   def calc_steps(self, flowvar, q_shut=10., q_min=0., dp_min=0., dt0=None, dt1=None, dt2=None, grad_lim=0., q_monoton=False):
       '''
       finds steps in flowrate, typically before / after shutins.
-      units: any. just make sure it's consistent
       the steps are stored in two list: step_ups and step_downs
       # input
-         flowvar   : typically 'ql' or 'qt'
-         q_shut    : shut-level. ideally 0...                               [m3/d]
-         q_min     : discard if production-level is below this              [m3/d]
-         q_min     : discard if dp is less than this                        [bar]
-         dt0       : smoothing window length when looking for hi/lo levels.
-                     must be > sampling-length, but dont set it too low.    [d]
-         dt1       : min. stable period before jump. must be > dt0.         [d]
-         dt2       : min. stable period after jump. must be > dt0.          [d]
-         grad_lim  : how steep should the jump be?                          [m3/d / d]
-         q_monoton : boolean. make sure flow-rate is also monotonic
+        flowvar   : typically 'ql' or 'qt'
+        q_shut    : shut-level. ideally 0 but it turns out this is quite important
+                    to get the steps placed properly...                                [m3/d]
+        q_min     : discard if production-level is below this                          [m3/d]
+        dp_min    : discard if dp is less than this                                    [bar]
+        dt0       : smoothing window length when looking for hi/lo levels.
+                    must be > sampling-length, but dont set it too low.
+                    if defaulted, will use 15*self.dt                                  [d]
+        dt1       : min. stable period before jump. must be > dt0 to have any effect   [d]
+        dt2       : min. stable period after jump. must be > dt0 to have any effect    [d]
+        grad_lim  : how steep should the jump be?                                      [m3/d / d]
+        q_monoton : boolean. make sure flow-rate is also monotonic
       # output
         none. but it sets self.step_downs and self.step_ups
       # note1
@@ -238,9 +240,15 @@ class WellData(object):
         major step in flowrate. then we filter these steps to make sure periods before and
         after the step are stable (enough).
       # note 2
-        this could be quite time consuming. may use get_steps to filter 'unwanted' data.
+        finding the steps that is the ones you want is sort of difficult to nail exactly. so often you
+        will have test different parameters. and since *this* routine could be quite slow, it is recommended
+        to run it with default parameters - which should ensure that it picks up quite many steps - and
+        then use get_steps to filter
       '''
-      #
+      # set defaults
+      if not dt0: dt0 = 15*self.dt
+      if not dt1: dt1 = self.dt
+      if not dt2: dt2 = self.dt
       # prepare data
       qs = UT.interp_nan(self.t, self.get(flowvar))            # interpolate NaN's and make copy
       qs[pl.find(qs < q_shut)] = 0.
@@ -252,7 +260,8 @@ class WellData(object):
       #
       # analyze
       #  - first smooth it
-      qfs = PD.rolling_mean(qs, n0, center=True)      # flow-rates filtered. smoothing forward (righty)
+      #qfs = PD.rolling_mean(qs, n0, center=True)       # flow-rates filtered. smoothing forward (righty)
+      qfs = UT.smooth(qs, n0+1, window='flat')         # flow-rates filtered
       #  - study the difference between 'lefty' and 'righty' smoothed curvs
       dqs = pl.zeros(self.np)
       for i in range(n, self.np-n): dqs[i] = qfs[i+n] - qfs[i+n-n0]
@@ -288,7 +297,7 @@ class WellData(object):
          if qm < q_min:                         continue   # rate too small
          pm1 = pl.mean(self.p[ix+n:ix+2*n])                # short periode in the early part
          pm2 = pl.mean(self.p[ix+n2-n:ix+n2])              # short periode at the end
-         if pm1 - pm2 < dp_min:                 continue   # too small step (or non-monotonic)
+         if abs(pm1-pm2) < dp_min:              continue   # too small step (or non-monotonic)
          if q_monoton:
             qm1 = pl.mean(qfs[ix+n:ix+2*n])                # short periode in the early part
             qm2 = pl.mean(qfs[ix+n2-n:ix+n2])              # short periode at the end
@@ -305,7 +314,7 @@ class WellData(object):
          if qm < q_min:                         continue   # rate too small
          pm1 = pl.mean(self.p[ix+n:ix+2*n])                # short periode in the early part
          pm2 = pl.mean(self.p[ix+n2-n:ix+n2])              # short periode at the end
-         if pm2 - pm1 < dp_min:                 continue   # too small step (or non-monotonic)
+         if abs(pm1-pm2) < dp_min:              continue   # too small step (or non-monotonic)
          if q_monoton:
             qm1 = pl.mean(qfs[ix+n:ix+2*n])                # short periode in the early part
             qm2 = pl.mean(qfs[ix+n2-n:ix+n2])              # short periode at the end
@@ -427,10 +436,10 @@ class WellData(object):
       '''
       for varnm, y in self.__dict__.items():
          if not (type(y) == pl.ndarray and len(y) == self.np) or varnm == 't': continue
-         self.__dict__[varnm] = interp(t, self.t, y)
+         self.__dict__[varnm] = pl.interp(t, self.t, y)
       self.t = t
       self.np = len(t)
-      self.dt = (t[1] - t[0]) / 24. # days --> hours
+      self.dt = t[1] - t[0]
 #
    def step_vector(self, varnm, lvl, y1=0, y2=1):
       '''
@@ -457,82 +466,6 @@ class WellData(object):
          return None
       return ix
 
-'''
-deprecated
-   def estimate_PI(self, dp_min, ql_min, rel_smooth_len=0.1):
-      tries to estimate PI (flowrate/dP)
-      you need to estimate_p_reservoir first
-      # input
-         dp_min: avoid periods with very small dP
-         ql_min: make sure we only consider periods when well is producing
-      # output
-         t  : time vector
-         PI : estimated PI
-      if self.p_res == None:
-         print 'Need to run estimate_p_reservoir first!'
-         return 0
-      dp  = abs(self.p - self.p_res)
-      sz = int(len(dp)*rel_smooth_len)               # window-size
-      dps = pandas.rolling_mean(dp, sz, center=True)  # dp smoothed
-      ixs1 = find(dps>dp_min)
-      ixs2  = find(self.ql >= ql_min)
-      ixs  = list(set.intersection(set(ixs1), set(ixs2)))
-
-      ixs.sort()
-    def calc_shutins_old(self, q_shut, p_min, dt_min, dt_filt, q_preshut, dt_preshut):
-      deprecated: see calc_shutins instead
-      finds the observed pressure during shut-ins
-      # input
-         q_shut    : max (total) production (to define shut-ins) [m3/d]
-         p_min     : min BHP (for dismissing periods with no BHP-data)
-         dt_min    : min time periode to be regarded a shut-in [hours]
-         dt_filt   : time periode to filter the pressure [hours]
-         q_preshut : min flow-rate in the periode before shut-in (should be high)
-         dt_preshut: min length of hi-flowrate periode before shut-in [hours]
-      # output
-         t_sh : time for shut-ins
-         p_sh : shut-in pressures
-         ixs  : indices for measured shut-ins
-      # note1
-         assumes that shut-in starts first time flow-rate is below q_shut
-        note2
-         shutin-indices, filtered pressure and filtered rates are kept in
-         self.shutins, self.pf, self.qlf
-        note3
-         we will miss last shut-in if it is still ongoing...
-      #
-      # some useful parameters
-      dt_min     /= 24.                        # convert to days
-      dt_preshut /= 24.                        # convert to days
-      nps = max(int(dt_preshut / self.dt), 1)  # make sure it's not 0
-      #
-      # filter data
-      pf  = self.medfilt('p', dt_filt/24., keepit=True)
-      qlf = self.medfilt('ql', dt_filt/24., keepit=True)
-      #
-      shutins = [] # indice-pairs for shutins
-      ix1 = None
-      for i, q in enumerate(qlf):
-         if q < q_shut:
-            if ix1 == None: ix1 = i
-         elif ix1 != None:
-            if   (self.t[i-1]-self.t[ix1]) > dt_min                \
-             and pl.mean(qlf[ix1-nps:ix1]) > q_preshut             \
-             and ( (self.typ==TYPE_PROD and pf[i-1] > pf[ix1]) or  \
-                   (self.typ==TYPE_INJ  and pf[i-1] < pf[ix1]) )   \
-             and pf[i-1] > p_min :
-               shutins.append((ix1,i-1))
-            ix1 = None
-      #
-      # keep useful stuff
-      self.shutins = shutins
-#
-     return self.t[ixs], self.qw[ixs]/dps[ixs]
-'''
-
-
-
-   
 if __name__ == '__main__':
 
    wd = WellData('A11', startdate='today', qo=800+200*rand(500))
