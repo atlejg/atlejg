@@ -9,6 +9,63 @@ Technical info:
 What could be a bit confusing is that 'selected' indexes are positive numbers ala Matlab (i.e. first element in an
 array is counted as being #1 etc), while the internal index starts at 0. this means we have a lot of +/- 1 in the code:-(
 
+Here is a typical example of a ini-file to be used for varying simulation parameters (this is a 'dynsim' example (troll box model))
+   templ       = A.templ
+   prefix      = A
+   overwrite   = YES
+   suffix      = .csv
+
+   [branches]
+   linkto      = None
+   values      = ['mainbore', 'lateral_1', 'lateral_2']
+   unit        = -
+   selected    = ALL
+   mnemonic    = compl
+   format      = %s
+   description = []
+   replace     = $BRANCH$
+   [owcfile]
+   linkto      = branches
+   values      = ['owc_m.txt', 'owc_1.txt', 'owc_2.txt']
+   unit        = -
+   selected    = ALL
+   mnemonic    = file
+   format      = %s
+   description = []
+   replace     = $OWC_FILE$
+
+   [completion]
+   linkto      = None
+   values      = ['Netool', '1:1', '1:2', '1:3', '1:4']
+   unit        = -
+   selected    = ALL
+   mnemonic    = compl
+   format      = %s
+   description = []
+   replace     = $COMPL$
+   [honour_netool]
+   linkto      = completion
+   values      = ['True', 'False', 'False', 'False', 'False']
+   unit        = -
+   selected    = ALL
+   mnemonic    = honour
+   format      = %s
+   description = []
+   replace     = $HONOUR$
+
+   [oil_column]
+   linkto      = None
+   values      = [1, 3, 5]
+   unit        = -
+   selected    = ALL
+   mnemonic    = pay
+   format      = %.1f
+   description = []
+   replace     = $OILCOLUMN$
+      
+
+
+
 Nov 09 : Version 0.1
 
 Nov 10 : found a bug. when using linkto, this must be the last entries of the ini-file.
@@ -71,9 +128,9 @@ class Param(object):
    ALL = 'ALL';
 
    def __init__(self,name,vals,unit,sel,mnemonic,format,linkto,descr, replace) :
+      self.vals = vals
       self._nm   = name
       self._unit= unit
-      self._vals = vals
       self._mnem = mnemonic
       self._fmt  = format
       self._cnt  = Counter()
@@ -84,7 +141,7 @@ class Param(object):
       self._linkfrom = []
       self._replace = replace
       # number of digits (based on max possible values)
-      self._ndigits = int(math.log(len(self._vals))/math.log(10.0)) + 1
+      self._ndigits = int(math.log(len(self.vals))/math.log(10.0)) + 1
 
    def next(self,use_si=False):
       self._cnt.next()
@@ -115,7 +172,7 @@ class Param(object):
 
    def value(self,use_si=False, index=-1):
       if index < 0: index = self.index()
-      v = self._vals[index]
+      v = self.vals[index]
       if use_si: return UnitConversion.to_si(self._unit,v)
       else:      return v
 
@@ -152,7 +209,7 @@ class Param(object):
       '''
       if sel != None:
          if sel == Param.ALL:
-            self._sel = range(1,len(self._vals)+1)
+            self._sel = range(1,len(self.vals)+1)
          else:
             self._sel  = sel
          self.reset()
@@ -160,7 +217,7 @@ class Param(object):
 
    def __str__(self):
       v_str = ''
-      for v in self._vals:
+      for v in self.vals:
          v_str += (str(v) + ' ')
       return self._mnem + ' [' + v_str[0:-1] + '] ' + self._unit
 
@@ -194,7 +251,7 @@ class ParamRealization(object):
 
    def __init__(self,pm_coll):
       self._pms     = {}
-      self._indices = {} # index directly into Params._vals.
+      self._indices = {} # index directly into Params.vals.
       self._pm_coll = pm_coll
 
    def copy(self):
@@ -554,8 +611,8 @@ replace     = _LICD_
          if verbose: print 'creating file', fname
          Utils.replace_in_file(pr.get_replace_array(use_si), cnst.templ, fname)
          files.append(fname)
-   run(buildfile, None, None, main_func, None)
-   return files
+   pm_coll = run(buildfile, None, None, main_func, None)
+   return files, pm_coll
 
 # TESTING CODE
 if __name__ == "__main__":
