@@ -1,4 +1,0 @@
-#! /bin/tcsh
-setenv PYTHON_VERSION "2.7.14"
-source /prog/sdpsoft/env.csh
-ipython --pylab --logfile=ipython_log.py -i $HOME/Tools/pythonstartup
