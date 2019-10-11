@@ -3447,15 +3447,20 @@ class EclipseCoupling(object):
       if self.trn and not self.trn.closed: self.trn.close()
       UT.tcsh('cat %s.I0* >! %s.sched' % (self.casenm, self.casenm))     # cat all sched-files created into one file
 
-def write_history(dates, producers, injectors, sched_fnm, wctrls, wts, dateshift=timedelta(1)):
+def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, mode='hist', dateshift=timedelta(1)):
    '''
+   creates a simple schedule for running the simulation, based on values found in producers and injectors dicts.
    all wells *must* have the same sampling. but they dont need to cover the same time-span.
    wctrls   : dict with well controls - aka 'LRAT', 'OILR' etc. for now only implemented for producers: {'A-22':'ORAT'}
    wts      : well tracers. must be list of dicts in chronoglogical order
               ex:{'wellnm':'A-11', 'nm':'WT0', 'date':datetime.datetime(2014,7,31),  'conc':41.8, 'tstep':0.5}
+   mode     : default 'hist', meaning WCONHIST. else WCONPROD
    dateshift: typically, pandas resampling gives last day of month - we often want first day of month reporting in eclipse
+   notes:
+      - if gas-rate is above GASRATE_LIM, it will be defaulted (e.g. 1*)
    '''
    RATE_EPS = 1.0e-6
+   GASRATE_LIM = 1e12
    f = open(sched_fnm, 'w')
    has_opened = {}
    wts = wts[:]   # need a copy since we will delete items
@@ -3485,26 +3490,40 @@ def write_history(dates, producers, injectors, sched_fnm, wctrls, wts, dateshift
       #
       ### PRODUCERS        
       #
-      #   WCONHIST
+      #   WCONHIST/WCONPROD
+      if 'HIST' in mode.upper():
+         keyw = 'WCONHIST'
+         templ = ' %s    OPEN    %s    %.1f   %.1f   %s   3*   %.1f   /'
+      else:
+         keyw = 'WCONPROD'
+         templ = ' %s    OPEN    %s    %.1f   %.1f   %s   2*   %.1f   /'
       write_keyw = True
       for wnm,w in producers.items():
          if not date in w.index: continue
          wopr, wwpr, wgpr, wbhp = w.loc[date]
          if wopr < 0. or wwpr < 0. or wgpr < 0. or wbhp < 0.:         # skip negative values
-             continue
+            continue
+         # check if gas-rate should be defaulted
+         wgpr_str = '%g'%wgpr if wgpr < GASRATE_LIM else '1*'
          totr = wopr+wwpr+wgpr
          if not has_opened[wnm] and abs(totr)<RATE_EPS:
              continue
          has_opened[wnm] = True
          if write_keyw:
-             print >>f, 'WCONHIST'
+             print >>f, keyw
              write_keyw=False
-         print >>f, ' %s    OPEN    %s    %.1f   %.1f   %.1f   3*   %.1f   1*  /' % (wnm, wctrls[wnm], wopr, wwpr, wgpr, wbhp)
+         print >>f, templ % (wnm, wctrls[wnm], wopr, wwpr, wgpr_str, wbhp)
       if not write_keyw: print >>f, '/\n'
       #
       ### INJECTORS
       #
-      #   WCONINJH
+      #   WCONINJH / WCONINJE
+      if 'HIST' in mode.upper():
+         keyw = 'WCONINJH'
+         templ = ' %s      WATER    OPEN   %.1f   %.1f   /\n'
+      else:
+         keyw = 'WCONINJE'
+         templ = ' %s      WATER    OPEN   RATE   %.1f   1* %.1f   /\n'
       write_keyw = True
       for wnm, w in injectors.items():
          if not date in w.index: continue
@@ -3515,9 +3534,9 @@ def write_history(dates, producers, injectors, sched_fnm, wctrls, wts, dateshift
              continue
          has_opened[wnm] = True
          if write_keyw:
-             print >>f, 'WCONINJH'
+             print >>f, keyw
              write_keyw=False
-         print >>f, ' %s      WATER    OPEN   %.1f   %.1f   /\n' % (wnm, wwir, wbhp),
+         print >>f, templ % (wnm, wwir, wbhp),
       if not write_keyw: print >>f, '/\n'
       #
       #   WPOLYMER
