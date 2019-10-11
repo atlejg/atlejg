@@ -108,8 +108,8 @@ def get_val(varnm, cases, tstep=-1):
    y = []
    if type(cases) is str: cases = (cases,) # make sure we have a list
    for case in cases:
-      r = get_summary(case)
-      y.append(r.get(_fix(r,varnm))[tstep])
+      s = get_summary(case)
+      y.append(s.get(_fix(s,varnm))[tstep])
    return y
 
 def _get_params(parnm, cases):
@@ -160,6 +160,7 @@ UI.plot_dates   = True    # if True: will use plot_date in xplot when x-variable
 UI.show_fig     = True    # if True: will display figure. set to False if you want to save hardcopy without showing figure
 UI.silent       = False   # if True: will be as quiet as possible
 UI.segm_length  = None    # if plot_md is True, you need to set this. segm_length = segm_length(casenm)
+UI.plot_hist    = False   # if plot_hist is True, it will plot the historical data (e.g. WOPRH) for the last case
 
 # useful for debugging and accessing data outside the program
 DBG = UT.Struct()
@@ -231,12 +232,12 @@ def _welldp(cases, plot_kwargs=None):
    n = -1
    for case in cases:
       n += 1
-      r = get_summary(case)
+      s = get_summary(case)
       wsegm = well_segments(case, WELLNM)
-      dp = r.get('SPR-%s-%i' % (WELLNM, wsegm[-1])) - r.get('SPR-%s-%i' % (WELLNM, wsegm[0]))
+      dp = s.get('SPR-%s-%i' % (WELLNM, wsegm[-1])) - s.get('SPR-%s-%i' % (WELLNM, wsegm[0]))
       if plot_kwargs: kwargs = plot_kwargs(case, cases)
       else          : kwargs = {'color':(red[n], 0, 1-red[n])}
-      plot(r.time, dp, label=os.path.splitext(case)[0], **kwargs)
+      plot(s.time, dp, label=os.path.splitext(case)[0], **kwargs)
    ylabel('dp [bar]')
    title('Pressure drop from toe to heel')
    legend(loc='best')
@@ -255,12 +256,12 @@ def _comparison(varnm, cases, plot_kwargs=None):
    ymin = Inf; ymax = -Inf
    red = linspace(0, 1, len(cases)/2)
    for n in range(len(cases)/2):
-      r1 = get_summary(cases[2*n])
-      r2 = get_summary(cases[2*n+1])
-      y = interp(r2.time, r1.time, r1.get(varnm))
-      y = (y - r2.get(varnm)) / r2.get(varnm) * 100. # want percent
+      s1 = get_summary(cases[2*n])
+      s2 = get_summary(cases[2*n+1])
+      y = interp(s2.time, s1.time, s1.get(varnm))
+      y = (y - s2.get(varnm)) / s2.get(varnm) * 100. # want percent
       kwargs = {'color':(red[n], 0, 1-red[n])}
-      plot(r2.time, y, label='%s/%s'%(UT.basename(r1.nm), UT.basename(r2.nm)), **kwargs)
+      plot(s2.time, y, label='%s/%s'%(UT.basename(s1.nm), UT.basename(s2.nm)), **kwargs)
    ylabel('rel. change %s [%%]' % (varnm))
    title('comparison of cases')
    legend(loc='best')
@@ -276,16 +277,16 @@ def _xplot(varnm1, varnm2, cases, refcase=None, plot_kwargs=None, nolegend=False
    red = linspace(0, 1, len(cases))
    for case in cases:
       n += 1
-      r = get_summary(case)
-      varnm1 = _fix(r,varnm1)
-      varnm2 = _fix(r,varnm2)
+      s = get_summary(case)
+      varnm1 = _fix(s,varnm1)
+      varnm2 = _fix(s,varnm2)
       if varnm1 == 'PVI':
          y1 = _pvi(UT.basename(case))
       else:
-         y1 = r.get(varnm1)
-      y2 = r.get(varnm2)
+         y1 = s.get(varnm1)
+      y2 = s.get(varnm2)
       if refcase:
-         y2 = interp(ref.time, r.time, y2)
+         y2 = interp(ref.time, s.time, y2)
          y2 = (y2 - ref.get(varnm2)) / ref.get(varnm2) * 100. # want percent
          y1 = ref.time
       if   plot_kwargs              : kwargs = plot_kwargs(case, cases)
@@ -300,17 +301,22 @@ def _xplot(varnm1, varnm2, cases, refcase=None, plot_kwargs=None, nolegend=False
          if not UI.silent: print 'Warning: UI.yscaler = ', UI.yscaler
          y2 *= UI.yscaler
       if varnm1 == 'TIME' and UI.plot_dates:
-         y1 += r.startdate
+         y1 += s.startdate
          plotfunc = plot_date
       else:
          plotfunc = plot
       plotfunc(y1, y2, label=os.path.splitext(case)[0], **kwargs)
    #
+   if UI.plot_hist:
+      varnmh = _fix(s, varnm2.split(s.separator)[0]+'H')
+      yh = s.get(varnmh)
+      plotfunc(y1, yh, 'k--', label=os.path.splitext(case)[0]+' (hist)')
+   #
    if refcase:
       ylabel('rel. change %s [%%]' % (varnm2))
       titl = 'compare to case ' + UT.basename(refcase)
    else:
-      ylabel('%s [%s]' % (varnm2, r.unit(varnm2)))
+      ylabel('%s [%s]' % (varnm2, s.unit(varnm2)))
       titl = varnm2
    if UI.accum: titl += ' (accumulated)'
    if varnm1 == 'TIME' and UI.plot_dates:
@@ -318,7 +324,7 @@ def _xplot(varnm1, varnm2, cases, refcase=None, plot_kwargs=None, nolegend=False
    elif varnm1 == 'PVI':
       xlabel('PVI [-]')
    else:
-      xlabel('%s [%s]' % (varnm1, r.unit(varnm1)))
+      xlabel('%s [%s]' % (varnm1, s.unit(varnm1)))
    if not nolegend: legend(loc='best')
    title(titl)
    grid(True)
@@ -335,19 +341,19 @@ def _meanplot(varnm, cases):
    y = 0
    t = []
    for case in cases:
-      r = get_summary(case)
+      s = get_summary(case)
       if len(t) == 0:
-         t = r.get('TIME')   # use first case
+         t = s.get('TIME')   # use first case
          varnm = _fix(r,varnm)
-      y += interp(t, r.time, r.get(varnm))
+      y += interp(t, s.time, s.get(varnm))
    if UI.plot_dates:
-      t += r.startdate
+      t += s.startdate
       plotfunc = plot_date
    else:
       plotfunc = plot
    y /= len(cases)
    plotfunc(t, y, '-')
-   ylabel('%s [%s]' % (varnm, r.unit(varnm)))
+   ylabel('%s [%s]' % (varnm, s.unit(varnm)))
    title('Mean values')
    grid(True)
    DBG.t, DBG.y = t, y
@@ -356,7 +362,7 @@ def _wbarplot(varnm, wname_pattern, case, t0, shift=0, mark_highest=True, rel_he
    '''
    cross-plot for wells. useful in case of having many wells. wname_pattern should be a reg-exp pattern'
    '''
-   r = get_summary(case)
+   s = get_summary(case)
    ptrn = '%s%s%s' % (varnm, ECL.SEPARATOR, wname_pattern)
    varnms = _get_varnms(wname_pattern, varnm, case)
    figure()
@@ -365,7 +371,7 @@ def _wbarplot(varnm, wname_pattern, case, t0, shift=0, mark_highest=True, rel_he
    i = -1
    for varnm in varnms:
       i += 1
-      val = r.get(varnm)[UT.find_index(r.time, t0, eps=t0/40.)]
+      val = s.get(varnm)[UT.find_index(s.time, t0, eps=t0/40.)]
       yvals.append(val)
       if abs(val) > maxval:
          maxval = abs(val)
@@ -381,13 +387,13 @@ def _wbarplot(varnm, wname_pattern, case, t0, shift=0, mark_highest=True, rel_he
    if rel_height:
       ylabel('relative [%]')
    else:
-      ylabel('%s [%s]' % (varnm, r.unit(varnm)))
+      ylabel('%s [%s]' % (varnm, s.unit(varnm)))
    title('%s @ %i days' % (varnm, int(t0)))
 
 def _get_varnms(wname_pattern, varnm, case):
-   r = get_summary(case)
+   s = get_summary(case)
    ptrn = '%s%s%s' % (varnm, ECL.SEPARATOR, wname_pattern)
-   varnms = filter(lambda v: fnmatch.fnmatch(v, ptrn), r.varnames())
+   varnms = filter(lambda v: fnmatch.fnmatch(v, ptrn), s.varnames())
    varnms.sort()
    return varnms
 
@@ -399,15 +405,15 @@ def _wxplot(varnm1, varnm2, wname_pattern, case, plot_kwargs=None, nolegend=Fals
    figure(); 
    plotted = {}
    ymin = Inf; ymax = -Inf
-   r = get_summary(case)
+   s = get_summary(case)
    ptrn = '%s%s%s' % (varnm2, ECL.SEPARATOR, wname_pattern)
    varnms = _get_varnms(wname_pattern, varnm2, case)
    red = linspace(0, 1, len(varnms))
    n = -1
    for varnm in varnms:
       n += 1
-      y1 = r.get(varnm1)
-      y2 = r.get(varnm)
+      y1 = s.get(varnm1)
+      y2 = s.get(varnm)
       if   plot_kwargs               : kwargs = plot_kwargs(case, cases)
       elif len(varnms) > len(COLOURS): kwargs = {'color':(red[n], 0, 1-red[n])}
       else                           : kwargs = {'color':COLOURS[n]}
@@ -418,10 +424,10 @@ def _wxplot(varnm1, varnm2, wname_pattern, case, plot_kwargs=None, nolegend=Fals
       if UI.accum: y2 = UT.cumulative(y1, y2)
       plot(y1, y2, label=varnm, **kwargs)
    #
-   ylabel('%s [%s]' % (varnm2, r.unit(varnms[0])))
+   ylabel('%s [%s]' % (varnm2, s.unit(varnms[0])))
    titl = case
    if UI.accum: titl += ' (accumulated)'
-   xlabel('%s [%s]' % (varnm1, r.unit(varnms[0])))
+   xlabel('%s [%s]' % (varnm1, s.unit(varnms[0])))
    if not nolegend: legend(loc='best')
    title(titl)
    grid(True)
@@ -446,17 +452,17 @@ def _segment_data_at_given_time(varnm, cases, t0, plot_kwargs=None, adjust_to_ze
       case = UT.basename(case)
       if use_icd_segm: segments = icd_segments(case, WELLNM)
       else           : segments = well_segments(case, WELLNM)
-      r = get_summary(case)
-      if t0 > 0: tix = UT.find_closest_index(r.time, t0)
-      else     : tix = len(r.time) # last one
+      s = get_summary(case)
+      if t0 > 0: tix = UT.find_closest_index(s.time, t0)
+      else     : tix = len(s.time) # last one
       if accum:
          tixs = range(tix)   # time indices
-         m = r.get_segm_data(varnm, WELLNM, segments)[:, tixs]
-         y_ = array([UT.cumulative(r.time[tixs], m[i,:])[-1] for i in range(len(segments))])
+         m = s.get_segm_data(varnm, WELLNM, segments)[:, tixs]
+         y_ = array([UT.cumulative(s.time[tixs], m[i,:])[-1] for i in range(len(segments))])
       elif varnm == 'SGVF':
          y_ = _gvf_segmentdata(r, segments, tix)
       else:
-         y_ = r.get_segm_data(varnm, WELLNM, segments)[:, tix]
+         y_ = s.get_segm_data(varnm, WELLNM, segments)[:, tix]
       if   plot_kwargs              : kwargs = plot_kwargs(case, cases)
       elif len(cases) > len(COLOURS): kwargs = {'color':(red[n], 0, 1-red[n])}
       else                          : kwargs = {'color':COLOURS[n]}
@@ -477,7 +483,7 @@ def _segment_data_at_given_time(varnm, cases, t0, plot_kwargs=None, adjust_to_ze
       n += 1
    #
    legend(loc='best')
-   ylabel('%s [%s]' % (varnm, r.unit('%s%s%s%s%i'%(varnm, ECL.SEPARATOR, WELLNM, ECL.SEPARATOR, segments[0]))))
+   ylabel('%s [%s]' % (varnm, s.unit('%s%s%s%s%i'%(varnm, ECL.SEPARATOR, WELLNM, ECL.SEPARATOR, segments[0]))))
    xlabel(xlbl)
    ylim(0, ylim()[1])
    grid(True)
@@ -499,21 +505,21 @@ def _connection_data_at_given_time(varnm, cases, t0, dx, plot_kwargs=None):
       dd = ECL.DataDeck(case)
       ijks = dd.raw2values(dd.get_raw_data('COMPDAT', get_all=True), 2,4, identif=WELLNM, match_col=1)
       case = UT.basename(case)
-      r = get_summary(case)
-      t0_indx = UT.find_closest_index(r.time, t0)
+      s = get_summary(case)
+      t0_indx = UT.find_closest_index(s.time, t0)
       if UI.accum: tixs = range(t0_indx)   # time indices
       else       : tixs = (t0_indx,)
       y_ = 0
       sep = ECL.SEPARATOR  # for convinience
       if varnm == 'CLFR':
-         m  =  array([r.get('%s%s%s%s%i,%i,%i'%('COFR', sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
-         m  += array([r.get('%s%s%s%s%i,%i,%i'%('CWFR', sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
+         m  =  array([s.get('%s%s%s%s%i,%i,%i'%('COFR', sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
+         m  += array([s.get('%s%s%s%s%i,%i,%i'%('CWFR', sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
       else:
-         m = array([r.get('%s%s%s%s%i,%i,%i'%(varnm, sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
+         m = array([s.get('%s%s%s%s%i,%i,%i'%(varnm, sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
       for tix in tixs:
          if UI.accum:
-            if tix > 0: dt = r.time[tix] - r.time[tix-1]
-            else      : dt = r.time[tix]
+            if tix > 0: dt = s.time[tix] - s.time[tix-1]
+            else      : dt = s.time[tix]
          else: dt = 1    # dont scale it
          y_ += dt*m[tix,:]
       if   plot_kwargs              : kwargs = plot_kwargs(case, cases)
@@ -528,7 +534,7 @@ def _connection_data_at_given_time(varnm, cases, t0, dx, plot_kwargs=None):
    xlabel('md [m]')
    ylim(0, ylim()[1])
    grid(True)
-   titl = '%s @ t= %i days' % (varnm, r.time[t0_indx])
+   titl = '%s @ t= %i days' % (varnm, s.time[t0_indx])
    if UI.md_accum and UI.accum: titl += ' (accumulated time and space - to 1st order)'
    elif UI.md_accum           : titl += ' (accumulated in space)'
    elif UI.accum              : titl += ' (accumulated in time - to 1st order)'
@@ -573,7 +579,7 @@ def _compiled(cases, segm1, segm2, plot_kwargs=None):
 def _prod_pr_part(varnm, case, pr_segment, accum):
    figure()
    titl = ('%s %s' % (case, varnm))
-   r = get_summary(case)
+   s = get_summary(case)
    p = get_parameters(case)
    s1, s2 = [_j2segm(case, p.channel_j1, True), _j2segm(case, p.channel_j2, True)]
    segm_toe  = arange(s2+1, 2*p._nsegm+1)
@@ -586,25 +592,25 @@ def _prod_pr_part(varnm, case, pr_segment, accum):
       titl += ' shift= %i'%shift
    y1 = 0; y2 = 0; y3 = 0;
    for segm in segm_toe:
-      y1 += r.get_segm_data(varnm, WELLNM, [segm])
+      y1 += s.get_segm_data(varnm, WELLNM, [segm])
    for segm in segm_chnl:
-      y2 += r.get_segm_data(varnm, WELLNM, [segm])
+      y2 += s.get_segm_data(varnm, WELLNM, [segm])
    for segm in segm_heel:
-      y3 += r.get_segm_data(varnm, WELLNM, [segm])
+      y3 += s.get_segm_data(varnm, WELLNM, [segm])
    if pr_segment:
       y1 /= len(segm_toe)
       y2 /= len(segm_chnl)
       y3 /= len(segm_heel)
    if accum:
-      y1 = UT.cumulative(r.time, y1)
-      y2 = UT.cumulative(r.time, y2)
-      y3 = UT.cumulative(r.time, y3)
-   plot(r.time, y1, 'y', label='toe')
-   plot(r.time, y2, 'r', label='channel')
-   plot(r.time, y3, 'c', label='heel')
+      y1 = UT.cumulative(s.time, y1)
+      y2 = UT.cumulative(s.time, y2)
+      y3 = UT.cumulative(s.time, y3)
+   plot(s.time, y1, 'y', label='toe')
+   plot(s.time, y2, 'r', label='channel')
+   plot(s.time, y3, 'c', label='heel')
    legend(loc='best')
    if varnm == 'SLFR': ylbl = 'SLFR [SM3/DAY]'
-   else: ylbl = '%s [%s]' % (varnm, r.unit('%s-%s-1'%(varnm, WELLNM)))
+   else: ylbl = '%s [%s]' % (varnm, s.unit('%s-%s-1'%(varnm, WELLNM)))
    ylabel(ylbl)
    xlabel('time [DAYS]')
    grid(True)
@@ -613,14 +619,14 @@ def _prod_pr_part(varnm, case, pr_segment, accum):
    title(titl)
 
 def _gvf_segmentdata(r, segments, ind):
-   o = r.get_segm_data('SOFR',  WELLNM, segments, scaler=UI.Bo)[:, ind]
-   g = r.get_segm_data('SGFRF', WELLNM, segments, scaler=UI.Bg)[:, ind]
-   w = r.get_segm_data('SWFR',  WELLNM, segments, scaler=UI.Bw)[:, ind]
+   o = s.get_segm_data('SOFR',  WELLNM, segments, scaler=UI.Bo)[:, ind]
+   g = s.get_segm_data('SGFRF', WELLNM, segments, scaler=UI.Bg)[:, ind]
+   w = s.get_segm_data('SWFR',  WELLNM, segments, scaler=UI.Bw)[:, ind]
    return g/(g+o+w)
 
 def _segment_data_for_given_case(varnm, case, times, adjust_to_zero=False, onefig=True, use_icd_segm=True):
    global y_
-   r = get_summary(case)
+   s = get_summary(case)
    if use_icd_segm: segments = icd_segments(case, WELLNM)
    else           : segments = well_segments(case, WELLNM)
    figs = []
@@ -631,14 +637,14 @@ def _segment_data_for_given_case(varnm, case, times, adjust_to_zero=False, onefi
    n = 0
    for t in times:
       # requested values
-      ind = UT.find_closest_index(r.time, t)
-      t0 = r.time[ind]
+      ind = UT.find_closest_index(s.time, t)
+      t0 = s.time[ind]
       if varnm == 'SGVF':
          y_ = _gvf_segmentdata(r, segments, ind)
          ylbl = 'SGVF [-]'
       else:
-         y_ = r.get_segm_data(varnm, WELLNM, segments)[:, ind]
-         ylbl = '%s [%s]' % (varnm, r.unit('%s-%s-%i'%(varnm, WELLNM, segments[0])))
+         y_ = s.get_segm_data(varnm, WELLNM, segments)[:, ind]
+         ylbl = '%s [%s]' % (varnm, s.unit('%s-%s-%i'%(varnm, WELLNM, segments[0])))
       if UI.yscaler:
          if not UI.silent: print 'Warning: UI.yscaler = ', UI.yscaler
          y_ *= UI.yscaler
@@ -663,10 +669,10 @@ def _contours(varnm, cases, accum, zmin=None, zmax=None, t_end=None, relative=Fa
    for case in cases:
       if use_icd_segm: segments = icd_segments(case, WELLNM)
       else           : segments = well_segments(case, WELLNM)
-      r = get_summary(case)
+      s = get_summary(case)
       if UI.plot_md: segm_length_func = lambda segments: cumsum(UI.segm_length(case))
       else         : segm_length_func = None
-      ax = r.contour_plot(varnm, WELLNM, segments, zmin=zmin, zmax=zmax, accum=accum, relative=relative, Bg=UI.Bg, Rs=UI.Rs, segm_length_func=segm_length_func)
+      ax = s.contour_plot(varnm, WELLNM, segments, zmin=zmin, zmax=zmax, accum=accum, relative=relative, Bg=UI.Bg, Rs=UI.Rs, segm_length_func=segm_length_func)
       titl = '%s %s %s' % (os.path.splitext(case)[0], WELLNM, varnm)
       if accum: titl += ' accum.'
       if varnm == 'SFFR': titl += ' (in situ)'
@@ -674,8 +680,8 @@ def _contours(varnm, cases, accum, zmin=None, zmax=None, t_end=None, relative=Fa
       if t_end: ax.set_ylim(0, t_end)
 
 def _is_shut(r):
-   is_shut = (r.get('WMCTL-X21')[-1] == 0)
-   if is_shut: print r.nm, 'is closed'
+   is_shut = (s.get('WMCTL-X21')[-1] == 0)
+   if is_shut: print s.nm, 'is closed'
    return is_shut
 
 def _comparewells(varnm, cases, well1, well2):
@@ -684,28 +690,28 @@ def _comparewells(varnm, cases, well1, well2):
    y1 = y2 = 0.
    for case in cases:
       if well1 in case:
-         r = get_summary(case)
+         s = get_summary(case)
          varnm = _fix(r,varnm)
          if t is None:
-            t = r.time
+            t = s.time
             y1 = zeros(t.shape)
          if _is_shut(r): continue
          n1 += 1
-         y1 += interp(t, r.time, r.get(varnm))
+         y1 += interp(t, s.time, s.get(varnm))
       elif well2 in case:
-         r = get_summary(case)
+         s = get_summary(case)
          if t is None:
-            t = r.time
+            t = s.time
             y2 = zeros(t.shape)
          n2 += 1
-         y2 += interp(t, r.time, r.get(varnm))
+         y2 += interp(t, s.time, s.get(varnm))
    if n1 > 0: y1 /= float(n1)
    if n2 > 0: y2 /= float(n2)
    figure()
    plot(t, y1, label=well1)
    plot(t, y2, label=well2)
    xlabel('TIME [days]')
-   ylabel(r.unit(varnm))
+   ylabel(s.unit(varnm))
    grid(True)
    legend(loc='best')
 
@@ -719,10 +725,10 @@ def _barplot_vals(varnm, cases, t0=-1, shift=0, mark_highest=True, rel_height=Fa
    i = -1
    for case in cases:
       i += 1
-      r = get_summary(case)
+      s = get_summary(case)
       varnm = _fix(r,varnm)
-      indx = UT.find_index(r.time, t0, eps=t0/40.) if t0 > 0 else -1
-      val = r.get(varnm)[indx]
+      indx = UT.find_index(s.time, t0, eps=t0/40.) if t0 > 0 else -1
+      val = s.get(varnm)[indx]
       yvals.append(val)
       if abs(val) > maxval:
          maxval = abs(val)
@@ -738,29 +744,29 @@ def _barplot_vals(varnm, cases, t0=-1, shift=0, mark_highest=True, rel_height=Fa
    if rel_height:
       ylabel('%s [%%] @ %i days' % (varnm, int(t0)))
    else:
-      ylabel('%s [%s] @ %i days' % (varnm, r.unit(varnm), int(t0)))
+      ylabel('%s [%s] @ %i days' % (varnm, s.unit(varnm), int(t0)))
 
 def _standard_deviation_along_well(varnm, wellnm, cases, tstep):
    figure()
    yvals = []
    for case in cases:
-      r = get_summary(case)
+      s = get_summary(case)
       segments = icd_segments(case, WELLNM)
-      yvals.append(std(r.get_segm_data(varnm, wellnm, segments, tsteps=(tstep,))))
+      yvals.append(std(s.get_segm_data(varnm, wellnm, segments, tsteps=(tstep,))))
    bar(arange(len(yvals))+0.5, yvals)
    xticks(arange(len(yvals))+1,[UT.basename(x) for x in cases], rotation=90)
-   unit = r.unit(varnm+'-'+wellnm+'-'+str(segments[0]))
+   unit = s.unit(varnm+'-'+wellnm+'-'+str(segments[0]))
    ylabel('%s [%s]' % (varnm, unit))
-   title('Standard deviation @ %i days' % r.time[tstep])
+   title('Standard deviation @ %i days' % s.time[tstep])
 
 def _water_breakthrough_time(case, segment, wct_limit=0.05):
-   r = get_summary(case)
-   wct = r.get_segm_data('SWCT', WELLNM, [segment])
+   s = get_summary(case)
+   wct = s.get_segm_data('SWCT', WELLNM, [segment])
    try:
       indx = (wct>wct_limit).nonzero()[0][0]
    except:
       return Inf
-   return r.time[indx]
+   return s.time[indx]
 
 def _special_plot1(varnm, cases, j):
    '''
@@ -771,15 +777,15 @@ def _special_plot1(varnm, cases, j):
    cases.sort()
    x = []; y = []
    for case in cases:
-      r = get_summary(case)
+      s = get_summary(case)
       varnm = _fix(r,varnm)
       dps = _dp_sand(UT.basename(case), y_indices)
       _welldp((case,))
       dpw = array(y_)
       ts  = _find_drawdown_sand(UT.basename(case), 0, j)[3]
-      dps = interp(r.time, ts, dps)
+      dps = interp(s.time, ts, dps)
       x.append(mean(dps[1:]/dpw[1:]))
-      y.append(r.get(varnm)[-1])
+      y.append(s.get(varnm)[-1])
    #close('all')
    figure()
    plot(x, y, '-*')
@@ -797,9 +803,9 @@ def _variable_vs_param(varnm, parnm, cases, rel_changes, tstep=-1):
       else:
          xval = _get_param_value(UT.basename(case), parnm)
       x.append(xval)
-      r = get_summary(case)
+      s = get_summary(case)
       varnm = _fix(r,varnm)
-      y_.append(r.get(varnm)[tstep])
+      y_.append(s.get(varnm)[tstep])
    if rel_changes:
       y_ = array(y_)/max(y_) * 100
       ylabel(varnm + '[%]')
@@ -808,18 +814,18 @@ def _variable_vs_param(varnm, parnm, cases, rel_changes, tstep=-1):
    plot(x, y_, '-*')
    xlabel(parnm)
    grid(True)
-   title('%s @ t = %i days' % (varnm, r.time[tstep]))
+   title('%s @ t = %i days' % (varnm, s.time[tstep]))
 
 def _variable_vs_variable(varnm1, varnm2, t0, cases):
    global y_
    figure()
    x = []; y_ = []
    for case in cases:
-      r = get_summary(case)
+      s = get_summary(case)
       varnm1 = _fix(r,varnm1)
       varnm2 = _fix(r,varnm2)
-      x.append(r.get_interp_value(varnm1, t0))
-      y_.append(r.get_interp_value(varnm2, t0))
+      x.append(s.get_interp_value(varnm1, t0))
+      y_.append(s.get_interp_value(varnm2, t0))
    plot(x, y_, '-*')
    xlabel(varnm1)
    ylabel(varnm2)
@@ -831,15 +837,15 @@ def _segments_diff(cases, varnm, segm1, segm2, plot_kwargs=None):
    red = linspace(0, 1, len(cases))
    n = 0
    for case in cases:
-      r = get_summary(case)
-      y1 = r.get('%s-%s-%i' % (varnm, WELLNM, segm1))
-      y2 = r.get('%s-%s-%i' % (varnm, WELLNM, segm2))
+      s = get_summary(case)
+      y1 = s.get('%s-%s-%i' % (varnm, WELLNM, segm1))
+      y2 = s.get('%s-%s-%i' % (varnm, WELLNM, segm2))
       if plot_kwargs: kwargs = plot_kwargs(case, cases)
       else          : kwargs = {'color':(red[n], 0, 1-red[n])}
-      plot(r.time, y1-y2, label=os.path.splitext(case)[0], **kwargs)
+      plot(s.time, y1-y2, label=os.path.splitext(case)[0], **kwargs)
       n += 1
    xlabel('TIME [days]')
-   ylabel('%s [%s]' % (varnm, r.unit('%s-%s-%i' % (varnm, WELLNM, segm1))))
+   ylabel('%s [%s]' % (varnm, s.unit('%s-%s-%i' % (varnm, WELLNM, segm1))))
    grid(True)
    title('delta %s between segments %i and %i' % (varnm, segm1, segm2))
    legend(loc='best')
@@ -859,7 +865,7 @@ def _wbt(cases, parnm, y_indices, relative=False):
       n += 1
       wbt = []
       for case in cases:
-         r = get_summary(case)
+         s = get_summary(case)
          segm = _j2segm(UT.basename(case),j,True)
          wbt.append(_water_breakthrough_time(case, segm))
       if n == 0 and relative:
@@ -905,9 +911,9 @@ def _find_drawdown_sand2(case, tstep, y_indx):
    for k in range(1, len(dz)):
       static[:,k] = static[:,k-1] + dp_static[:,k]
    # calculate effective drawdown
-   tstep2  = UT.find_index(r.time, r3.time[tstep], 1.)
-   p_segm  = r.get('SPR-%s-%i'%(WELLNM,well_segments(case,WELLNM)[y_indx-1]))[tstep2]
-   dp_segm = r.get('SPRD-%s-%i'%(WELLNM,icd_segments(case,WELLNM)[y_indx-1]))[tstep2]
+   tstep2  = UT.find_index(s.time, r3.time[tstep], 1.)
+   p_segm  = s.get('SPR-%s-%i'%(WELLNM,well_segments(case,WELLNM)[y_indx-1]))[tstep2]
+   dp_segm = s.get('SPRD-%s-%i'%(WELLNM,icd_segments(case,WELLNM)[y_indx-1]))[tstep2]
    drawdown = pr - p_segm - dp_segm + (static[well_i-1,well_k-1]-static)
    return drawdown
 
@@ -1038,14 +1044,14 @@ def _drawdown(case, y_indices):
       plot(t, p_support, COLOURS[n]+'.-', label='press. supp. j= %i'%j)
       plot(t[1:], dpsand[1:], COLOURS[n]+'-*', label='dP sand j= %i'%j)  # skip first point which is 0 (only confusing)
       # valve drawdown
-      r = get_summary(case)
-      dp_valve = r.get_segm_data('SPRD', WELLNM, [_j2segm(case,j,True)])
-      plot(r.time, dp_valve, COLOURS[n]+'--', label='dP valve j= %i'%j)
+      s = get_summary(case)
+      dp_valve = s.get_segm_data('SPRD', WELLNM, [_j2segm(case,j,True)])
+      plot(s.time, dp_valve, COLOURS[n]+'--', label='dP valve j= %i'%j)
       # total drawdown
-      dp_tot = dp_valve + interp(r.time, t, dpsand)
-      plot(r.time, dp_tot, COLOURS[n]+'-.', label='dP tot j= %i'%j)
+      dp_tot = dp_valve + interp(s.time, t, dpsand)
+      plot(s.time, dp_tot, COLOURS[n]+'-.', label='dP tot j= %i'%j)
    # plot BHP as well
-   plot(r.time, r.get('WBHP-'+WELLNM), 'k.', label='BHP')
+   plot(s.time, s.get('WBHP-'+WELLNM), 'k.', label='BHP')
    xlabel('time [days]')
    ylabel('[bar]')
    grid(True)
@@ -1118,12 +1124,12 @@ def _dp_sand3(cases, y_indx, plot_kwargs=None):
       icd_segm  = _j2segm(case,y_indx,True)
       well_segm = _j2segm(case,y_indx,False)
       p = get_parameters(case)
-      r = get_summary(case)
-      p_support = r.get('BPR-%i,1,1' % p.nx)   # assumes this block is representative for the pressure support
-      dp_sand = p_support - r.get('SPR-%s-%i'%(WELLNM,well_segm)) - r.get('SPRD-%s-%i'%(WELLNM,icd_segm))
+      s = get_summary(case)
+      p_support = s.get('BPR-%i,1,1' % p.nx)   # assumes this block is representative for the pressure support
+      dp_sand = p_support - s.get('SPR-%s-%i'%(WELLNM,well_segm)) - s.get('SPRD-%s-%i'%(WELLNM,icd_segm))
       if plot_kwargs: kwargs = plot_kwargs(case, cases)
       else          : kwargs = {'color':(red[n], 0, 1-red[n])}
-      plot(r.time[1:], dp_sand[1:], label=case, **kwargs)  # skip first point which is 0 (only confusing)
+      plot(s.time[1:], dp_sand[1:], label=case, **kwargs)  # skip first point which is 0 (only confusing)
    xlabel('time [days]')
    ylabel('[bar]')
    grid(True)
@@ -1136,11 +1142,11 @@ def _dp_valve(case, y_indices):
    plots dp_valve for the given section
    '''
    figure()
-   r = get_summary(case+'.RSM')
+   s = get_summary(case+'.RSM')
    n = -1
    for j in y_indices:
       n += 1
-      plot(r.time, r.get_segm_data('SPRD', WELLNM, [_j2segm(case,j,True)]), COLOURS[n]+'-', label='j=%i'%j)
+      plot(s.time, s.get_segm_data('SPRD', WELLNM, [_j2segm(case,j,True)]), COLOURS[n]+'-', label='j=%i'%j)
    xlabel('time [days]')
    ylabel('[bar]')
    grid(True)
@@ -1156,10 +1162,10 @@ def _dp_valve2(y_indx, cases, plot_kwargs=None):
    n = -1
    for case in cases:
       n += 1
-      r = get_summary(case)
+      s = get_summary(case)
       if plot_kwargs: kwargs = plot_kwargs(case, cases)
       else          : kwargs = {'color':(red[n], 0, 1-red[n])}
-      plot(r.time, r.get_segm_data('SPRD', WELLNM, [_j2segm(case,y_indx,True)]), label=case, **kwargs)
+      plot(s.time, s.get_segm_data('SPRD', WELLNM, [_j2segm(case,y_indx,True)]), label=case, **kwargs)
    xlabel('time [days]')
    ylabel('[bar]')
    grid(True)
@@ -1278,9 +1284,9 @@ def _nvalves(cases):
 def _legend(cases):
    leg = []
    for case in cases:
-      r = get_summary(case)
+      s = get_summary(case)
       txt = ''
-      vpj = _valves_pr_joint(r.nm+'.DATA')
+      vpj = _valves_pr_joint(s.nm+'.DATA')
       txt += '%.1f vpj' % mean(vpj)
       if vpj[0] != vpj[-1]: txt += ' *' # non equi-spaced
       leg.append(txt)
@@ -1289,17 +1295,17 @@ def _legend(cases):
 def _accum_pr_section(varnm, cases, y_indices, use_icd_segm):
    figure()
    for case in cases:
-      r = get_summary(case)
-      segments = [_j2segm(r.nm, j, use_icd_segm) for j in y_indices]
+      s = get_summary(case)
+      segments = [_j2segm(s.nm, j, use_icd_segm) for j in y_indices]
       y = []
       t = []
       i = -1
-      for t0 in r.time:
+      for t0 in s.time:
          i += 1
          t.append(t0)
-         y.append(sum(r.get_segm_data(varnm, WELLNM, segments)[:, i]))
+         y.append(sum(s.get_segm_data(varnm, WELLNM, segments)[:, i]))
       Y = [trapz(y[:i], t[:i]) for i in arange(1,len(t))]
-      plot(t[1:], Y, label=r.nm)
+      plot(t[1:], Y, label=s.nm)
    xlabel('time [DAYS]')
    ylabel('SM3')
    title('%s on segments %s' % (varnm, segments))
@@ -1316,31 +1322,31 @@ def _accum_pr_part(varnm, cases, t_end, pr_segment=False, compl_nm_only=False):
    n = -1
    for case in cases:
       n += 1
-      r = get_summary(case)
-      p = get_parameters(r.nm)
+      s = get_summary(case)
+      p = get_parameters(s.nm)
       # indices are a mess...
       nsegm = p._nsegm                                     # for convinience
-      s1, s2 = [_j2segm(r.nm, p.channel_j1, True), _j2segm(r.nm, p.channel_j2, True)]
+      s1, s2 = [_j2segm(s.nm, p.channel_j1, True), _j2segm(s.nm, p.channel_j2, True)]
       segm_heel = arange(nsegm+2, s1)
       segm_chnl = arange(s1, s2+1)
       segm_toe  = arange(s2+1, 2*nsegm+1)
       y1 = []; y2 = []; y3 = []; t = []
       i = -1
-      for t_ in r.time:
+      for t_ in s.time:
          if t_ > t_end: break
          i += 1
          t.append(t_)
-         y1.append(sum(r.get_segm_data(varnm, WELLNM, segm_heel)[:, i]))
-         y2.append(sum(r.get_segm_data(varnm, WELLNM, segm_chnl)[:, i]))
-         y3.append(sum(r.get_segm_data(varnm, WELLNM, segm_toe) [:, i]))
+         y1.append(sum(s.get_segm_data(varnm, WELLNM, segm_heel)[:, i]))
+         y2.append(sum(s.get_segm_data(varnm, WELLNM, segm_chnl)[:, i]))
+         y3.append(sum(s.get_segm_data(varnm, WELLNM, segm_toe) [:, i]))
       if pr_segment: (n1, n2, n3) = (len(segm_heel), len(segm_chnl), len(segm_toe)) # num segm pr part
       else         : (n1, n2, n3) = (1., 1., 1.)
       m[n,0] = (trapz(y1, t)/n1)  # heel section
       m[n,1] = (trapz(y2, t)/n2)  # channel section
       m[n,2] = (trapz(y3, t)/n3)  # toe section
       col += 'kbrm'
-      if compl_nm_only: names.append(_compl_nm(UT.basename(r.nm)))
-      else:             names.append(UT.basename(r.nm))
+      if compl_nm_only: names.append(_compl_nm(UT.basename(s.nm)))
+      else:             names.append(UT.basename(s.nm))
    ind = arange(nfiles)
    p1 = bar(ind, m[:,0], color='y')
    p2 = bar(ind, m[:,1], color='r', bottom=m[:,0])
@@ -1377,13 +1383,13 @@ def _perturb(K, shift, scaler_lo, scaler_hi):
    return Knew
 
 def _add_timeseries(varnm, cases):
-   r0 = get_summary(cases.pop(0))
+   s0 = get_summary(cases.pop(0))
    ysum = 0
    for case in cases:
-      r = get_summary(case)
+      s = get_summary(case)
       varnm = _fix(r,varnm)
-      ysum += interp(r0.time, r.time, r.get(varnm))
-   return (r0.time, (ysum/len(cases) - r0.get(varnm))/r0.get(varnm)*100.)
+      ysum += interp(s0.time, s.time, s.get(varnm))
+   return (s0.time, (ysum/len(cases) - s0.get(varnm))/s0.get(varnm)*100.)
 
 def _read_relperm(swof_file):
    sfile = open(swof_file)
@@ -1460,7 +1466,7 @@ def _plot_box_profile(varnm, i1,i2, j1,j2, k1,k2, fnames, averaged):
       p = get_parameters(case)
       r3 = CM2.add(fname,nx=int(p.nx), ny=int(p.ny), nz=int(p.nz))
       y = []
-      t = [] # dont use r.time since some data is not for all timesteps
+      t = [] # dont use s.time since some data is not for all timesteps
       for tstep in range(len(r3.data[varnm])):
          y.append(_get_box_value(r3, varnm, tstep, i1,i2, j1,j2, k1,k2, averaged))
          t.append(r3.time[tstep])
@@ -1535,8 +1541,8 @@ def _pvi(case, swi=0.05):
    find PVI.
    '''
    porevol = (1. + swi)*_fluids_in_place(('%s.PRT'%case,), 'OIL', False)[1][0]
-   r = get_summary(case+'.RSM')
-   return r.get('FLPT') / porevol
+   s = get_summary(case+'.RSM')
+   return s.get('FLPT') / porevol
 
 def _effectivedp_vs_flow(cases, j1, j2, pres=237., skip=7):
    '''
@@ -1550,11 +1556,11 @@ def _effectivedp_vs_flow(cases, j1, j2, pres=237., skip=7):
    i = -1
    for case in cases:
       i += 1
-      r = get_summary(case)
-      dp1 = pres - r.get('SPR-%s-%i' % (WELLNM, _j2segm(case, j1)))
-      dp2 = pres - r.get('SPR-%s-%i' % (WELLNM, _j2segm(case, j2)))
-      q1  = r.get('SLFR-%s-%i'%(WELLNM, _j2segm(case, j1, True)))[skip:]
-      q2  = r.get('SLFR-%s-%i'%(WELLNM, _j2segm(case, j2, True)))[skip:]
+      s = get_summary(case)
+      dp1 = pres - s.get('SPR-%s-%i' % (WELLNM, _j2segm(case, j1)))
+      dp2 = pres - s.get('SPR-%s-%i' % (WELLNM, _j2segm(case, j2)))
+      q1  = s.get('SLFR-%s-%i'%(WELLNM, _j2segm(case, j1, True)))[skip:]
+      q2  = s.get('SLFR-%s-%i'%(WELLNM, _j2segm(case, j2, True)))[skip:]
       plot(q1, dp1[skip:], '%s*'%colors[i], label='%s j=%i'%(UT.basename(case), j1))
       plot(q2, dp2[skip:], '%so'%colors[i], label='%s j=%i'%(UT.basename(case), j2))
    grid(True)
@@ -1663,95 +1669,6 @@ def _fluidheight_contours(case, fluid, tsteps, hmin, hmax, rel_h):
    show()
    y_ = fh
 
-def tmp6(varnm):
-   global y_
-   ii =  range(1,65,2)
-   y = []
-   for i in ii:
-      #r0 = get_summary('C0%02i.DATA'%i)
-      #r1 = get_summary('C1%02i.DATA'%i)
-      r0 = get_summary('B0.DATA')
-      r1 = get_summary('C1%02i.DATA'%i)
-      y0 = r0.get(varnm)[-1]
-      y1 = r1.get(varnm)[-1]
-      #y.append((y1-y0)/y0 * 100)
-      y.append((y1-y0))
-   y_ = array(y)
-   figure()
-   plot(ii, y_, 'o')
-   grid(True)
-   ylabel('rel. change [%]')
-   title(varnm)
-   #legend(loc='best')
-   show()
-
-def tmp4(case, varnm, wellids, zmin, zmax):
-   '''
-   plots a number of contourplots for different wells - for one case
-   '''
-   global WELLNM
-   if not varnm.startswith('S'):
-      raise Exception('varnm should start with S')
-   r = get_summary(case)
-   for n in wellids:
-      WELLNM = 'P_D_%i' % n
-      _contours(varnm, [case], UI.accum, zmin, zmax)
-
-def tmp5(case, varnm):
-   '''
-   plots accumulation of each well - with the most productive at the bottom
-   '''
-   wellids = r_[2,3,6,1,5,7,8,4]
-   figure()
-   r = get_summary(case)
-   y = 0
-   for n in wellids:
-      wellnm = 'P_D_%i' % n
-      y += r.get(varnm+'-'+wellnm)
-      if not n == wellids[0]: lbl = '+ ' + wellnm
-      else                  : lbl = '  ' + wellnm
-      plot(r.time, y, label=lbl)
-   grid(True)
-   xlabel('TIME [days]')
-   ylabel(varnm)
-   legend(loc='best')
-   title(case)
-   show()
-
-def tmp3(case, varnm, wellids):
-   '''
-   plots a number of profiles for different wells - for one case
-   '''
-   if not varnm.startswith('W'):
-      raise Exception('varnm should start with W')
-   figure()
-   r = get_summary(case)
-   for n in wellids:
-      wellnm = 'P_D_%i' % n
-      plot(r.time, r.get(varnm+'-'+wellnm), label=wellnm)
-   grid(True)
-   xlabel('TIME [days]')
-   ylabel(varnm)
-   legend(loc='best')
-   title(case)
-   show()
-
-def tmp2(cases, varnm):
-   '''
-   plots sum of a given profile for many cases. (can't remember why i wanted that...)
-   '''
-   t = get_summary(cases[0]).get('TIME')
-   y = 0
-   for case in cases:
-      r = get_summary(case)
-      y += interp(t, r.time, r.get(varnm))
-   figure()
-   plot(t, y)
-   grid(True)
-   xlabel('TIME [days]')
-   ylabel(varnm)
-   show()
-
 def help(mode=None):
    '''
    prints some useful info about the analyze-function.
@@ -1810,12 +1727,12 @@ def _statistics(varnm, t0, plot_all, ref_value, descriptions, case_groups):
    for case_group in case_groups:
       y = []
       for case in case_group:
-         r = get_summary(case)
+         s = get_summary(case)
          if t0 < 0:
             ind = -1
          else:
-            ind = UT.find_index(r.time, t0, max(1., t0/10.))
-         y.append(r.get(varnm)[ind])
+            ind = UT.find_index(s.time, t0, max(1., t0/10.))
+         y.append(s.get(varnm)[ind])
       y  = array(y)
       if relative: y = (y-ref_value[i])/ref_value[i] * 100 # want percent
       m  = mean(y)
@@ -1832,7 +1749,7 @@ def _statistics(varnm, t0, plot_all, ref_value, descriptions, case_groups):
    if relative > 0:
       ylabel('rel. change in %s [%%]'%varnm)
    else:
-      ylabel('%s [%s]'%(varnm, r.unit(varnm)))
+      ylabel('%s [%s]'%(varnm, s.unit(varnm)))
    title(os.getcwd().split('/')[-1])
    xlim(-0.2, i-0.8)
    legend(('mean', 'stddev'), loc='best')
