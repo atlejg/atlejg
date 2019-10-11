@@ -3447,13 +3447,18 @@ class EclipseCoupling(object):
       if self.trn and not self.trn.closed: self.trn.close()
       UT.tcsh('cat %s.I0* >! %s.sched' % (self.casenm, self.casenm))     # cat all sched-files created into one file
 
-def write_history(dates, producers, injectors, sched_fnm, wctrls, wts, dateshift=timedelta(1)):
+def create_hm_schedule(dates, producers, injectors, sched_fnm, well_ctrl, wts, dateshift=timedelta(1)):
    '''
+   making a history matching schedule-file.
+   based on vegard kippe script made for the polymer project.
    all wells *must* have the same sampling. but they dont need to cover the same time-span.
-   wctrls   : dict with well controls - aka 'LRAT', 'OILR' etc. for now only implemented for producers: {'A-22':'ORAT'}
+   dates    : array of dates, as Datetime or Timestamp objects
+   producers: dict with producer wells. wells must be panda dataframe with fields like this: wopr, wwpr, wgpr, wbhp = w.loc[date]
+   injectors: dict with injection wells. wells must be panda dataframe with fields like this: wwir, wbhp, wconc = w.loc[date]
+   well_ctrl: function that return well-control (ORAT, GRAT, LRAT, BHP ...). f = f(wellnm, date) where date Datetime or Timestamp object. for producers only
    wts      : well tracers. must be list of dicts in chronoglogical order
               ex:{'wellnm':'A-11', 'nm':'WT0', 'date':datetime.datetime(2014,7,31),  'conc':41.8, 'tstep':0.5}
-   dateshift: typically, pandas resampling gives last day of month - we often want first day of month reporting in eclipse
+   dateshift: typically, pandas resampling gives last day of month - we often want first day of month reporting in eclipse. A timedelta object (or similair)
    '''
    RATE_EPS = 1.0e-6
    f = open(sched_fnm, 'w')
@@ -3499,7 +3504,7 @@ def write_history(dates, producers, injectors, sched_fnm, wctrls, wts, dateshift
          if write_keyw:
              print >>f, 'WCONHIST'
              write_keyw=False
-         print >>f, ' %s    OPEN    %s    %.1f   %.1f   %.1f   3*   %.1f   1*  /' % (wnm, wctrls[wnm], wopr, wwpr, wgpr, wbhp)
+         print >>f, ' %s    OPEN    %s    %.1f   %.1f   %.1f   3*   %.1f   1*  /' % (wnm, well_ctrl(wnm, date), wopr, wwpr, wgpr, wbhp)
       if not write_keyw: print >>f, '/\n'
       #
       ### INJECTORS
