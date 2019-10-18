@@ -94,6 +94,7 @@ def get_summary(case):
          ymd = _startdate(d)
          STARTDATES[smryfile] = ymd
    s.startdate = date2num(datetime(*ymd))
+   s.date = s.time + s.startdate             # very useful when using plot_date etc.
    return s
 
 def _fix(s, varnm):
@@ -526,7 +527,7 @@ def _connection_data_at_given_time(varnm, cases, t0, dx, plot_kwargs=None):
       elif len(cases) > len(COLOURS): kwargs = {'color':(red[n], 0, 1-red[n])}
       else                          : kwargs = {'color':COLOURS[n]}
       x = dx*arange(len(y_))
-      plot(x, y_, label=os.path.splitext(case)[0], **kwargs)
+      step(x, y_, label=os.path.splitext(case)[0], **kwargs)
       n += 1
    #
    legend(loc='best')
