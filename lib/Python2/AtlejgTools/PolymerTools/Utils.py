@@ -53,7 +53,35 @@ def get_bsw_wct(fnm, winsz=31, wc_func_only=True, date2num_func=date2num1):
    if wc_func_only: return wc_func
    else           : return wc_func, t, wc, wcf
 
+def visc_func_KE(ppm):
+   return 0.7*(4e-6*ppm**2 - 0.0029*ppm + 0.6)   # excel trendline from kjetil E spread-sheet. scaled to match measured viscosities.
 
+def visc_func_JFM(ppm):
+   return 2.6e-6*ppm**2 + 0.4    # found by using fit_viscosity_function.py
+
+def visc_func(ppm):
+   return 0.9*2.6e-6*ppm**2 + 0.4    # based on visc_func_JFM, scaled to better match measured viscosities
+
+def read_pilot_area_wells(db_file, include_mothersolution=True):
+   '''
+   skid: mother solution is often not available! but it is small, so we can ignore it
+   '''
+   h5  = h5py.File(db_file)
+   # A11 stuff
+   #    pressure
+   tp = h5['A-11']['WBHP'][:,0]         # time - pressure series
+   p  = h5['A-11']['WBHP'][:,1]
+   #
+   #    clamp-on rate
+   tqc = h5['A-11']['WWIRHR'][:,0]       # time - inj-rate series
+   qc  = h5['A-11']['WWIRHR'][:,1] * 24  # m3/h -> m3/d
+   #
+   #    skid: inversion water flow
+   tqi = h5['A-11']['WWIRI'][:,0]       # time - inj-rate series
+   qi  = h5['A-11']['WWIRI'][:,1] * 24  # m3/h -> m3/d
+   #
+   #    skid: dilution water flow
+   tqd = h5['A-11']['WWIRD'][:,0]       # time - inj-rate series
 def read_pilot_area_wells(db_file, include_mothersolution=True):
    '''
    skid: mother solution is often not available! but it is small, so we can ignore it
@@ -124,14 +152,10 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
    # create WellData object
    a11 = WellData.WellData('A11', welltype='inj', t=t, qw=qw, p=p, dt=dt)
    # add some properties
-   #    viscosity
-   ppm                          = PPM_M * qm / qw
-   ppm[pl.find(ppm>PPM_M/60.)]  = 0.
-   ppm[pl.find(ppm<0.)]         = 0.
-   ppm[pl.find(qw<200.)]        = 0.
-   visc                         = 4e-6*ppm**2 - 0.0029*ppm + 2.4097   # excel trendline from kjetil E spread-sheet 
-   visc[pl.find(visc<0)]        = pl.NaN
-   visc[pl.find(visc>MAX_VISC)] = pl.NaN
+   ppm[ppm>PPM_M/60.]  = 0.
+   ppm[ppm<0.]         = 0.
+   visc[visc<0]        = pl.NaN
+   visc[visc>MAX_VISC] = pl.NaN
    #    other useful stuff
    a11.ppm  = ppm
    a11.visc = visc 
