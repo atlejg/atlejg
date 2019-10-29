@@ -4,7 +4,7 @@ atle j. gyllensten
 agy@statoil.com
 '''
 
-import sys, tempfile, os, pdb, cPickle, re, time
+import sys, tempfile, os, pdb, pickle, re, time
 import pylab as pl
 import numpy
 import AtlejgTools.LogTools
@@ -34,7 +34,7 @@ def _read_lines(f, line):
    vals = []
    for lineno in range(nlines):
       line = f.readline()
-      vals.extend(map(float, line.split()))
+      vals.extend(list(map(float, line.split())))
    return vals
 
 def read_frft_file(fname, varnm, t_start=-pl.Inf, t_end=pl.Inf, dotranspose=True):
@@ -105,7 +105,7 @@ def read_rft_file_old(varnm, ef, rftfile=None, nwells=1, segments=None):
    # make a list - one matrix for each well
    l = []
    for i in range(nwells):
-      indx = range(i,n_tsteps*nwells, nwells)
+      indx = list(range(i,n_tsteps*nwells, nwells))
       l.append(m[indx,:])
    return l
 
@@ -204,12 +204,12 @@ class RFT_data():
       well: self.sel_well is used if not given
       '''
       if not varnm in self.varnames():
-         print "no such variable: ", varnm
+         print("no such variable: ", varnm)
          return None
       if well is None: well = self.sel_well
       wellid = self._wellid(well)  # convinent
       nm = '%s:%s' % (well, varnm)
-      if not self._data.has_key(nm):
+      if nm not in self._data:
          self._data[nm] = read_rft_file(varnm, self._ef, nwells=self.nwells)[wellid]
       m = self._data[nm]           # matrix with data
       l = ['CONORAT', 'SEGGRAT', 'CONWRAT', 'SEGORAT', 'CONGRAT', 'SEGWRAT', 'CONPRES',
@@ -257,7 +257,7 @@ class RFT_data():
       return self.get('CONLENEN', well)[0] - self.get('CONLENST', well)[0]
 #
    def varnames(self):
-      return self._ef.keys()
+      return list(self._ef.keys())
 #
    def xplot(self, varnm1, varnm2, tsteps=None, well=None, linestyle='-', marker=None):
       '''
@@ -354,7 +354,7 @@ class TimeSeries() :
             if '%s-'%SEPARATOR in varnm: continue   # avoid negative segments
             wname, segm = varnm.split(SEPARATOR)[1:]
             segm = int(segm)
-            if not self._segms.has_key(wname): self._segms[wname] = []
+            if wname not in self._segms: self._segms[wname] = []
             if segm <= 1: continue  # should not be included. starting at 2.
             if not segm in self._segms[wname]: self._segms[wname].append(segm)
       # for convinience
@@ -363,7 +363,7 @@ class TimeSeries() :
       else:
          self.time = self._data[:,self._map['TIME'][0]]
       self.wells.sort()
-      for wname in self._segms.keys():
+      for wname in list(self._segms.keys()):
          self._segms[wname].sort()
          # assume well-segments are the first half - then icd-segments
          nsegms = len(self._segms[wname])
@@ -380,7 +380,7 @@ class TimeSeries() :
       return pl.array(self._well_segms[wellnm])
 #
    def unit(self, varnm) :
-      if   varnm in self._map.keys(): return self._map[varnm][1]
+      if   varnm in list(self._map.keys()): return self._map[varnm][1]
       elif varnm in ('TIME', 'DAYS'): return 'days'
       else                          : return '-'
 #
@@ -396,10 +396,10 @@ class TimeSeries() :
       elif 'SFFR' in varnm:           # total flow production for well segments (not available in Eclipse)
          postfix = varnm.split('SFFR')[1] # f.ex. SLFR-Q21-17 -> -Q21-17
          y = self._data[:,self._map['SOFR'+postfix][0]].copy()*Bo # gonna do +=, so need a copy()
-         if self._map.has_key('SGFR'+postfix):
+         if 'SGFR'+postfix in self._map:
             free_gas = self._data[:,self._map['SGFR'+postfix][0]] -y*Rs
             y += free_gas*Bg
-         if self._map.has_key('SWFR'+postfix):
+         if 'SWFR'+postfix in self._map:
             y += self._data[:,self._map['SWFR'+postfix][0]]*Bw
          self._map['SFFR'+postfix] = self._map['SOFR'+postfix]
       elif varnm.startswith('FSN'): # sigurds number: cumulative oil / cumulative water or gas
@@ -419,13 +419,13 @@ class TimeSeries() :
       '''
       Get list of variable names
       '''
-      return self._map.keys()
+      return list(self._map.keys())
 #
    def has_varname(self, varnm):
       '''
       Get list of variable names
       '''
-      return self._map.has_key(varnm)
+      return varnm in self._map
 #
    def cross_plot(self, varnm1, varnm2, newfig=False, do_clf=False, scaler1=1., scaler2=1., marker=None):
       '''
@@ -455,7 +455,7 @@ class TimeSeries() :
          m = pl.vstack((m, self.get(var, scaler=scaler)))
       fname = self.nm+'.txt'
       pl.savetxt(fname, m.T)
-      print 'saved data to file %s' % fname
+      print('saved data to file %s' % fname)
 #
    def get_segm_data(self, varnm, wellnm, segments, scaler=1.,Bo=1., Bg=1., Bw=1., Rs=1., tsteps=None):
       d = None
@@ -540,11 +540,11 @@ class SummaryVectors() :
       self.separator   = separator
       self._sum        = ecl.EclSum(nm)
       self._datadeck   = None
-      if 'TIME' in self._sum.keys():
+      if 'TIME' in list(self._sum.keys()):
          self.time = self._sum.numpy_vector('TIME')
       else:
          self.time = self._sum.numpy_vector('YEARS')*365.25
-      for varnm in self._sum.keys():
+      for varnm in list(self._sum.keys()):
          if varnm.startswith('W'):
             wname = varnm.split(separator)[1]
             if not wname in self.wells: self.wells.append(wname)
@@ -553,16 +553,16 @@ class SummaryVectors() :
             if '%s-'%separator in varnm: continue   # avoid negative segments
             wname, segm = varnm.split(separator)[1:]
             segm = int(segm)
-            if not self._segms.has_key(wname): self._segms[wname] = []
+            if wname not in self._segms: self._segms[wname] = []
             if segm <= 1: continue  # should not be included. starting at 2.
             if not segm in self._segms[wname]: self._segms[wname].append(segm)
       # for convinience
-      if not 'TIME' in self._sum.keys():
+      if not 'TIME' in list(self._sum.keys()):
          self.time = self._sum.numpy_vector('YEARS') * 365.25
       else:
          self.time = self._sum.numpy_vector('TIME')
       self.wells.sort()
-      for wname in self._segms.keys():
+      for wname in list(self._segms.keys()):
          self._segms[wname].sort()
          # assume well-segments are the first half - then icd-segments
          nsegms = len(self._segms[wname])
@@ -583,7 +583,7 @@ class SummaryVectors() :
       return pl.array(self._well_segms[wellnm])
 #
    def unit(self, varnm) :
-      if varnm in self._sum.keys(): return self._sum.unit(varnm)
+      if varnm in list(self._sum.keys()): return self._sum.unit(varnm)
       else                        : return '-'
 #
    def get(self, varnm, cumul=False, scaler=1., Bo=1, Bg=1, Bw=1, Rs=1) :
@@ -597,10 +597,10 @@ class SummaryVectors() :
       elif 'SFFR' in varnm:           # total flow production for well segments (not available in Eclipse)
          postfix = varnm.split('SFFR')[1] # f.ex. SLFR:Q21:17 -> -Q21:17
          y = self._sum.numpy_vector('SOFR'+postfix).copy()*Bo # gonna do +=, so need a copy()
-         if self._sum.has_key('SGFR'+postfix):
+         if 'SGFR'+postfix in self._sum:
             free_gas = self._sum.numpy_vector('SGFR'+postfix) -y*Rs
             y += free_gas*Bg
-         if self._sum.has_key('SWFR'+postfix):
+         if 'SWFR'+postfix in self._sum:
             y += self._sum.numpy_vector('SWFR'+postfix)*Bw
       elif varnm.startswith('FSN'): # sigurds number: cumulative oil / cumulative water or gas
          if varnm.endswith('W'):
@@ -624,7 +624,7 @@ class SummaryVectors() :
       '''
       Check if vector is available
       '''
-      return self._sum.has_key(varnm)
+      return varnm in self._sum
 #
    def cross_plot(self, varnm1, varnm2, newfig=True, do_clf=False, scaler1=1., scaler2=1., marker=None):
       '''
@@ -654,7 +654,7 @@ class SummaryVectors() :
          m = pl.vstack((m, self.get(var, scaler=scaler)))
       fname = self.shortnm+'.txt'
       pl.savetxt(fname, m.T)
-      print 'saved data to file %s' % fname
+      print('saved data to file %s' % fname)
 #
    def get_segm_data(self, varnm, wellnm, segments, scaler=1.,Bo=1., Bg=1., Bw=1., Rs=1., tsteps=None):
       d = None
@@ -710,7 +710,7 @@ class SummaryVectors() :
       if accum:
          for i in range(len(blocks)):
             z[i,:] = UT.cumulative(self.time, z[i,:])
-      ax =  PU.contourf(range(len(blocks)), self.time, z.T, zmin=zmin, zmax=zmax)
+      ax =  PU.contourf(list(range(len(blocks))), self.time, z.T, zmin=zmin, zmax=zmax)
       titl = '%s - %s' % (self.shortnm, varnm)
       if accum: titl += ' (accum.)'
       pl.matplotlib.artist.setp(ax, title=titl, ylabel='TIME [days]', xlabel='block # [-]')
@@ -814,7 +814,7 @@ def read_summary(sumryfile):
    units    = []
    data = None
    sum = ecl.EclSum(casenm)
-   for varnm in sum.keys():
+   for varnm in list(sum.keys()):
       y = sum.numpy_vector(varnm)
       if data is None: data = y
       else           : data = pl.vstack((data, y))
@@ -975,7 +975,7 @@ def _read_3D_data_old(casenm, nx, ny, nz, file_ext):
    (and twice as fast as the new for a unformatted file...)
    '''
    fname = casenm+'.'+file_ext
-   print 'reading', fname
+   print('reading', fname)
    f = open(fname)
    alldata  = {}
    ncells = nx*ny*nz
@@ -987,7 +987,7 @@ def _read_3D_data_old(casenm, nx, ny, nz, file_ext):
       if searchstr in line:
          varname = line.split()[0].replace("'","")
          data = pl.zeros((nx,ny,nz))
-         if not alldata.has_key(varname): alldata[varname] = []
+         if varname not in alldata: alldata[varname] = []
          alldata[varname].append(data)
          readthis = True
          continue
@@ -1013,7 +1013,7 @@ class Three_D_Data():
    def __init__(self, casenm, nx, ny, nz, file_ext='UNRST'):
       self.casenm = casenm
       d = _read_3D_data(casenm, nx, ny, nz, file_ext=file_ext)
-      self.varnames   = d.keys()
+      self.varnames   = list(d.keys())
       self.data       = d
       self.dates      = d['dates']
       self.ntimesteps = len(self.dates)
@@ -1029,13 +1029,13 @@ class Three_D_Data():
 #
    def dump(self):
       f = open(self.casenm+'.pck', 'w')
-      cPickle.dump(self, f)
+      pickle.dump(self, f)
       f.close()
 #
    @staticmethod
    def load(casenm):
       f = open(casenm+'.pck')
-      d = cPickle.load(f)
+      d = pickle.load(f)
       f.close()
       return d
 #
@@ -1161,7 +1161,7 @@ class InflowData() :
 #
    def dump(self):
       f = open(self.casenm+'.pck', 'w')
-      cPickle.dump(self, f)
+      pickle.dump(self, f)
       f.close()
 #
    def write_asciifile(self, all_vars=False):
@@ -1170,13 +1170,13 @@ class InflowData() :
       f.write('#  time density viscosity flowrate dp\n')
       for n in len(self.t):
          f.write('%.1f %.2f %.2f %.1f %.2f\n' % (self.t[n], self.rho[n], self.mu[n], self.q[n], self.dp[n]))
-      print '\n'
+      print('\n')
       f.close()
 #
    @staticmethod
    def load(casenm):
       f = open(casenm+'.pck')
-      infl = cPickle.load(f)
+      infl = pickle.load(f)
       f.close()
       return infl
 #
@@ -1199,7 +1199,7 @@ class InflowData() :
       pl.show()
 #
    def varnames(self):
-      return filter(lambda nm: not nm.startswith('_'), self.__dict__.keys())
+      return [nm for nm in list(self.__dict__.keys()) if not nm.startswith('_')]
 
 def peaceman_radius(dy, dz, Ky, Kz):
    return 0.28 * pl.sqrt(dz**2*pl.sqrt(Ky/Kz) + dy**2*pl.sqrt(Kz/Ky)) / ((Ky/Kz)**.25 + (Kz/Ky)**.25)
@@ -1248,7 +1248,7 @@ def lsf_run(datafiles, nCPUs=1, version='2012.2', queue='normal', interconn_type
       if nCPUs > 1: opt = '-lsfhtype any -%s -procs %i' % (interconn_type, nCPUs)
       else        : opt = ''
       cmd =  '/prog/ecl/grid/macros/@eclipse -lsf -ver %s -lsfqueue %s %s -local -data `pwd` -file %s' % (version, queue, opt, base)
-      print cmd
+      print(cmd)
       if sleeptime: time.sleep(sleeptime)
       os.system(cmd)
 
@@ -1264,7 +1264,7 @@ def lsf_run2(datafiles, version='2012.2', max_running=0, lsf=True):
    for datafile in datafiles:
       if not datafile.startswith(DELIM): datafile = '%s/%s' % (os.getcwd(), datafile) # must have full path
       que.submit(datafile)
-      print datafile
+      print(datafile)
    que.block_waiting()    # que is running in separate thread. must make sure all jobs are started (i think ...)
 
 def lsf_run3(datafiles, version=None):
@@ -1273,7 +1273,7 @@ def lsf_run3(datafiles, version=None):
    cmd = 'run_eclipse '
    if version: cmd += '-v %s ' % version
    cmd += ' '.join(datafiles) + ' &'
-   print cmd
+   print(cmd)
    UT.tcsh(cmd)
 
 def lcl_run(datafile, version='2016.1'):
@@ -1380,7 +1380,7 @@ def analyze_run(logfiles, messagetype='PROBLEM', newfig=True, use_basename=True,
       else           : lbl = logfile
       plotfnc(t, cumcnt, label=lbl, **kwargs)
       f.close()
-      print logfile, cumcnt[-1]
+      print(logfile, cumcnt[-1])
    pl.xlabel('time [days]')
    pl.ylabel('# %s accumulated' % messagetype)
    pl.legend(loc='best')
@@ -1497,7 +1497,7 @@ SWOF
       f.write(' %.3f %.3f %.3f *\n' % (s,kw,ko))
    f.write('/\n')
    f.close()
-   print 'file %s created' % fname
+   print('file %s created' % fname)
    return Sw, Krwn, Kron
 
 def read_property(fname, prop, ncols=4):
@@ -1634,7 +1634,7 @@ def write_property(m, prop, fname, fmt):
             file.write(fmtstr % (m[i,j,k],i+1,i+1,j+1,j+1,k+1,k+1))
    file.write("/\n")
    file.close()
-   print fname, 'was written'
+   print(fname, 'was written')
 
 def write_property2(m, prop, fname, fmt, ncols=6):
    '''
@@ -1655,7 +1655,7 @@ def write_property2(m, prop, fname, fmt, ncols=6):
                colno = 0
    file.write("/\n")
    file.close()
-   print fname, 'was written'
+   print(fname, 'was written')
 
 def _read_relperm(swof_file):
    sfile = open(swof_file)
@@ -1740,7 +1740,7 @@ VFPPROD
  %s / wct
  0. /                        gfr
  0. /                        alq
-''' % (q_func.func_name, wc_func.func_name, table_number, ref_depth, q_, wc_)
+''' % (q_func.__name__, wc_func.__name__, table_number, ref_depth, q_, wc_)
    c = (dp_max-shift)/(q_func(q[-1])*wc_func(wc[-1]))
    dp = pl.zeros((len(wc), len(q)))
    for i in range(len(wc)):
@@ -1778,7 +1778,7 @@ VFPPROD
  %s / wct
  %s / gfr
  0. / alq
-''' % (q_func.func_name, wc_func.func_name, table_number, ref_depth, q_, thp, wc_, gfr_)
+''' % (q_func.__name__, wc_func.__name__, table_number, ref_depth, q_, thp, wc_, gfr_)
    dp = pl.zeros((len(wc), len(gfr), len(q)))
    for i in range(len(wc)):
       for j in range(len(gfr)):
@@ -1866,7 +1866,7 @@ VFPPROD
  %s / wct
  %s / gor
  0. / alq
-''' % (s.vps, s.dp_f.func_name, s.table_number, s.ref_depth, q_, thp_, wct_, gor_)
+''' % (s.vps, s.dp_f.__name__, s.table_number, s.ref_depth, q_, thp_, wct_, gor_)
    for i in range(len(s.p_res)):
       p = s.p_res[i]
       for j in range(len(s.wct)):
@@ -1936,7 +1936,7 @@ VFPPROD
  %s / wct
  0. /                        gfr
  0. /                        alq
-''' % (q_func.func_name, wc_func.func_name, table_number, ref_depth, q_, thp, wc_)
+''' % (q_func.__name__, wc_func.__name__, table_number, ref_depth, q_, thp, wc_)
    dp = pl.zeros((len(wc), len(q)))
    # for clarity...
    dq_max = q[-1] - q[-1]/wc_func(0)  # difference between oil and water @ dpo_max
@@ -1989,7 +1989,7 @@ VFPPROD
  0  /                        wct
  %s /                        gor
  0. /                        alq
-''' % (q_func.func_name, gvf_func.func_name, table_number, ref_depth, q_, thp, glr_)
+''' % (q_func.__name__, gvf_func.__name__, table_number, ref_depth, q_, thp, glr_)
    dp = pl.zeros((len(gvf), len(q)))
    # for clarity...
    dq_max = abs(q[-1] - q[-1]/gvf_func(0))  # difference between oil and gas @ dpo_max
@@ -2039,7 +2039,7 @@ WSEGAICD
       f = open(fname, 'w')
       f.write(txt)
       f.close()
-      print 'created file', fname
+      print('created file', fname)
    return txt
 
 def read_trajectory(casenm, fname, is_ijk):
@@ -2060,16 +2060,16 @@ def read_trajectory(casenm, fname, is_ijk):
 def _writeProd(traj, wname):
    well_definition = "%s.tmp.eclpost" % (wname)
    f = open(well_definition, 'w')
-   print >>f, "----------------------------------------"
-   print >>f, "WELL %s /" % (wname)
-   print >>f, "----------------------------------------"    
-   print >>f, "WELSPECS  COMPDAT WELSEGS"
-   print >>f, "OIL"
-   print >>f, "RWE 0.108 /"
-   print >>f, "WELLXYZ"
+   print("----------------------------------------", file=f)
+   print("WELL %s /" % (wname), file=f)
+   print("----------------------------------------", file=f)    
+   print("WELSPECS  COMPDAT WELSEGS", file=f)
+   print("OIL", file=f)
+   print("RWE 0.108 /", file=f)
+   print("WELLXYZ", file=f)
    for p in traj:
-      print >>f, "  %.1f   %.1f   %.1f" % (p[0],p[1],p[2])
-   print >>f, "/"
+      print("  %.1f   %.1f   %.1f" % (p[0],p[1],p[2]), file=f)
+   print("/", file=f)
    f.close()
    return well_definition
 
@@ -2090,13 +2090,13 @@ def create_well_schedule(casenm, traj_fname, wname, is_ijk=True, diam=0.1, rough
    output_fn = '%s.SCH' % wname
    tmp_fn = "tmpXX.eclpost"
    f = open(tmp_fn, 'w')
-   print >>f, "PROCESS INIT DATA"
-   print >>f, "DEFINE WELL CONNECTION DATA"
-   print >>f, "Global"
-   print >>f, well_definition
-   print >>f, casenm
-   print >>f, output_fn
-   print >>f, transf_by_mapaxes
+   print("PROCESS INIT DATA", file=f)
+   print("DEFINE WELL CONNECTION DATA", file=f)
+   print("Global", file=f)
+   print(well_definition, file=f)
+   print(casenm, file=f)
+   print(output_fn, file=f)
+   print(transf_by_mapaxes, file=f)
    f.close()
    cmd = "eclpost %s" % (tmp_fn)
    os.system(cmd)
@@ -2104,7 +2104,7 @@ def create_well_schedule(casenm, traj_fname, wname, is_ijk=True, diam=0.1, rough
    os.system(cmd)
    cmd = 'sed -i s/ROUGH/%f/ %s' % (roughness, output_fn)
    os.system(cmd)
-   print 'schedule section for well', wname, 'written to file', output_fn
+   print('schedule section for well', wname, 'written to file', output_fn)
 
 def get_dimensions(datafile):
    f = open(datafile)
@@ -2233,7 +2233,7 @@ def wsegvalv(l_segms, r, vpj=1, Cv=0.6):
 
 def convert_egrid(casenm):
    inpfile = '/tmp/inp.txt'
-   print inpfile, 'created'
+   print(inpfile, 'created')
    f = open(inpfile, 'w')
    s = '''
 U
@@ -2246,7 +2246,7 @@ N
    f.write(s)
    f.close()
    cmd = '@convert < %s' % inpfile
-   print cmd
+   print(cmd)
    os.system(cmd)
 
 def utm_coordinates(fegrid):
@@ -2335,13 +2335,13 @@ class SimpleSectorModel(object):
          time.sleep(1)
       while(True):
          if UT.grep_column(logfile, 'Program finished ok',1,is_float=False): break # floviz is done
-         print 'waiting for FloViz to finsh...'
+         print('waiting for FloViz to finsh...')
          time.sleep(1)
       # kill floviz. p.terminate() does not work since @floviz forks another process
       ps = [p for p in psutil.process_iter() if len(p.cmdline())>1 and 'floviz' in p.cmdline()[0]]
       for proc in ps:
          if len(proc.cmdline()) == 4 and proc.cmdline()[3] == self.cmdfile:
-            print 'killing floviz'
+            print('killing floviz')
             os.kill(proc.pid, signal.SIGKILL)
             break
 #
@@ -2406,7 +2406,7 @@ class SimpleSectorModel(object):
       os.rename('%s/%s'%(sectornm,datafile2), '%s/%s.DATA'%(sectornm,UT.basename(datafile)))
       #
       # for QC
-      print sectornm, 'has been created'
+      print(sectornm, 'has been created')
       cmd = 'find %s' % sectornm
       os.system(cmd)
       if cleanup:
@@ -2473,9 +2473,9 @@ class SimpleSectorModel(object):
             files.reg = fname
          kwstr = ''.join(["&\n          '%s'    " % x for x in kws])
          f.write(templ % (fname, kwstr, rstep))
-         print fname, 'will be created'
+         print(fname, 'will be created')
       f.close()
-      print cmdfile, 'has been created'
+      print(cmdfile, 'has been created')
       self.cmdfile = cmdfile
       self.files   = files
 #
@@ -2645,7 +2645,7 @@ def write_decimated_grid(coord, zcorn, box, fname, mapaxes=None, ncols=6):
                colno = 0
    f.write("\n/\n")
    f.close()
-   print fname, 'was written'
+   print(fname, 'was written')
 
 
 def shift_schedule_section(datafile, box, fname=None, sched_only=True, remove_after_delim=True):
@@ -2668,7 +2668,7 @@ def shift_schedule_section(datafile, box, fname=None, sched_only=True, remove_af
       else               : continue
    #
    # in SCHEDULE => keep everything except WELSPECS, COMPDAT, and COMPSEGS
-   all_kws = [x.split('-')[0] for x in dd._chunks.keys()]
+   all_kws = [x.split('-')[0] for x in list(dd._chunks.keys())]
    well_kws = ('WELSPECS', 'COMPDAT', 'COMPSEGS')
    s3 = ''
    while True:
@@ -2733,7 +2733,7 @@ def shift_schedule_section(datafile, box, fname=None, sched_only=True, remove_af
       f = open(fname, 'w')
       f.write(s)
       f.close()
-      print fname, 'created'
+      print(fname, 'created')
    #stop
    return s
 
@@ -2760,7 +2760,7 @@ def rewrite_datafile(sections, box, datafile, datafile2=None):
             continue
          if kw in SECTIONS:
             skiprest = False
-            if kw in sections.keys():
+            if kw in list(sections.keys()):
                s += '%s\n\n%s' % (kw, sections[kw])
                skiprest = True
                continue
@@ -2768,7 +2768,7 @@ def rewrite_datafile(sections, box, datafile, datafile2=None):
          s += line
       f.close()
       if datafile2:
-         print 'creating', datafile2
+         print('creating', datafile2)
          f = open(datafile2, 'w')
          f.write(s)
          f.close()
@@ -3140,7 +3140,7 @@ _SCHEDULE_
    f = open(fname, 'w')
    f.write(newstr)
    f.close()
-   print f.name, 'is created'
+   print(f.name, 'is created')
 
 def create_qc_datafile(rho, mu, qs, gvfs, wcts, vfppdims, vfpprod, wsegaicd=None, fname='TT.DATA', ntsteps=12, dt=7.):
    '''
@@ -3224,7 +3224,7 @@ def actions_for_onoff_valves(wellnm, segm_var, lim, sched_file, fname=None):
    dd = DataDeck.DataDeck(sched_file)
    compdats = [x for x in dd.get_raw_data('COMPDAT') if x[0]==wellnm]
    n_segm = len(compdats)
-   segments = range(n_segm+2, 2*n_segm+2)
+   segments = list(range(n_segm+2, 2*n_segm+2))
    s = '-- MUST HAVE ACTDIMS  %i /\n/' % (2*n_segm)
    for n,segment in enumerate(segments):
       compdat2 = ' '.join(compdats[n])
@@ -3248,7 +3248,7 @@ ENDACTIO\n''' % (segment, wellnm, segment, segm_var, lim, compdat2)
       f = open(fname, 'w')
       f.write(s)
       f.close()
-      print fname, 'created'
+      print(fname, 'created')
       return
    return s
 
@@ -3265,7 +3265,7 @@ def plot_openvalves(pattern, indx1, indx2):
    pl.figure()
    for i,printfile in enumerate(printfiles):
       if not printfile.endswith('.PRT'):
-         print printfile, 'is not a print-file. skipped'
+         print(printfile, 'is not a print-file. skipped')
          return
       f = open(printfile)         # print-file
       status = {}
@@ -3385,18 +3385,18 @@ class EclipseCoupling(object):
       if self.trn:
          msg = 'created file %s' % fnm
          if txt: msg += ' (with text)'
-         print >>self.trn, msg
+         print(msg, file=self.trn)
 #
    def _wait_for_reportstep(self, tstep_no):
       '''
       make sure eclipse has simulated the given time-step
       '''
       sumfile = '%s.S%04i' % (self.casenm, tstep_no)
-      if self.trn: print >>self.trn, 'waiting for', sumfile
+      if self.trn: print('waiting for', sumfile, file=self.trn)
       while not os.path.exists(sumfile):
          time.sleep(self.sleeptm1)
       time.sleep(self.sleeptm2)  # make sure eclipse is done...
-      if self.trn: print >>self.trn, 'found', sumfile
+      if self.trn: print('found', sumfile, file=self.trn)
 #
    def _notify_eclipse(self):
       '''
@@ -3414,8 +3414,8 @@ class EclipseCoupling(object):
       TODO??: To make sure eclipse is done with its part, we could check simulation time from the report-file, or (as suggested
               by Juan), test if <casenm>.X* file has been created
       '''
-      if not run_mode in ('local', 'cluster'): print 'Time to start eclipse-case'
-      print '## main loop'
+      if not run_mode in ('local', 'cluster'): print('Time to start eclipse-case')
+      print('## main loop')
       while True:
          self._write_schedule_for_readdata('')                                  # empty schedule-file so eclipse will wait for new instructions
          if run_mode == 'local':
@@ -3428,16 +3428,16 @@ class EclipseCoupling(object):
          run_mode = ''                                                          # startup of simulation must only be done once
          self._wait_for_reportstep(self.tstep_no)                               # make sure eclipse has finished its time-step
          tstep = self.simstate.next_tstep(self.tstep_no, self.trn)
-         if self.trn: print >>self.trn, 'tstep=', tstep
+         if self.trn: print('tstep=', tstep, file=self.trn)
          if tstep:
             self._write_schedule_for_readdata(self.simstate.new_schedule(tstep, self.trn), tstep) # new schedule part to eclipse
          else:
             self._write_schedule_for_readdata('RPTONLY')                        # dummy schedule part to eclipse
          self._notify_eclipse()                                                 # give control back to eclipse
-         print ' # main loop', self.tstep_no, tstep
+         print(' # main loop', self.tstep_no, tstep)
          self.tstep_no += 1
          if not tstep: break
-      print 'DONE'
+      print('DONE')
 #
    def unify_results(self):
       unify_results(self.casenm, 'results', 1, self.tstep_no-1)  # -1 since last command in loop is a dummy
@@ -3447,7 +3447,7 @@ class EclipseCoupling(object):
       if self.trn and not self.trn.closed: self.trn.close()
       UT.tcsh('cat %s.I0* >! %s.sched' % (self.casenm, self.casenm))     # cat all sched-files created into one file
 
-def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, mode='hist', dateshift=timedelta(1), datefirst=False):
+def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, mode='hist', dateshift=timedelta(1)):
    '''
    creates a simple schedule for running the simulation, based on values found in producers and injectors dicts.
    all wells *must* have the same sampling. but they dont need to cover the same time-span.
@@ -3464,7 +3464,7 @@ def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, 
    f = open(sched_fnm, 'w')
    has_opened = {}
    wts = wts[:]   # need a copy since we will delete items
-   for wnm in producers.keys()+injectors.keys(): has_opened[wnm]=False 
+   for wnm in list(producers.keys())+list(injectors.keys()): has_opened[wnm]=False 
    # first: remove those tracers that are not in given time-span
    for wt in wts[:]:  # careful not to edit looping list..
       if not dates[0] <= wt['date'] <= dates[-1]: wts.remove(wt)
@@ -3480,13 +3480,14 @@ def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, 
          wt = wts[0]
          if date >= wt['date']:
             if i > 0 and wt['date'] > dates[i-1]+dateshift:
-               print >>f, 'DATES\n %s /\n /\n' % wt['date'].strftime("%d '%b' %Y").upper()
-            print >>f, 'WTRACER\n %s %s  %.2f /\n /\nTSTEP\n %.2f /\n/\nWTRACER\n %s %s  0. /\n/\n' % \
-                 (wt['wellnm'], wt['nm'], wt['conc'], wt['tstep'], wt['wellnm'], wt['nm'])
+               print('DATES\n %s /\n /\n' % wt['date'].strftime("%d '%b' %Y").upper(), file=f)
+            print('WTRACER\n %s %s  %.2f /\n /\nTSTEP\n %.2f /\n/\nWTRACER\n %s %s  0. /\n/\n' % \
+                 (wt['wellnm'], wt['nm'], wt['conc'], wt['tstep'], wt['wellnm'], wt['nm']), file=f)
             wts.remove(wt)
       #
       # new date
-      if datefirst: print >>f, 'DATES\n %s /\n/\n' % ecl_date.strftime("%d '%b' %Y").upper()
+      print('DATES\n %s /\n/\n' % ecl_date.strftime("%d '%b' %Y").upper(), file=f)
+      #
       ### PRODUCERS        
       #
       #   WCONHIST/WCONPROD
@@ -3497,7 +3498,7 @@ def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, 
          keyw = 'WCONPROD'
          templ = ' %s    OPEN    %s    %.1f   %.1f   %s   2*   %.1f   /'
       write_keyw = True
-      for wnm,w in producers.items():
+      for wnm,w in list(producers.items()):
          if not date in w.index: continue
          wopr, wwpr, wgpr, wbhp = w.loc[date]
          if wopr < 0. or wwpr < 0. or wgpr < 0. or wbhp < 0.:         # skip negative values
@@ -3509,10 +3510,10 @@ def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, 
              continue
          has_opened[wnm] = True
          if write_keyw:
-             print >>f, keyw
+             print(keyw, file=f)
              write_keyw=False
-         print >>f, templ % (wnm, wctrls[wnm], wopr, wwpr, wgpr_str, wbhp)
-      if not write_keyw: print >>f, '/\n'
+         print(templ % (wnm, wctrls[wnm], wopr, wwpr, wgpr_str, wbhp), file=f)
+      if not write_keyw: print('/\n', file=f)
       #
       ### INJECTORS
       #
@@ -3524,7 +3525,7 @@ def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, 
          keyw = 'WCONINJE'
          templ = ' %s      WATER    OPEN   RATE   %.1f   1* %.1f   /\n'
       write_keyw = True
-      for wnm, w in injectors.items():
+      for wnm, w in list(injectors.items()):
          if not date in w.index: continue
          wwir, wbhp, wconc = w.loc[date]
          if wwir < 0. or wbhp < 0.:                                  # skip negative values
@@ -3533,19 +3534,15 @@ def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, 
              continue
          has_opened[wnm] = True
          if write_keyw:
-             print >>f, keyw
+             print(keyw, file=f)
              write_keyw=False
-         print >>f, templ % (wnm, wwir, wbhp),
-      if not write_keyw: print >>f, '/\n'
+         print(templ % (wnm, wwir, wbhp), end=' ', file=f)
+      if not write_keyw: print('/\n', file=f)
       #
       #   WPOLYMER
-      for wnm,w in injectors.items():
+      for wnm,w in list(injectors.items()):
          if not has_opened[wnm]: continue
-         print >>f, 'WPOLYMER\n   %s  %.1f 0.0 /\n/\n' % (wnm, wconc)
-      #
-      # new date
-      if not datefirst: print >>f, 'DATES\n %s /\n/\n' % ecl_date.strftime("%d '%b' %Y").upper()
-      #
+         print('WPOLYMER\n   %s  %.1f 0.0 /\n/\n' % (wnm, wconc), file=f)
    #
    f.close()
 

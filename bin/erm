@@ -4,6 +4,8 @@
 this one will only delete files that has a corresponding DATA-file.
 does not delete DATA-files or ini-files
 usage: erm *.DATA
+note:
+    assumes that there is only 1 dot in the file (A1.DATA, not A1.NEW.DATA)
 '''
 
 import sys, os, argparse
@@ -20,16 +22,15 @@ args = parser.parse_args()
 
 datafiles = [fname for fname in args.files if fname.endswith('.DATA')]
 
-SMALL = ('DBG', 'LOG', 'ERR', 'dbprtx', 'ECLEND', 'done', 'MSG')
+SMALL = ('DBG', 'LOG', 'ERR', 'dbprtx', 'ECLEND', 'done', 'MSG', 'ECLRUN', 'eclrun_dbg', 'RFT', 'h5', 'OUT', 'OK', 'OK-stat-target', 'stderr', 'LSF-stdout')
 BIG   = ('UNRST','INIT','EGRID','GRID', 'SAVE', 'RFT')
 KEEP  = ('DATA', 'ini', 'inp', 'xls', 'xlsx', 'csv')
 
 for datafile in datafiles:
-   bname = UT.basename(datafile)
-   fnames = UT.glob(bname+'.*')
+   fnames = UT.glob(datafile.split('.')[0]+'.*')
    for fname in fnames:
       ext = os.path.splitext(fname)[1][1:]   # file extension (without dot)
-      if ext.startswith('F'): ext = ext[1:]  # formatted file?
+      if ext.startswith('F'): ext = ext[1:]  # formatted file => remove F
       if args.all: 
          if args.v: print 'deleting', fname
          os.unlink(fname)
@@ -42,7 +43,7 @@ for datafile in datafiles:
          if args.v: print 'deleting', fname
          os.unlink(fname)
          continue
-      if args.small and ext in SMALL:        # typical input-files
+      if args.small and ext in SMALL:        # delete small files
          if args.v: print 'deleting', fname
          os.unlink(fname)
          continue

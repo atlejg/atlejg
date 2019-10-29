@@ -7,7 +7,10 @@ if 'win' in sys.platform:
    sys.path.insert(0, '\\\\statoil.net\\unix_tr\\Project\\RCP\\active\\fluent\\Atle_Resources\\atlejg\\lib\\Python2')
 else:
    # use insert to put these first
-   sys.path.insert(0, '/private/agy/Tools/atlejg/lib/Python2')
+   #sys.path.insert(1, '/private/agy/Tools/atlejg/lib/Python2')
+   #sys.path.insert(1, '/private/agy/.local/lib/python3.6/site-packages')   # seems it's included anyway. this is my pip --user packages
+   sys.path.insert(1, '/private/agy/Tools/atlejg/lib/Python3')
+   sys.path.insert(1, '/project/res/komodo/bleeding3/root/lib/python3.6/site-packages')
 
 from pylab import *
 import AtlejgTools.FluentUtils as FL

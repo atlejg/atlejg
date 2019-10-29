@@ -63,11 +63,15 @@ setenv use_proxy on
 setenv EXT_PERL_MODULES $RC/PerlModules    # for: use lib $ENV{'EXT_PERL_MODULES'};
 setenv PASSIVE /project/RCP/passive/fluent/
 setenv WORK /project/RCP/work/$USER
+#
+# PATH stuff
+setenv PATH "${HOME}/Tools/resscript_bin:${PATH}"
+setenv PATH "${HOME}/bin:${PATH}"
 setenv PATH "${PATH}:/prog/Fluent/i686/Fluent.Inc/bin"
 setenv PATH "${PATH}:/prog/ecl/grid/macros/"
 setenv ECLHOME /prog/ecl/grid
 setenv PATH "${PATH}:/prog/ecl/grid/macros"
-setenv PATH "${PATH}:/project/res/resscript/"              # statoil res-sim scripts. ref. thorbjorn skille
+#setenv PATH "${PATH}:/project/res/resscript/"              # statoil res-sim scripts. ref. thorbjorn skille. should be included by SDP_cshrc
 setenv PATH "${PATH}:$RC/lib/Python/vkip/scripts"                           # vegard kippe stuff
 setenv PERLLIB "/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/site_perl:/project/res/x86_64_RH_5/lib64/perl5/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5:/project/res/x86_64_RH_5/lib/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib/perl5/site_perl:/project/res/x86_64_RH_5/lib/perl5/5.8.8:/project/res/x86_64_RH_5/lib/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib/perl5"
 
@@ -133,12 +137,19 @@ alias x11big1 "xrandr --size 2560x1600"
 alias x11big2 "xrandr --size 5120x1600"
 
 # PYTHON STUFF
+# #
+# # to make ipython and ecl.ecl work for python3, i need to use /project/res/komodo/bleeding3/root/lib/python3.6/site-packages
+# this is reflected here and in  ~/Tools/atlejg/bin/pylab
 #
+setenv PYTHONPATH ''
+setenv PYTHON_VERSION 3.6.4
+source /prog/sdpsoft/env.csh
+setenv PATH "${PATH}:/prog/sdpsoft/python${PYTHON_SHORT}/bin/"       # gives python3, pip3 etc
 #alias python /prog/sdpsoft/python2.7.14/bin/python
-setenv PYTHONPATH "${PYTHONPATH}:$ATLEJG/lib/Python2"                                  # my stuff
-setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip"                           # vegard kippe stuff
-setenv PYTHONPATH "${PYTHONPATH}:/project/res/komodo/$KOMODO_RELEASE/root/lib/python${PYTHON_SHORT}/site-packages"
-#setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/lib/python2.7/site-packages"    # things i've installed myself. no - messes things up for jupyter etc.
+#setenv PYTHONPATH "${PYTHONPATH}:$ATLEJG/lib/Python3"                            # my stuff
+#setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip"                            # vegard kippe stuff
+#setenv PYTHONPATH "${PYTHONPATH}:/project/res/komodo/$KOMODO_RELEASE/root/lib/python${PYTHON_SHORT}/site-packages"
+#setenv PYTHONPATH "${PYTHONPATH}:3RC/lib/Python/lib/python2.7/site-packages"    # things i've installed myself. no - messes things up for jupyter etc.
 alias pip_ "setenv PYTHON_VERSION "2.7.14"; source /prog/sdpsoft/env.csh; pip"  # need a different python version to make pip work
 
 # vim stuff
@@ -156,7 +167,6 @@ setenv FLUENT_JOU  ~/Fluent/Jou
 # make sure correct license is used (for fluent)
 #setenv LM_LICENSE_FILE 7241@st-linlic02.st.statoil.no:1055@st-vlic01.st.statoil.no   # does not seem to be necessary anymore. jan 2019. -atle,
 alias /prog/Fluent/ansys_inc_V16.2/ansys_inc/shared_files/licensing/lic_admin/anslic_admin anslic_admin       # this is the tool to check fluent licenses
-setenv PATH "${PATH}:${HOME}/bin"
 alias workbench 'unalias FLUENT_ARCH; /prog/Fluent/ansys_inc/v150/Framework/bin/Linux64/runwb2 ' # workbench starts fluent on its own, dont use environment variables
 # GAMBIT stuff
 # Wed Jan 13 12:03:05 MET 2016
