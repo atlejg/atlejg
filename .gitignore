@@ -1,0 +1,5 @@
+*.pyc
+*~
+.nfs*
+ipython_log.py
+.*.swp

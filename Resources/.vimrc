@@ -30,12 +30,12 @@ set autoindent		" always set autoindenting on
 " them
 set ignorecase
 set smartcase
-" 3 SPACES INSTEAD OF TABS
+" 4 SPACES INSTEAD OF TABS
 set expandtab
 set smarttab
-set tabstop=3
-set softtabstop=3
-set shiftwidth=3
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
 
 " SHOW LINE NUMBER
 set number
@@ -161,8 +161,8 @@ if has("autocmd")
     \   exe "normal g`\"" |
     \ endif
   
-  " make sure tabstop = 3 is respected for python
-  autocmd FileType python setlocal shiftwidth=3 tabstop=3 softtabstop=3 expandtab
+  " make sure tabstop = 4 is respected for python
+  autocmd FileType python setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab
 
 endif " has("autocmd")
 

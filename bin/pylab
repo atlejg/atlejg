@@ -1,4 +1,13 @@
 #! /bin/tcsh
-setenv PYTHON_VERSION "2.7.14"
-source /prog/sdpsoft/env.csh
-ipython --pylab --logfile=ipython_log.py -i $HOME/Tools/atlejg/Resources/pythonstartup
+
+#if ($1 == "") then
+#    echo 'MUST provide version (typically latest or 3.7.3 or 2.7.14)'
+#    exit(1)
+#endif
+
+#setenv PYTHONPATH ''
+#setenv PYTHON_VERSION $1
+#source /prog/sdpsoft/env.csh
+
+
+ipython3 --pylab --logfile=ipython_log.py -i $HOME/Tools/atlejg/Resources/pythonstartup

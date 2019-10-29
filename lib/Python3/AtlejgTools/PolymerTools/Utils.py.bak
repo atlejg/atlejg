@@ -122,7 +122,7 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
    n  = max(len(tqc), len(tqi), len(tqm), len(tqd), len(tqs))
    dt = (t2-t1) / (n-1)
    t  = pl.linspace(t1,t2, n)
-   print 'last date', pl.num2date(t[-1])
+   print('last date', pl.num2date(t[-1]))
    qc = pl.interp(t, tqc, qc)
    qi = pl.interp(t, tqi, qi)
    qm = pl.interp(t, tqm, qm)
