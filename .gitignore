@@ -3,3 +3,4 @@
 .nfs*
 ipython_log.py
 .*.swp
+*.bak
