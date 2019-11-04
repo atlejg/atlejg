@@ -43,7 +43,7 @@ def get_bsw_wct(fnm, winsz=31, wc_func_only=True, date2num_func=date2num1):
      - wc array (filtered)
     '''
     #
-    d   = pl.loadtxt(fnm, skiprows=3, converters={0:date2num_func})         # skip 3 first rows (header is 2 or 3 lines long..)
+    d   = pl.loadtxt(fnm, skiprows=3, converters={0:date2num_func}, encoding='latin1')         # skip 3 first rows (header is 2 or 3 lines long..)
     t   = d[:,0]
     ixs = pl.argsort(t)                                                 # make sure time is increasing. we do that by sorting
     t = t[ixs]
@@ -152,6 +152,7 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
     # create WellData object
     a11 = WellData.WellData('A11', welltype='inj', t=t, qw=qw, p=p, dt=dt)
     # add some properties
+    ppm = PPM_M * qm / qs1
     ppm[ppm>PPM_M/60.]  = 0.
     ppm[ppm<0.]         = 0.
     visc[visc<0]        = pl.NaN
