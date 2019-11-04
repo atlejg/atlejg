@@ -152,6 +152,7 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
    # create WellData object
    a11 = WellData.WellData('A11', welltype='inj', t=t, qw=qw, p=p, dt=dt)
    # add some properties
+   ppm = PPM_M * qm / qs1
    ppm[ppm>PPM_M/60.]  = 0.
    ppm[ppm<0.]         = 0.
    visc[visc<0]        = pl.NaN
