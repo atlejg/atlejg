@@ -155,6 +155,7 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
     ppm = PPM_M * qm / qs1
     ppm[ppm>PPM_M/60.]  = 0.
     ppm[ppm<0.]         = 0.
+    visc = visc_func(ppm)
     visc[visc<0]        = pl.NaN
     visc[visc>MAX_VISC] = pl.NaN
     #    other useful stuff
