@@ -358,17 +358,17 @@ class WellData(object):
         '''
         see docs for get_steps
         '''
-        if self.typ == TYPE_PROD: self.shutins = self.get_steps(dt1, dt2, p1, p2, direction='up')
-        else                    : self.shutins = self.get_steps(dt1, dt2, p1, p2, direction='down')
-        return self.shutins
+        if self.typ == TYPE_PROD: self.shutins = self.get_steps(dt1, dt2, p1, p2, direction='down')
+        else                    : self.shutins = self.get_steps(dt1, dt2, p1, p2, direction='up')
+        return pl.array(self.shutins)
 #
     def get_startups(self, dt1=None, dt2=None, p1=None, p2=None):
         '''
         see docs for get_steps
         '''
-        if self.typ == TYPE_PROD: self.startups = self.get_steps(dt1, dt2, p1, p2, direction='down')
-        else                    : self.startups = self.get_steps(dt1, dt2, p1, p2, direction='up')
-        return self.startups
+        if self.typ == TYPE_PROD: self.startups = self.get_steps(dt1, dt2, p1, p2, direction='up')
+        else                    : self.startups = self.get_steps(dt1, dt2, p1, p2, direction='down')
+        return pl.array(self.startups)
 #
     def datestr(self, ix):
         '''
@@ -380,10 +380,10 @@ class WellData(object):
         '''
         manually inspect given flowrate-steps. keep only the approved.
         # input
-         ixs    : indices of steps. typically found using calc_steps
+         ixs    : indices of steps. typically found using get_steps
          flowvar : typically 'ql' or 'qt'
-         dt1    : period before step
-         dt2    : period after step
+         dt1    : period before step (for plotting only)
+         dt2    : period after step (for plotting only)
          figsdir: it will save pics here. must be unique!
         # output
          filtered index-list
