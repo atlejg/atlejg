@@ -94,6 +94,7 @@ def get_summary(case):
             ymd = _startdate(d)
             STARTDATES[smryfile] = ymd
     s.startdate = date2num(datetime(*ymd))
+    s.dates = s.startdate + s.time
     return s
 
 def _fix(s, varnm):
@@ -308,9 +309,13 @@ def _xplot(varnm1, varnm2, cases, refcase=None, plot_kwargs=None, nolegend=False
         plotfunc(y1, y2, label=os.path.splitext(case)[0], **kwargs)
     #
     if UI.plot_hist:
-        varnmh = _fix(s, varnm2.split(s.separator)[0]+'H')
+        if s.separator in varnm2:
+            varnm, wellnm = varnm2.split(s.separator)
+            varnmh = '%sH%s%s' % (varnm, s.separator, wellnm)
+        else:
+            varnmh = '%sH' % varnm
         yh = s.get(varnmh)
-        plotfunc(y1, yh, 'k--', label=os.path.splitext(case)[0]+' (hist)')
+        plotfunc(y1, yh, 'ko', ms=5, label=os.path.splitext(case)[0]+' (hist)')
     #
     if refcase:
         ylabel('rel. change %s [%%]' % (varnm2))
@@ -493,7 +498,7 @@ def _segment_data_at_given_time(varnm, cases, t0, plot_kwargs=None, adjust_to_ze
     elif accum              : titl += ' (accumulated in time)'
     title(titl)
 
-def _connection_data_at_given_time(varnm, cases, t0, dx, plot_kwargs=None):
+def _connection_data_at_given_time(varnm, cases, t0, dx, ijks, plot_kwargs=None):
     if WELLNM == 'none':
         print('Need to set WELLNM!')
         return
@@ -503,7 +508,10 @@ def _connection_data_at_given_time(varnm, cases, t0, dx, plot_kwargs=None):
     n = 0
     for case in cases:
         dd = ECL.DataDeck(case)
-        ijks = dd.raw2values(dd.get_raw_data('COMPDAT', get_all=True), 2,4, identif=WELLNM, match_col=1)
+        if len(ijks) == 0:
+            ijks_ = dd.raw2values(dd.get_raw_data('COMPDAT', get_all=True), 2,4, identif=WELLNM, match_col=1)
+        else:
+            ijks_ = ijks
         case = UT.basename(case)
         s = get_summary(case)
         t0_indx = UT.find_closest_index(s.time, t0)
@@ -512,10 +520,10 @@ def _connection_data_at_given_time(varnm, cases, t0, dx, plot_kwargs=None):
         y_ = 0
         sep = ECL.SEPARATOR  # for convinience
         if varnm == 'CLFR':
-            m  =  array([s.get('%s%s%s%s%i,%i,%i'%('COFR', sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
-            m  += array([s.get('%s%s%s%s%i,%i,%i'%('CWFR', sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
+            m  =  array([s.get('%s%s%s%s%i,%i,%i'%('COFR', sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks_]).T
+            m  += array([s.get('%s%s%s%s%i,%i,%i'%('CWFR', sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks_]).T
         else:
-            m = array([s.get('%s%s%s%s%i,%i,%i'%(varnm, sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks]).T
+            m = array([s.get('%s%s%s%s%i,%i,%i'%(varnm, sep, WELLNM, sep, ijk[0],ijk[1],ijk[2])) for ijk in ijks_]).T
         for tix in tixs:
             if UI.accum:
                 if tix > 0: dt = s.time[tix] - s.time[tix-1]
@@ -1986,12 +1994,13 @@ def analyze(mode, *args):
         ## note: if UI.accum is True, it will accumulate in time, but this is only done
         ##       to first order accuracy (doesn't use trapz or similair techniques).
         ## example: analyze('connections', 'COFR', 365, 50, 'A?.DATA')
-        if not enough_args(args, 4, mode): return
+        if not enough_args(args, 5, mode): return
         varnm          = args[0]          # typically COFR
         t0             = args[1]          # in days
         dx             = args[2]          # [m]
-        cases          = _cases(UT.glob(args[3:]))
-        _connection_data_at_given_time( varnm, cases, t0, dx, plot_kwargs=UI.plot_kwargs)
+        ijks           = args[3]          # set to [] if it should retrieve it from data-file (could be slow)
+        cases          = _cases(UT.glob(args[4:]))
+        _connection_data_at_given_time( varnm, cases, t0, dx, ijks, plot_kwargs=UI.plot_kwargs)
         if UI.legend: UI.legend(cases)
     elif mode == 'contours':
         ## makes the 'einstein-plots'.

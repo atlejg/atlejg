@@ -18,6 +18,7 @@ import inspect
 import subprocess, signal, psutil
 import string
 from datetime import datetime, timedelta
+from AtlejgTools.EclipseTools.DataDeck import DataDeck, MONTH_MAP
 
 _log = AtlejgTools.LogTools.Log(AtlejgTools.LogTools.LOG_LEVEL_DEBUG)
 
@@ -25,7 +26,6 @@ SEPARATOR    = ':' # separator for variable names (like WBHP:OP1, where SEPARATO
 JOINT_LENGTH = 12. # meter
 DELIM        = '/' # end-of-record for Eclipse input
 SECTIONS = ('RUNSPEC', 'GRID', 'EDIT', 'PROPS', 'REGIONS', 'SOLUTION', 'SUMMARY', 'SCHEDULE', 'OPTIMIZE')
-MONTH_MAP    = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12} # useful when converting dates
 
 def _read_lines(f, line):
     nvals_pr_column = 4 # hardcoded, will probably not change
@@ -3447,21 +3447,24 @@ class EclipseCoupling(object):
         if self.trn and not self.trn.closed: self.trn.close()
         UT.tcsh('cat %s.I0* >! %s.sched' % (self.casenm, self.casenm))     # cat all sched-files created into one file
 
-def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, mode='hist', dateshift=timedelta(1)):
+def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, mode='hist', dateshift=timedelta(1), header=[]):
     '''
     creates a simple schedule for running the simulation, based on values found in producers and injectors dicts.
     all wells *must* have the same sampling. but they dont need to cover the same time-span.
     wctrls   : dict with well controls - aka 'LRAT', 'OILR' etc. for now only implemented for producers: {'A-22':'ORAT'}
     wts      : well tracers. must be list of dicts in chronoglogical order
-               ex:{'wellnm':'A-11', 'nm':'WT0', 'date':datetime.datetime(2014,7,31),  'conc':41.8, 'tstep':0.5}
+               ex:{'wellnm':'A-11', 'nm':'WT0', 'date':datetime.datetime(2014,7,31, tzinfo=datetime.timezone.utc),  'conc':41.8, 'tstep':0.5}
     mode     : default 'hist', meaning WCONHIST. else WCONPROD
     dateshift: typically, pandas resampling gives last day of month - we often want first day of month reporting in eclipse
+    header   : list of header-lines. will be prepended with '--'.
     notes:
        - if gas-rate is above GASRATE_LIM, it will be defaulted (e.g. 1*)
     '''
     RATE_EPS = 1.0e-6
     GASRATE_LIM = 1e12
     f = open(sched_fnm, 'w')
+    for line in header:
+        f.write('-- %s\n' % line)
     has_opened = {}
     wts = wts[:]   # need a copy since we will delete items
     for wnm in list(producers.keys())+list(injectors.keys()): has_opened[wnm]=False
@@ -3548,4 +3551,3 @@ def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, 
 
 # aliases
 load_rsm = read_rsm
-from AtlejgTools.EclipseTools.DataDeck import DataDeck

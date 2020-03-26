@@ -4,13 +4,18 @@ import glob as glob_
 import pylab as pl
 import re
 import tempfile
-import string
 from mpl_toolkits.axisartist.parasite_axes import HostAxes, ParasiteAxes
+from matplotlib import rcParams
 
 class Struct: pass
 
-COLOURS = ('b', 'g', 'r', 'c', 'm', 'y', '0.8', '0.65', '0.5', '0.3', '0.1', 'k') # '0.x' gives grayscale
+COLOURS = [x['color'] for x in rcParams['axes.prop_cycle']]    # wanna use same colours as default for 'plot'
+COLOURS_OLD = ('b', 'g', 'r', 'c', 'm', 'y', '0.8', '0.65', '0.5', '0.3', '0.1', 'k') # '0.x' gives grayscale
 MARKERS = ('', '*', 'o', 's')
+
+# replacing string.join
+def join(x, sep=' '):
+    return sep.join(x)
 
 class PlotStyle(object):
 #
@@ -388,10 +393,10 @@ def make_collage(pic_files, nrows, ncolumns, newfile='collage.png'):
     for n in range(nrows):
         pics = pic_files[n*ncolumns:(n+1)*ncolumns]
         fname = tempfile.mkstemp()[1]
-        cmd = '/usr/bin/convert +append ' + string.join(pics, ' ') + ' ' + fname
+        cmd = '/usr/bin/convert +append ' + join(pics) + ' ' + fname
         os.system(cmd)
         fnames.append(fname)
-    cmd = '/usr/bin/convert -append ' + string.join(fnames, ' ') + ' ' + newfile
+    cmd = '/usr/bin/convert -append ' + join(fnames) + ' ' + newfile
     os.system(cmd)
     print(newfile, 'created')
     [os.unlink(fname) for fname in fnames] # delete intermediate files
@@ -548,11 +553,11 @@ class InputValues(object):
             if typ in ('str', 'eval'): # want to allow spaces in strings. not very elegant code...
                 rec = line.split('=')
                 varnm = rec[0].split()[1]
-                value = string.join(rec[1:], '=').strip() # reconstruct
+                value = join(rec[1:], '=').strip() # reconstruct
                 if typ == 'eval': value = eval(value)
             else:
                 rec = line.split()
-                line = string.join(rec[1:], '') # reconstruct
+                line = join(rec[1:], '') # reconstruct
                 rec = line.split('=')
                 varnm = rec[0].strip()
                 value = rec[1].strip()
@@ -649,7 +654,7 @@ def xkcd_plot(*args, **kwargs):
    return fig.get_axes()[0]
 '''
 
-def xkcdify_fonts(fig):
+def xkcdify_fonts(fig, ttf='/private/agy/Tools/atlejg/Resources/Misc/Humor-Sans-1.0.ttf'):
     '''
     for some reason i have a hard time getting fonts right (want to use 'Humor Sans').
     so i do it here...
@@ -666,8 +671,8 @@ def xkcdify_fonts(fig):
     import matplotlib
     import matplotlib.pyplot as plt
     import matplotlib.font_manager as font_manager
-    path = '/project/RCP/active/fluent//Atle_Resources/Humor-Sans.ttf'
-    fp = font_manager.FontProperties(fname=path)
+    #path = '/project/RCP/active/fluent//Atle_Resources/Humor-Sans.ttf'
+    fp = font_manager.FontProperties(fname=ttf)
     plt.figure(fig.number) # sets gca()
     #
     # loop all (sub)plots

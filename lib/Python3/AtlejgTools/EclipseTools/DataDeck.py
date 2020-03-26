@@ -1,7 +1,7 @@
 import os, inspect
 import pylab as pl
 import pdb
-import AtlejgTools.Utils as UT
+import AtlejgTools.Utils              as UT
 
 # end-of-record for Eclipse input
 DELIM       = '/'
@@ -12,6 +12,8 @@ SECTIONS    = ['RUNSPEC', 'GRID', 'EDIT', 'PROPS', 'REGIONS', 'SOLUTION', 'SUMMA
 # some keywords (like EQUALS) are special because they are followed by lines with other keywords (like PERMX)
 # as their first entry. this is problematic and must be handled specially
 SPECIAL_KWS = ['EQUALS', 'ADD', 'COPY', 'MULTIPLY']
+
+MONTH_MAP    = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12} # useful when converting dates
 
 class DataDeck:
     '''
@@ -253,3 +255,12 @@ class DataDeck:
             print('Did not find identifier %s in EQUALS' % identif)
             return []
         return self.raw2values(self.get_raw_data(kw, identif), col1, col2, skip=skip, matrix=matrix)
+#
+    def get_dates(self):
+        '''
+        useful for getting dates from SCHEDULE section.
+        for now, only works for DATES keyword
+        '''
+        if not self.has_kw('DATES'): return []
+        dates = [pl.datetime.datetime(int(x[2]), MONTH_MAP[x[1]], int(x[0])) for x in self.get_raw_data('DATES', get_all=1)]
+        return pl.date2num(dates)

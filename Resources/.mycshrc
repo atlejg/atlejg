@@ -65,7 +65,7 @@ setenv PASSIVE /project/RCP/passive/fluent/
 setenv WORK /project/RCP/work/$USER
 #
 # PATH stuff
-setenv PATH "${HOME}/Tools/resscript_bin:${PATH}"
+#setenv PATH "${HOME}/Tools/resscript_bin:${PATH}"
 setenv PATH "${HOME}/bin:${PATH}"
 setenv PATH "${PATH}:/prog/Fluent/i686/Fluent.Inc/bin"
 setenv PATH "${PATH}:/prog/ecl/grid/macros/"
@@ -137,20 +137,16 @@ alias x11big1 "xrandr --size 2560x1600"
 alias x11big2 "xrandr --size 5120x1600"
 
 # PYTHON STUFF
-# #
-# # to make ipython and ecl.ecl work for python3, i need to use /project/res/komodo/bleeding3/root/lib/python3.6/site-packages
-# this is reflected here and in  ~/Tools/atlejg/bin/pylab
+# 
+# to make ipython and ecl.ecl work for python3, i need to get ecl.ecl somewhere (since it is still not in komodo..).
+# this is reflected in ~/Tools/atlejg/Resources/pythonstartup
 #
-setenv PYTHONPATH ''
 setenv PYTHON_VERSION 3.6.4
-source /prog/sdpsoft/env.csh
+source /prog/sdpsoft/env.csh --silent                                # writes python version to stdout if not --silent. annoying
 setenv PATH "${PATH}:/prog/sdpsoft/python${PYTHON_SHORT}/bin/"       # gives python3, pip3 etc
-#alias python /prog/sdpsoft/python2.7.14/bin/python
-#setenv PYTHONPATH "${PYTHONPATH}:$ATLEJG/lib/Python3"                            # my stuff
-#setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip"                            # vegard kippe stuff
-#setenv PYTHONPATH "${PYTHONPATH}:/project/res/komodo/$KOMODO_RELEASE/root/lib/python${PYTHON_SHORT}/site-packages"
-#setenv PYTHONPATH "${PYTHONPATH}:3RC/lib/Python/lib/python2.7/site-packages"    # things i've installed myself. no - messes things up for jupyter etc.
-alias pip_ "setenv PYTHON_VERSION "2.7.14"; source /prog/sdpsoft/env.csh; pip"  # need a different python version to make pip work
+setenv PYTHONPATH "$ATLEJG/lib/Python3"                              # my stuff
+setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip"                # vegard kippe stuff
+setenv PYTHONPATH "${PYTHONPATH}:/project/res/lib/python2.7/site-packages"    # for resscript.header etc.
 
 # vim stuff
 #
@@ -203,6 +199,13 @@ setenv PY $HOME/Tools/lib/Python/AtlejgTools/
 #setenv ERT_VERSION "ecl_queue"
 #setenv PYTHONPATH "/project/res/x86_64_RH_5/share/ert/release/ecl_queue/python:${PYTHONPATH}"
 #setenv PYTHONPATH "/project/RCP/active/fluent/Atle_Resources/lib/Python/Tools/lib/python2.7/site-packages:${PYTHONPATH}"  # to use PIL.Image
+#
+#alias python /prog/sdpsoft/python2.7.14/bin/python
+#setenv PYTHONPATH "${PYTHONPATH}:$ATLEJG/lib/Python3"                            # my stuff
+#setenv PYTHONPATH "${PYTHONPATH}:/project/res/komodo/$KOMODO_RELEASE/root/lib/python${PYTHON_SHORT}/site-packages"
+#setenv PYTHONPATH "${PYTHONPATH}:3RC/lib/Python/lib/python2.7/site-packages"    # things i've installed myself. no - messes things up for jupyter etc.
+#
+#alias pip_ "setenv PYTHON_VERSION "2.7.14"; source /prog/sdpsoft/env.csh; pip"  # need a different python version to make pip work
 #
 ##source /project/res/SDP_cshrc # moved to .cshrc-file
 #setenv ERT_EXPERIMENTAL 1     # see mail joachim hove 8/2-12

@@ -4,11 +4,13 @@ import h5py
 from datetime import datetime
 from scipy.interpolate import interp1d
 import AtlejgTools.SimulationTools.WellData as WellData
+import AtlejgTools.Utils                    as UT
 
 PPM_M        = 300e3 # PPM_M: ppm in mother-solution
 MAX_VISC     = 50.
 MAX_INJ_RATE = 1250.
 MONTH_MAP    = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12} # useful when converting dates
+TR_LABELS    = {'T-141e':'WT1', 'T-144c':'WT0', 'T-146m':'WT2'}
 
 def date2num1(date):
     '''
@@ -31,7 +33,80 @@ def date2num2(date):
     m = MONTH_MAP[m.upper()]
     return pl.date2num(datetime(2000+int(y), m, int(d)))
 
-def get_bsw_wct(fnm, winsz=31, wc_func_only=True, date2num_func=date2num1):
+def read_txt_file1(fnm, skiprows, date2num_func=date2num1):
+    '''
+    reads input data in text format that is typical for the peregrino pilot - like this:
+    '''
+    d   = pl.loadtxt(fnm, skiprows=skiprows, converters={0:date2num_func}, encoding='latin1')
+    t   = d[:,0]
+    ixs = pl.argsort(t)                                                 # make sure time is increasing. we do that by sorting
+    return t[ixs], d[ixs,1]
+
+def get_tracer_file(tracernm, wellnm, templ_fnm):
+    if   tracernm == 'WT0':
+        tracerfile = templ_fnm % ('114c', wellnm)
+    elif tracernm == 'WT1':
+        tracerfile = templ_fnm % ('141e', wellnm)
+    elif tracernm == 'WT2':
+        tracerfile = templ_fnm % ('146m', wellnm)
+    return tracerfile
+
+def get_tracer(tracernm, wellnm, templ_fnm='/project/peregrino/users/agy/InputData/Tracers/T-%s_%s.txt', date2num_func=date2num1, skiprows=2):
+    '''
+    returns times, concentrations and unit of tracer
+    '''
+    fnm = get_tracer_file(tracernm, wellnm, templ_fnm)
+    unit = UT.grep_column(fnm, 'TIME', 2, is_float=False)[0].lower()
+    d = read_txt_file1(fnm, skiprows, date2num_func)
+    return d[0], d[1], unit
+
+def _read_tracer_data(excelfnm, pwell, iwell):
+    t0_excel = pl.date2num(datetime(1899, 12, 30))
+    #
+    sheet    = 'Tracer Analysis Producer'
+    #
+    wellnms    = pl.array(UT.read_excel_column(sheet, 'A', 2, 99999, excelfnm))
+    ixs        = (wellnms == pwell)
+    dates      = pl.array(UT.read_excel_column(sheet, 'B', 2, 99999, excelfnm))[ixs]
+    tracernms  = pl.array(UT.read_excel_column(sheet, 'C', 2, 99999, excelfnm))[ixs]
+    conc       = pl.array(UT.read_excel_column(sheet, 'D', 2, 99999, excelfnm))[ixs]
+    ts         = pl.array([float(x) + t0_excel for x in dates])
+    #
+    sheet    = 'Tracer Injection'
+    #
+    wellnms    = pl.array(UT.read_excel_column(sheet, 'A', 2, 99999, excelfnm))
+    ixs        = (wellnms == iwell)
+    dates      = pl.array(UT.read_excel_column(sheet, 'B', 2, 99999, excelfnm))[ixs]
+    tracernms_ = pl.array(UT.read_excel_column(sheet, 'C', 2, 99999, excelfnm))[ixs]
+    mass       = pl.array(UT.read_excel_column(sheet, 'D', 2, 99999, excelfnm))[ixs]
+    #
+    inj = {}
+    for tracernm in pl.unique(tracernms_):
+        ix = (tracernms_ == tracernm)
+        t  = float(dates[ix]) + t0_excel
+        inj[tracernm] = (t, float(mass[ix][0]))
+    return tracernms, ts, conc, inj
+
+def get_tracers(excelfnm='/project/peregrino/users/agy/InputData/Tracers/Tracer DB.xlsx', pwell='A-22', iwell='A-11'):
+    '''
+    read tracers from gulnar's excel sheet
+    '''
+    tracernms, ts, conc, inj = _read_tracer_data(excelfnm, pwell, iwell)
+    #
+    tracers = {}
+    for tracernm in pl.unique(tracernms):
+        ixs = (tracernms == tracernm)
+        tr = UT.Struct()
+        tr.nm = tracernm
+        tr.label = TR_LABELS[tracernm]
+        tr.t  = ts[ixs]
+        tr.conc = conc[ixs] / 1000.
+        tr.inj_t = inj[tracernm][0]
+        tr.inj_m = inj[tracernm][1]
+        tracers[tr.label] = tr
+    return tracers
+
+def get_bsw_wct(fnm, winsz=31, wc_func_only=True, skiprows=3, date2num_func=date2num1):
     '''
     gets bsw water-cut from yngve's files.
     fnm: /private/agy/MyPolymerStuff/InputData/WCT_mesurements/A-22_BSW.txt
@@ -43,11 +118,7 @@ def get_bsw_wct(fnm, winsz=31, wc_func_only=True, date2num_func=date2num1):
      - wc array (filtered)
     '''
     #
-    d   = pl.loadtxt(fnm, skiprows=3, converters={0:date2num_func}, encoding='latin1')         # skip 3 first rows (header is 2 or 3 lines long..)
-    t   = d[:,0]
-    ixs = pl.argsort(t)                                                 # make sure time is increasing. we do that by sorting
-    t = t[ixs]
-    wc  = d[:,1][ixs]
+    t, wc = read_txt_file1(fnm, date2num_func, skiprows)
     wcf = medfilt(wc, winsz)
     wc_func = interp1d(t, wcf)
     if wc_func_only: return wc_func
@@ -211,6 +282,9 @@ def read_pilot_area_wells(db_file, include_mothersolution=True):
 def read_polymerconc_yngve(fnm='/project/peregrino/users/agy/InputData/PolymerConcentrations/polymer.dat'):
     '''
     yngve has a file with polymer concentration. this routine reads it
+    typical usage:
+    rs = concs / max(concs)
+    [axvspan(ts[i], ts[i+1], facecolor='r', alpha=rs[i]) for i in range(len(concs)-1)]
     '''
     lines = open(fnm).readlines()
     dates, concs = [],[]
@@ -219,4 +293,5 @@ def read_polymerconc_yngve(fnm='/project/peregrino/users/agy/InputData/PolymerCo
         r = line.strip().split()
         if len(r) == 1: concs.append(float(r[0]))
         else:           dates.append(datetime(int(r[2]), MONTH_MAP[r[1].replace("'","")], int(r[0])))
-    return dates, concs
+    return pl.array(dates), pl.array(concs)
+

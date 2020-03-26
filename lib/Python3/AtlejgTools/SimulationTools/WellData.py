@@ -254,7 +254,7 @@ class WellData(object):
         qs[pl.find(qs < q_shut)] = 0.
         n0 = int(dt0 / self.dt)
         if n0 % 2: n0 += 1                               # must be even
-        n = n0/2  # convinient
+        n = int(n0/2)  # convinient
         n1 = int(dt1 / self.dt)
         n2 = int(dt2 / self.dt)
         #
