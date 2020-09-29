@@ -565,9 +565,9 @@ class SummaryVectors() :
         for wname in list(self._segms.keys()):
             self._segms[wname].sort()
             # assume well-segments are the first half - then icd-segments
-            nsegms = len(self._segms[wname])
-            self._well_segms[wname] = self._segms[wname][:nsegms/2]
-            self._icd_segms[wname]  = self._segms[wname][nsegms/2:]
+            n = int(len(self._segms[wname])/2)
+            self._well_segms[wname] = self._segms[wname][:n]
+            self._icd_segms[wname]  = self._segms[wname][n:]
 #
     def datadeck(self):
         if self._datadeck == None: self._datadeck = DataDeck(self.nm+'.DATA')

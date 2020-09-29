@@ -1,6 +1,7 @@
 from scipy.signal import medfilt
 import pylab as pl
 import h5py
+import pandas as pd
 from datetime import datetime
 from scipy.interpolate import interp1d
 import AtlejgTools.SimulationTools.WellData as WellData
@@ -132,6 +133,39 @@ def visc_func_JFM(ppm):
 
 def visc_func(ppm):
     return 0.9*2.6e-6*ppm**2 + 0.4    # based on visc_func_JFM, scaled to better match measured viscosities
+
+def get_a11_and_a22(dirname='/project/peregrino/users/agy/InputData/'):
+    df = pd.read_csv('%s/A11.csv'%dirname, delimiter=';')
+    a11 = UT.Struct()
+    a11.dates = df['DATE']
+    a11.wir   = df['WWIRH']
+    a11.bhp   = df['WBHPH']
+    a11.cic   = df['WCIC']
+    a11.cir   = df['WCIR']
+    a11.cit   = df['WCIT']
+    a11.time  = a11.dates - a11.dates[0]
+    # also include start/stop of polymer-injection
+    a11.pdates = [ (datetime(2018,1,6),  datetime(2018,4,15)),
+                   (datetime(2019,1,13), datetime(2019,10,7)) ]
+    # and some key shutins
+    a11.shutins = [
+        pl.date2num(datetime(2019,3,1,13,30)),
+        pl.date2num(datetime(2019,5,9,14)),
+        pl.date2num(datetime(2019,9,8,17)) ]
+    # and the ILT-date
+    a11.ilt_dates = [
+        pl.date2num(datetime(2017,2,1)),
+        pl.date2num(datetime(2019,7,28)) ]
+    #
+    df = pd.read_csv('%s/A22.csv'%dirname, delimiter=';')
+    a22 = UT.Struct()
+    a22.dates = df['DATE']
+    a22.opr   = df['WOPRH']
+    a22.wpr   = df['WWPRH']
+    a22.wct   = df['WWCTH']
+    a22.bhp   = df['WBHPH']
+    a22.time  = a22.dates - a22.dates[0]
+    return a11, a22
 
 def read_pilot_area_wells(db_file, include_mothersolution=True):
     '''

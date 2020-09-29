@@ -22,7 +22,7 @@ args = parser.parse_args()
 
 datafiles = [fname for fname in args.files if fname.endswith('.DATA')]
 
-SMALL = ('DBG', 'LOG', 'ERR', 'dbprtx', 'ECLEND', 'done', 'MSG', 'ECLRUN', 'eclrun_dbg', 'RFT', 'h5', 'OUT', 'OK', 'OK-stat-target', 'stderr', 'LSF-stdout')
+SMALL = ('DBG', 'ERR', 'dbprtx', 'ECLEND', 'done', 'MSG', 'ECLRUN', 'eclrun_dbg', 'RFT', 'h5', 'OUT', 'OK', 'OK-stat-target', 'stderr', 'LSF-stdout')
 BIG   = ('UNRST','INIT','EGRID','GRID', 'SAVE', 'RFT')
 KEEP  = ('DATA', 'ini', 'inp', 'xls', 'xlsx', 'csv')
 

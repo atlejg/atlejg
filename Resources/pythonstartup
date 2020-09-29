@@ -7,6 +7,8 @@ if 'win' in sys.platform:
 else:
    sys.path.insert(1, '/private/agy/Tools/atlejg/lib/Python3')
    sys.path.append('/project/res/ecalc/master/lib/python3.7/site-packages')            # mostly for ecl.ecl
+   sys.path.insert(1, '/private/agy/Tools/atlejg/lib/Python3')
+   sys.path.append('/private/agy/Tools/subscript/src/subscript')
 
 from importlib import reload              # want reload as in ipython2
 from pylab import *

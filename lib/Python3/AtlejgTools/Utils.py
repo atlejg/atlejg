@@ -197,6 +197,7 @@ def clean_string_for_fname(str):
     str = str.replace('/','_')
     str = str.replace('?','_')
     str = str.replace(':','_')
+    str = str.replace('|','_')
     return str
 
 def hardcopies(fignos, path='./', prefix='', figno_only=False):

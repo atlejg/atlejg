@@ -69,6 +69,7 @@ setenv WORK /project/RCP/work/$USER
 setenv PATH "${HOME}/bin:${PATH}"
 setenv PATH "${PATH}:/prog/Fluent/i686/Fluent.Inc/bin"
 setenv PATH "${PATH}:/prog/ecl/grid/macros/"
+setenv PATH "${PATH}:/project/res/x86_64_RH_6/bin"          # this is where icd_helper is found, for example
 setenv ECLHOME /prog/ecl/grid
 setenv PATH "${PATH}:/prog/ecl/grid/macros"
 #setenv PATH "${PATH}:/project/res/resscript/"              # statoil res-sim scripts. ref. thorbjorn skille. should be included by SDP_cshrc
@@ -129,12 +130,12 @@ alias eclipse '++ $ACTIVE/../reservoir_simulations/agy; pwd; echo "see ~/Misc/cm
 # source /prog/ecl/script/eclrun.cshrc
 alias octave /prog/rdtoolbox/octave/octave
 #
-# useful for RGS session (got it from Håkon Kyte)
-alias x11win "xrandr --size 1600x900"
-alias x11one "xrandr --size 1920x1080"
-alias x11two "xrandr --size 3840x1080"
-alias x11big1 "xrandr --size 2560x1600"
-alias x11big2 "xrandr --size 5120x1600"
+# useful for RGS session (got it from Håkon Kyte). note: --fb seems bettr than --size
+alias x11win "xrandr --fb 1600x900"
+alias x11one "xrandr --fb 1920x1080"
+alias x11two "xrandr --fb 3840x1080"
+alias x11big1 "xrandr --fb 2560x1600"
+alias x11big2 "xrandr --fb 5120x1600"
 
 # PYTHON STUFF
 # 
@@ -147,6 +148,7 @@ setenv PATH "${PATH}:/prog/sdpsoft/python${PYTHON_SHORT}/bin/"       # gives pyt
 setenv PYTHONPATH "$ATLEJG/lib/Python3"                              # my stuff
 setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip"                # vegard kippe stuff
 setenv PYTHONPATH "${PYTHONPATH}:/project/res/lib/python2.7/site-packages"    # for resscript.header etc.
+setenv PYTHONPATH "${PYTHONPATH}:/private/agy/Tools/subscript/src/subscript/"
 
 # vim stuff
 #
@@ -169,6 +171,9 @@ alias workbench 'unalias FLUENT_ARCH; /prog/Fluent/ansys_inc/v150/Framework/bin/
 # gambit will only work on selected disks... for now, i use /tmp. remember copying afterwards!!
 # must use LD_PRELOAD as well. for documentation see $HOME/Tools/memcpy-preload.c
 alias gambit_  'echo "REMEMBER: GOTO /tmp"; setenv FLUENT_ARCH lnx86; setenv RELEASE 2.3.16; setenv LM_LICENSE_FILE 7241@st-vlic01.st.statoil.no; setenv LD_PRELOAD $HOME/Tools/memcpy-preload.so; /prog/Fluent/i686/Fluent.Inc/bin/gambit'
+
+# completor
+alias completor "python3 /private/agy/Tools/subscript/src/subscript/completor/main.py"
 
 # useful directories
 setenv TT /project/RCP/active/reservoir_simulations/agy/Peregrino/Shoebox/Simul/Version12
