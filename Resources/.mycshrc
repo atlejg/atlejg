@@ -73,7 +73,7 @@ setenv PATH "${PATH}:/project/res/x86_64_RH_6/bin"          # this is where icd_
 setenv ECLHOME /prog/ecl/grid
 setenv PATH "${PATH}:/prog/ecl/grid/macros"
 #setenv PATH "${PATH}:/project/res/resscript/"              # statoil res-sim scripts. ref. thorbjorn skille. should be included by SDP_cshrc
-setenv PATH "${PATH}:$RC/lib/Python/vkip/scripts"                           # vegard kippe stuff
+setenv PATH "${PATH}:$RC/lib/Python/vkip/Python3/scripts"                           # vegard kippe stuff
 setenv PERLLIB "/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/site_perl:/project/res/x86_64_RH_5/lib64/perl5/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5:/project/res/x86_64_RH_5/lib/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib/perl5/site_perl:/project/res/x86_64_RH_5/lib/perl5/5.8.8:/project/res/x86_64_RH_5/lib/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib/perl5"
 
 ### MY ALIASES
@@ -146,9 +146,9 @@ setenv PYTHON_VERSION 3.6.4
 source /prog/sdpsoft/env.csh --silent                                # writes python version to stdout if not --silent. annoying
 setenv PATH "${PATH}:/prog/sdpsoft/python${PYTHON_SHORT}/bin/"       # gives python3, pip3 etc
 setenv PYTHONPATH "$ATLEJG/lib/Python3"                              # my stuff
-setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip"                # vegard kippe stuff
+setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip/Python3"                # vegard kippe stuff
 setenv PYTHONPATH "${PYTHONPATH}:/project/res/lib/python2.7/site-packages"    # for resscript.header etc.
-setenv PYTHONPATH "${PYTHONPATH}:/private/agy/Tools/subscript/src/subscript/"
+setenv PYTHONPATH "${PYTHONPATH}:/private/agy/Tools/subscript-internal/src/subscript_internal/"
 
 # vim stuff
 #

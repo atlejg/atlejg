@@ -1,14 +1,18 @@
 from scipy.signal import medfilt
 import pylab as pl
 import h5py
-from datetime import datetime
+import pandas as pd
+from datetime import datetime, date
 from scipy.interpolate import interp1d
 import AtlejgTools.SimulationTools.WellData as WellData
+import AtlejgTools.Utils                    as UT
 
 PPM_M        = 300e3 # PPM_M: ppm in mother-solution
 MAX_VISC     = 50.
 MAX_INJ_RATE = 1250.
 MONTH_MAP    = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12} # useful when converting dates
+TR_LABELS    = {'T-141e':'WT1', 'T-144c':'WT0', 'T-146m':'WT2'}
+t0_excel = pl.date2num(datetime(1899, 12, 30))
 
 def date2num1(date):
    '''
@@ -53,6 +57,51 @@ def get_bsw_wct(fnm, winsz=31, wc_func_only=True, date2num_func=date2num1):
    if wc_func_only: return wc_func
    else           : return wc_func, t, wc, wcf
 
+def _read_tracer_data(excelfnm, pwell, iwell):
+    #
+    sheet    = 'Tracer Analysis Producer'
+    #
+    wellnms    = pl.array(UT.read_excel_column(sheet, 'A', 2, 99999, excelfnm))
+    ixs        = (wellnms == pwell)
+    dates      = pl.array(UT.read_excel_column(sheet, 'B', 2, 99999, excelfnm))[ixs]
+    tracernms  = pl.array(UT.read_excel_column(sheet, 'C', 2, 99999, excelfnm))[ixs]
+    conc       = pl.array(UT.read_excel_column(sheet, 'D', 2, 99999, excelfnm))[ixs]
+    ts         = pl.array([float(x) + t0_excel for x in dates])
+    #
+    sheet    = 'Tracer Injection'
+    #
+    wellnms    = pl.array(UT.read_excel_column(sheet, 'A', 2, 99999, excelfnm))
+    ixs        = (wellnms == iwell)
+    dates      = pl.array(UT.read_excel_column(sheet, 'B', 2, 99999, excelfnm))[ixs]
+    tracernms_ = pl.array(UT.read_excel_column(sheet, 'C', 2, 99999, excelfnm))[ixs]
+    mass       = pl.array(UT.read_excel_column(sheet, 'D', 2, 99999, excelfnm))[ixs]
+    #
+    inj = {}
+    for tracernm in pl.unique(tracernms_):
+        ix = (tracernms_ == tracernm)
+        t  = float(dates[ix]) + t0_excel
+        inj[tracernm] = (t, float(mass[ix][0]))
+    return tracernms, ts, conc, inj
+
+def get_tracers(excelfnm='/project/peregrino/users/agy/InputData/Tracers/Tracer DB.xlsx', pwell='A-22', iwell='A-11'):
+    '''
+    read tracers from gulnar's excel sheet
+    '''
+    tracernms, ts, conc, inj = _read_tracer_data(excelfnm, pwell, iwell)
+    #
+    tracers = {}
+    for tracernm in pl.unique(tracernms):
+        ixs = (tracernms == tracernm)
+        tr = UT.Struct()
+        tr.nm = tracernm
+        tr.label = TR_LABELS[tracernm]
+        tr.t  = ts[ixs]
+        tr.conc = conc[ixs] / 1000.
+        tr.inj_t = inj[tracernm][0]
+        tr.inj_m = inj[tracernm][1]
+        tracers[tr.label] = tr
+    return tracers
+
 def visc_func_KE(ppm):
    return 0.7*(4e-6*ppm**2 - 0.0029*ppm + 0.6)   # excel trendline from kjetil E spread-sheet. scaled to match measured viscosities.
 
@@ -61,6 +110,53 @@ def visc_func_JFM(ppm):
 
 def visc_func(ppm):
    return 0.9*2.6e-6*ppm**2 + 0.4    # based on visc_func_JFM, scaled to better match measured viscosities
+
+def get_a11_and_a22(dirname='/project/peregrino/users/agy/InputData/'):
+    df = pd.read_csv('%s/A11.csv'%dirname, delimiter=';')
+    a11 = UT.Struct()
+    a22 = UT.Struct()
+    a11.dates = df['DATE']
+    a11.wir   = df['WWIRH']
+    a11.bhp   = df['WBHPH']
+    a11.cic   = df['WCIC']
+    a11.cir   = df['WCIR']
+    a11.cit   = df['WCIT']
+    a11.time  = a11.dates - a11.dates[0]
+    # also include start/stop of polymer-injection
+    a11.pdates = [ (datetime(2018,1,6),  datetime(2018,4,15)),
+                   (datetime(2019,1,13), datetime(2019,10,7)) ]
+    # and some key shutins
+    a11.shutins = [
+        pl.date2num(datetime(2019,3,1,13,30)),
+        pl.date2num(datetime(2019,5,9,14)),
+        pl.date2num(datetime(2019,9,8,17)) ]
+    a22.shutins = [pl.date2num(datetime(2020,4,8))]        # 2020 shutin of the field
+    # and the ILT-dates
+    a11.ilt_dates = [
+        pl.date2num(datetime(2017,2,1)),
+        pl.date2num(datetime(2019,7,28)) ]
+    #
+    # tars:
+    a11.tars = [
+        pl.date2num(datetime(2015,5,5)),
+        pl.date2num(datetime(2016,4,22)),
+        pl.date2num(datetime(2017,4,4)),
+        pl.date2num(datetime(2018,3,29)),
+        pl.date2num(datetime(2019,4,4)) ]
+    a11.itars = [pl.where(a11.dates == x)[0][0] for x in a11.tars]   # useful indices
+    a22.tars = a11.tars
+    a22.itars = a11.itars
+    df = pd.read_csv('%s/A22.csv'%dirname, delimiter=';')
+    a22.dates = df['DATE']
+    a22.opr   = df['WOPRH']
+    a22.wpr   = df['WWPRH']
+    a22.wct   = df['WWCTH']
+    a22.bhp   = df['WBHPH']
+    a22.time  = a22.dates - a22.dates[0]
+    #
+    # tracers
+    a22.tracers = get_tracers()
+    return a11, a22
 
 def read_pilot_area_wells(db_file, include_mothersolution=True):
    '''

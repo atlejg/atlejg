@@ -116,6 +116,7 @@ def read_excel_column(sheet, col_nm, line_from, line_to, file=None, book=None, r
     '''
     if file and book is None, it will assume sheet is book.sheet (performance gain)
     if sheet is integer (int) it will use sheet_by_index, else sheet_by_name
+    note: to convert excel-dates to numpy-dates, add t0 = int(1899*365.24) + 4
     '''
     import xlrd
     if file != None:

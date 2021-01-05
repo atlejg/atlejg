@@ -1435,13 +1435,14 @@ def dp_along_well(segments, rho, mu, diam, q_segm, roughn=1.5e-05, dy=1.):
 def read_reporttimes(log_fname):
     f = open(log_fname)
     reporttimes = []
+    line = ''
     while(True):
-        line1 = f.readline()
-        if not line1: break
-        if not 'MESSAGE  AT TIME' in line1: continue
-        line2 = f.readline()
-        if not 'RESTART FILE WRITTEN' in line2: continue
-        reporttimes.append(float(line1.split()[3]))
+        prevline = line
+        line = f.readline()
+        if not line: break
+        if not 'RESTART FILE WRITTEN   REPORT' in line: continue
+        nday = prevline.split('DAYS')[0].split()[-1]
+        reporttimes.append(float(nday))
     f.close()
     return pl.array(reporttimes)
 

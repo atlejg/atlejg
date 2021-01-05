@@ -2,7 +2,7 @@ from scipy.signal import medfilt
 import pylab as pl
 import h5py
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, date
 from scipy.interpolate import interp1d
 import AtlejgTools.SimulationTools.WellData as WellData
 import AtlejgTools.Utils                    as UT
@@ -12,6 +12,7 @@ MAX_VISC     = 50.
 MAX_INJ_RATE = 1250.
 MONTH_MAP    = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12} # useful when converting dates
 TR_LABELS    = {'T-141e':'WT1', 'T-144c':'WT0', 'T-146m':'WT2'}
+t0_excel = pl.date2num(datetime(1899, 12, 30))
 
 def date2num1(date):
     '''
@@ -34,11 +35,18 @@ def date2num2(date):
     m = MONTH_MAP[m.upper()]
     return pl.date2num(datetime(2000+int(y), m, int(d)))
 
-def read_txt_file1(fnm, skiprows, date2num_func=date2num1):
+def date2num3(date):
+    '''
+    handle date format like this: 05.05.2015 
+    '''
+    d, m, y = date.split('.')
+    return pl.date2num(datetime(int(y), int(m), int(d)))
+
+def read_txt_file1(fnm, skiprows, date2num_func=date2num1, delim=None):
     '''
     reads input data in text format that is typical for the peregrino pilot - like this:
     '''
-    d   = pl.loadtxt(fnm, skiprows=skiprows, converters={0:date2num_func}, encoding='latin1')
+    d   = pl.loadtxt(fnm, skiprows=skiprows, delimiter=delim, converters={0:date2num_func}, encoding='latin1')
     t   = d[:,0]
     ixs = pl.argsort(t)                                                 # make sure time is increasing. we do that by sorting
     return t[ixs], d[ixs,1]
@@ -52,6 +60,31 @@ def get_tracer_file(tracernm, wellnm, templ_fnm):
         tracerfile = templ_fnm % ('146m', wellnm)
     return tracerfile
 
+def get_shutins(datadir='/project/peregrino/users/agy/InputData/'):
+    '''
+    gets shutins from files provided by yngve.
+    filenames are like:
+    A-11_SHUT_2020.txt  A-11_TARs.txt  A-12_SHUT_2020_JFM.txt  A-18_SHUT_2020_JFM.txt 
+    A-18_TARs.txt  A-22_SHUT_2020.txt  A-22_TARs.txt  A-27_SHUT_2020_JFM.txt
+    '''
+    shutins = {}
+    for well in ['A-11', 'A-22', 'A-12', 'A-18', 'A-27']:
+        dates, bhp = [], []
+        for fn in UT.glob('%s/%s_*.txt'%(datadir,well)):   # could be more than one file per well
+            d = read_txt_file1(fn, 1, date2num_func=date2num3, delim=';')
+            dates.extend(d[0])
+            bhp.extend(d[1])
+        shutin = UT.Struct()
+        shutin.nm = well
+        dates = pl.array(dates)
+        bhp = pl.array(bhp)
+        # make sure data is sorted according to dates
+        ixs = pl.argsort(dates)
+        shutin.dates = dates[ixs]
+        shutin.bhp = bhp[ixs]
+        shutins[well] = shutin
+    return shutins
+
 def get_tracer(tracernm, wellnm, templ_fnm='/project/peregrino/users/agy/InputData/Tracers/T-%s_%s.txt', date2num_func=date2num1, skiprows=2):
     '''
     returns times, concentrations and unit of tracer
@@ -62,7 +95,6 @@ def get_tracer(tracernm, wellnm, templ_fnm='/project/peregrino/users/agy/InputDa
     return d[0], d[1], unit
 
 def _read_tracer_data(excelfnm, pwell, iwell):
-    t0_excel = pl.date2num(datetime(1899, 12, 30))
     #
     sheet    = 'Tracer Analysis Producer'
     #
@@ -134,9 +166,69 @@ def visc_func_JFM(ppm):
 def visc_func(ppm):
     return 0.9*2.6e-6*ppm**2 + 0.4    # based on visc_func_JFM, scaled to better match measured viscosities
 
+def get_phi_F(t, c, q, m_inj, rho_inj):
+    ''' 
+    ref: Tracer interpretations... , Shook + Forsman
+    calculates the storage capacity (Phi) and flow capacity (F) functions
+    t must start at 0 [d]
+    c has unit [g/m3]
+    '''
+    Et = c*rho_inj*q / m_inj
+    Ett = Et*t
+    int_Et = UT.cumulative(t, Et) 
+    int_Ett = UT.cumulative(t, Ett)
+    #   
+    phi = int_Ett / int_Ett[-1]
+    F = int_Et / int_Et[-1]
+    return phi, F
+
+def get_tracers(fnm='/project/peregrino/users/agy/InputData/Tracers/Tracer_analysis_Idaho_T144c_T141e_T146m_T145e_data-up-to-Mar15-2020_interpolation_JFMandDashboardRates.xls'):
+    '''
+    reads tracer-data (raw data and derived data) from yngve's excel
+    '''
+    detect_lvl = 0.01     # for defining when tracer break-through is happening
+    inj_nms   = ['144c', '141e', '146m', '145e', '801']
+    inj_dates = pl.array([pl.date2num(date(*x)) for x in \
+                [(2014,7,30), (2017,1,14), (2017,11,26), (2019,1,3), (2019,7,25)]])
+    #
+    def _get_data(fnm, sheetnm, colnm, inj_nm):
+        startln = 5 if sheetnm.startswith('Raw') else 10 
+        y = UT.read_excel_column('%s_T%s'%(sheetnm,inj_nm), colnm, startln, 99999, fnm)
+        y = [x if x else '0' for x in y]
+        return pl.array([float(x) for x in y])
+    #
+    tracers = []
+    for i, inj_nm in enumerate(inj_nms):
+        s = UT.Struct()
+        s.rdates = _get_data(fnm, 'Raw Input Data', 'B', inj_nm) + t0_excel   # raw dates
+        s.rconcs = _get_data(fnm, 'Raw Input Data', 'C', inj_nm)              # raw concentration [pbb]
+        s.dates = _get_data(fnm, 'Raw Input Data', 'G', inj_nm) + t0_excel    # interpol. dates
+        s.concs = _get_data(fnm, 'Raw Input Data', 'H', inj_nm)               # concentration [g/sm3]
+        # injection mass (scalar)
+        s.inj_m = UT.read_excel_column('Input Data_T%s'%inj_nm, 'B', 2, 2, fnm)[0]
+        # tracer break-through (scalar)
+        ix = pl.where(s.rconcs > detect_lvl*max(s.rconcs))[0][0]
+        s.breaktr = s.rdates[ix] - inj_dates[i]
+        # remove data prior to tracer-start
+        ixs = s.rdates >= inj_dates[i]
+        s.rdates = s.rdates[ixs]
+        s.rconcs = s.rconcs[ixs]
+        # Ø-F etc.
+        s.phis = _get_data(fnm, 'Results', 'M', inj_nm)
+        s.fs   = _get_data(fnm, 'Results', 'N', inj_nm)
+        s.tds = _get_data(fnm, 'Results', 'U', inj_nm)
+        s.evs = _get_data(fnm, 'Results', 'V', inj_nm)
+        s.name = inj_nm
+        s.sim_name = 'WTPCWT%i:A-22'%i                    # useful when comparing to yngve's simulations
+        s.label = pl.num2date(inj_dates[i]).strftime('%b:%-y')
+        s.inj_date = inj_dates[i]
+        tracers.append(s)
+    return tracers
+
 def get_a11_and_a22(dirname='/project/peregrino/users/agy/InputData/'):
     df = pd.read_csv('%s/A11.csv'%dirname, delimiter=';')
     a11 = UT.Struct()
+    a22 = UT.Struct()
     a11.dates = df['DATE']
     a11.wir   = df['WWIRH']
     a11.bhp   = df['WBHPH']
@@ -152,19 +244,32 @@ def get_a11_and_a22(dirname='/project/peregrino/users/agy/InputData/'):
         pl.date2num(datetime(2019,3,1,13,30)),
         pl.date2num(datetime(2019,5,9,14)),
         pl.date2num(datetime(2019,9,8,17)) ]
-    # and the ILT-date
+    a22.shutins = [pl.date2num(datetime(2020,4,8))]        # 2020 shutin of the field
+    # and the ILT-dates
     a11.ilt_dates = [
         pl.date2num(datetime(2017,2,1)),
         pl.date2num(datetime(2019,7,28)) ]
     #
+    # tars:
+    a11.tars = [
+        pl.date2num(datetime(2015,5,5)),
+        pl.date2num(datetime(2016,4,22)),
+        pl.date2num(datetime(2017,4,4)),
+        pl.date2num(datetime(2018,3,29)),
+        pl.date2num(datetime(2019,4,4)) ]
+    a11.itars = [pl.where(a11.dates == x)[0][0] for x in a11.tars]   # useful indices
+    a22.tars = a11.tars
+    a22.itars = a11.itars
     df = pd.read_csv('%s/A22.csv'%dirname, delimiter=';')
-    a22 = UT.Struct()
     a22.dates = df['DATE']
     a22.opr   = df['WOPRH']
     a22.wpr   = df['WWPRH']
     a22.wct   = df['WWCTH']
     a22.bhp   = df['WBHPH']
     a22.time  = a22.dates - a22.dates[0]
+    #
+    # tracers
+    a22.tracers = get_tracers()
     return a11, a22
 
 def read_pilot_area_wells(db_file, include_mothersolution=True):
