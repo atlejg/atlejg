@@ -225,7 +225,7 @@ def get_tracers(fnm='/project/peregrino/users/agy/InputData/Tracers/Tracer_analy
         tracers.append(s)
     return tracers
 
-def get_a11_and_a22(dirname='/project/peregrino/users/agy/InputData/'):
+def get_a11_and_a22(dirname='/project/peregrino/users/agy/InputData/', tracers=True):
     df = pd.read_csv('%s/A11.csv'%dirname, delimiter=';')
     a11 = UT.Struct()
     a22 = UT.Struct()
@@ -269,7 +269,8 @@ def get_a11_and_a22(dirname='/project/peregrino/users/agy/InputData/'):
     a22.time  = a22.dates - a22.dates[0]
     #
     # tracers
-    a22.tracers = get_tracers()
+    if tracers:
+        a22.tracers = get_tracers()
     return a11, a22
 
 def read_pilot_area_wells(db_file, include_mothersolution=True):
