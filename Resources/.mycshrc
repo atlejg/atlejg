@@ -67,7 +67,6 @@ setenv WORK /project/RCP/work/$USER
 # PATH stuff
 #setenv PATH "${HOME}/Tools/resscript_bin:${PATH}"
 setenv PATH "${HOME}/bin:${PATH}"
-setenv PATH "${PATH}:/prog/Fluent/i686/Fluent.Inc/bin"
 setenv PATH "${PATH}:/prog/ecl/grid/macros/"
 setenv PATH "${PATH}:/project/res/x86_64_RH_6/bin"          # this is where icd_helper is found, for example
 setenv ECLHOME /prog/ecl/grid
@@ -158,14 +157,24 @@ alias vimdiff "vimdiff -c 'syntax off'"  # focus on differences - not syntax
 #
 # FLUENT STUFF
 #
+setenv PATH "${PATH}:/prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192/CFX/bin"
+setenv PATH "${PATH}:/prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192/fluent/bin"
+
 setenv FLUENT_ARCH lnamd64
-alias fluent /prog/Fluent/ansys_inc_V16.2/ansys_inc/v162/fluent/bin/fluent -cc
-alias cfdpost /prog/Fluent/ansys_inc_V16.2/ansys_inc/v162/CFD-Post/bin/cfx5post
+#alias fluent    fluent -cc
+#alias cfx       /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192/CFX/bin/cfx5
+alias workbench /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192/Framework/bin/Linux64/runwb2  # Jan-2021
+alias cfdpost   /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192/CFD-Post/bin/cfdpost
 setenv FLUENT_JOU  ~/Fluent/Jou
-# make sure correct license is used (for fluent)
-#setenv LM_LICENSE_FILE 7241@st-linlic02.st.statoil.no:1055@st-vlic01.st.statoil.no   # does not seem to be necessary anymore. jan 2019. -atle,
-alias /prog/Fluent/ansys_inc_V16.2/ansys_inc/shared_files/licensing/lic_admin/anslic_admin anslic_admin       # this is the tool to check fluent licenses
-alias workbench 'unalias FLUENT_ARCH; /prog/Fluent/ansys_inc/v150/Framework/bin/Linux64/runwb2 ' # workbench starts fluent on its own, dont use environment variables
+alias anslic_admin /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/Licensemanager/shared_files/licensing/lic_admin/anslic_admin # this is the tool to check fluent licenses
+
+# #
+# WindModeller stuff
+#
+setenv PATH "${PATH}:/project/RCP/active/WindModeller_2014/utilities/scripts"
+#setenv PATH "${PATH}:/project/RCP/active/WindModeller_2014/utilities/bin/linux-amd64"
+
+
 # GAMBIT stuff
 # Wed Jan 13 12:03:05 MET 2016
 # gambit will only work on selected disks... for now, i use /tmp. remember copying afterwards!!
@@ -263,6 +272,13 @@ setenv PY $HOME/Tools/lib/Python/AtlejgTools/
 #setenv FLUENT_ARCH lnx86
 #source /prog/LSF/conf/cshrc.lsf # included by John Hybertsen to be able to start eclipse from unix shell
 #alias porsgrunn 'pors-linfluent01.pors.statoil.no'
+#
+# make sure correct license is used (for fluent)
+#setenv LM_LICENSE_FILE 7241@st-linlic02.st.statoil.no:1055@st-vlic01.st.statoil.no   # does not seem to be necessary anymore. jan 2019. -atle,
+#alias fluent /prog/Fluent/ansys_inc_V16.2/ansys_inc/v162/fluent/bin/fluent -cc
+#alias cfdpost /prog/Fluent/ansys_inc_V16.2/ansys_inc/v162/CFD-Post/bin/cfx5post
+#alias anslic_admin /prog/Fluent/ansys_inc_V16.2/ansys_inc/shared_files/licensing/lic_admin/anslic_admin # this is the tool to check fluent licenses
+#alias workbench 'unsetenv FLUENT_ARCH; /prog/Fluent/ansys_inc/v150/Framework/bin/Linux64/runwb2 ' # workbench starts fluent on its own, dont use environment variables
 
 # goto-label...
 end:
