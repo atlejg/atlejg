@@ -102,15 +102,6 @@ def get_tracers(excelfnm='/project/peregrino/users/agy/InputData/Tracers/Tracer 
         tracers[tr.label] = tr
     return tracers
 
-def visc_func_KE(ppm):
-   return 0.7*(4e-6*ppm**2 - 0.0029*ppm + 0.6)   # excel trendline from kjetil E spread-sheet. scaled to match measured viscosities.
-
-def visc_func_JFM(ppm):
-   return 2.6e-6*ppm**2 + 0.4    # found by using fit_viscosity_function.py
-
-def visc_func(ppm):
-   return 0.9*2.6e-6*ppm**2 + 0.4    # based on visc_func_JFM, scaled to better match measured viscosities
-
 def get_a11_and_a22(dirname='/project/peregrino/users/agy/InputData/'):
     df = pd.read_csv('%s/A11.csv'%dirname, delimiter=';')
     a11 = UT.Struct()
