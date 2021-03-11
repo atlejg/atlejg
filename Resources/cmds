@@ -280,3 +280,9 @@ zR: open all
 zr: open next level
 zM: close all
 zm: close next level
+
+# comparing content of directories
+diff -qr Dir1 Dir2
+
+# converting jupyter notebook to a script
+ipython nbconvert --to script Site.ipynb

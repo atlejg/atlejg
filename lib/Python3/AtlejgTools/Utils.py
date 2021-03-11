@@ -6,8 +6,18 @@ import re
 import tempfile
 from mpl_toolkits.axisartist.parasite_axes import HostAxes, ParasiteAxes
 from matplotlib import rcParams
+import yaml
 
-class Struct: pass
+class Struct(object):
+    '''
+    a rather flat implempentation of a struct for python
+    '''
+    def has(self, key):
+        return key in self.__dict__.keys()
+    def set(self, key, value):
+        self.__dict__[key] = value
+    
+    pass
 
 COLOURS = [x['color'] for x in rcParams['axes.prop_cycle']]    # wanna use same colours as default for 'plot'
 COLOURS_OLD = ('b', 'g', 'r', 'c', 'm', 'y', '0.8', '0.65', '0.5', '0.3', '0.1', 'k') # '0.x' gives grayscale
@@ -931,3 +941,14 @@ def plot_multiple(x, ys, ylabels, units, ylims, xlabel='', title='', xoffset=60,
     fig.add_axes(host)
     host.legend(loc=loc)
     if showit: show()
+
+def get_yaml(fnm):
+    '''
+    read yaml-file into a Struct for easy access.
+    and also avoid the open()
+    '''
+    yml = yaml.load(open(fnm))
+    s = Struct()
+    for k,v in yml.items():
+        s.__dict__[k] = v
+    return s

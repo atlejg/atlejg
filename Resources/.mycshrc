@@ -144,10 +144,10 @@ alias x11big2 "xrandr --fb 5120x1600"
 setenv PYTHON_VERSION 3.6.4
 source /prog/sdpsoft/env.csh --silent                                # writes python version to stdout if not --silent. annoying
 setenv PATH "${PATH}:/prog/sdpsoft/python${PYTHON_SHORT}/bin/"       # gives python3, pip3 etc
-setenv PYTHONPATH "$ATLEJG/lib/Python3"                              # my stuff
-setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip/Python3"                # vegard kippe stuff
-setenv PYTHONPATH "${PYTHONPATH}:/project/res/lib/python2.7/site-packages"    # for resscript.header etc.
-setenv PYTHONPATH "${PYTHONPATH}:/private/agy/Tools/subscript-internal/src/subscript_internal/"
+setenv PYTHONPATH "$ATLEJG/lib/Python3:$HOME/Tools/lib/Python3"            # my stuff
+#setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip/Python3"                # vegard kippe stuff
+#setenv PYTHONPATH "${PYTHONPATH}:/project/res/lib/python2.7/site-packages"    # for resscript.header etc.
+#setenv PYTHONPATH "${PYTHONPATH}:/private/agy/Tools/subscript-internal/src/subscript_internal/"
 
 # vim stuff
 #
