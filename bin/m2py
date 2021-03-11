@@ -1,0 +1,30 @@
+#! /prog/sdpsoft/python3.6.4/bin/python3
+
+
+'''
+matlab to python converter
+made this wrapper since the original script was a bit cryptic - i just wanted
+the *.m files to be converted to *.py
+see /project/RCP/active/fluent/Atle_Resources/lib/Python3/matlab2python/matlab2python.py
+'''
+
+import sys
+import matlab2python.smop
+from matlab2python.matlabparser import parser as mparser
+
+class Struct():
+    pass
+
+mfiles = sys.argv[1:]; mfiles.sort()
+
+opts = Struct()
+opts.no_resolve  = False        # default is False
+opts.no_comments = False        # default is False
+opts.numbers     = False        # default is False
+opts.smop        = False        # default is False. seems to be a problem to shift it in a ipython session - so dont
+
+for mfile in mfiles:
+    print('Converting', mfile)
+    opts.filelist = [mfile]
+    opts.output = mfile.replace('.m', '.py')
+    mparser.matlab2python(opts.filelist, opts)
