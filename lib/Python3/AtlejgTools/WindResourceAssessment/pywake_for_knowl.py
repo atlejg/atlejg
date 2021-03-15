@@ -358,8 +358,14 @@ def create_output1(net, gross, case, fnm=None):
             sector.append([case.ids[i], n.x.values, n.y.values, n.h.values, g.sum().values, n.sum().values, case.wtgs[i].name])
         sectors.append(pd.DataFrame(sector))
     # 
+    # combine all sectors into one
+    allsecs = sectors[0].copy()
+    allsecs[4] = sum([s[4] for s in sectors])
+    allsecs[5] = sum([s[5] for s in sectors])
     if fnm:
+        # formatting
         fms = {0:lambda x: f'Turbine site {x:d}', 1:int, 2:int, 3:int, 4:lambda x: f'{x:1.3f}', 5:lambda x: f'{x:1.3f}'}
+        #
         header = f'''FUGA Annual Energy production estimates
 z0[m]   99999
 zi[m]   99999
@@ -376,13 +382,30 @@ zeta0   99999
             # write a 'summary' for each park and the total
             n = wdr.iloc[:,4].sum()
             g = wdr.iloc[:,5].sum()
-            f.write(f'\nAllProjects                     {n:.4f}   {g:.4f}\n')
+            f.write(f'\nAllProjects                      {n:.4f}   {g:.4f}\n')
             for typeno in sorted(np.unique(case.types)):
                 ixs = (case.types==typeno).nonzero()[0]
                 p = case.parks[ixs[0]]
                 n = wdr.iloc[ixs].iloc[:,4].sum()
                 g = wdr.iloc[ixs].iloc[:,5].sum()
                 f.write(f'{p.name:20s}             {n:.4f}   {g:.4f}\n')
+        #
+        # write for all sectors
+        f.write(f'\nAll sectors\n')
+        f.write(f'      Xpos   Ypos   Height   GrAEP   NetAEP\n')
+        f.write(f' Site [m]    [m]    [m]      [GWh]   [GWh]\n')
+        f.write(allsecs.to_string(index=False, header=False, formatters=fms))
+        #
+        # write a 'summary' for each park and the total
+        n = allsecs.iloc[:,4].sum()
+        g = allsecs.iloc[:,5].sum()
+        f.write(f'\nAllProjects                      {n:.4f}   {g:.4f}\n')
+        for typeno in sorted(np.unique(case.types)):
+            ixs = (case.types==typeno).nonzero()[0]
+            p = case.parks[ixs[0]]
+            n = allsecs.iloc[ixs].iloc[:,4].sum()
+            g = allsecs.iloc[ixs].iloc[:,5].sum()
+            f.write(f'{p.name:20s}             {n:.4f}   {g:.4f}\n')
         f.close()
         logging.info(f'{fnm} was created')
     #
@@ -401,8 +424,7 @@ def create_output2(power, case, fnm=None):
     # 
     if fnm:
         real = lambda x: f'{x:.4f}'
-        fms = {0:lambda x: f'Turbine site {x:d}', 1:real, 2:real, 3:real, 4:real, 5:real,
-               6:real, 7:real, 8:real, 9:real, 10:real, 11:real}
+        fms = {0:lambda x: f'Turbine site {x:d}', 1:real, 2:real, 3:real, 4:real, 5:real, 6:real, 7:real, 8:real, 9:real, 10:real, 11:real}
         binsz = 360. / len(power.wd)
         header = f'''AllProjects
 py_wake results
@@ -420,6 +442,9 @@ Results given as power [kW]
             f.write(f'\n\nu [m/s] {power.ws.values[i]:.2f}\n')
             f.write(f'Dir [deg]        {dirs}\n')
             f.write(vel.to_string(index=False, header=False, formatters=fms))
+            f.write(f'\nTotal    ')
+            tot = pd.DataFrame(vel.sum()[1:]).T
+            f.write(tot.to_string(index=False, header=False, formatters=fms))
         f.write('\n')
         f.close()
         logging.info(f'{fnm} was created')
@@ -462,7 +487,7 @@ def get_input(knwl_dir, yml_file):
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO, filename='pywake.log')
 
     '''
     get necessary input
@@ -511,9 +536,9 @@ if __name__ == '__main__':
     n     = net.values.sum()
     wloss = (g-n) / g * 100                                 # wake loss in %
     #
-    print(f'Gross = {g:.0f}')
-    print(f'Net   = {n:.0f}')
-    print(f'Loss  = {wloss:.1f} %')
+    logging.info(f'Gross = {g:.0f}')
+    logging.info(f'Net   = {n:.0f}')
+    logging.info(f'Loss  = {wloss:.1f} %')
     #
     output_fnm1 = knwl_dir + SEP + opts.output_fnm1
     create_output1(net, gross, case, fnm=output_fnm1)
