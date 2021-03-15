@@ -383,7 +383,6 @@ zeta0   99999
                 n = wdr.iloc[ixs].iloc[:,4].sum()
                 g = wdr.iloc[ixs].iloc[:,5].sum()
                 f.write(f'{p.name:20s}             {n:.4f}   {g:.4f}\n')
-        f.write('\n')
         f.close()
         logging.info(f'{fnm} was created')
     #
