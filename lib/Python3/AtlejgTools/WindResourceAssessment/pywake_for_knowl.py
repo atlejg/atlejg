@@ -377,7 +377,7 @@ zeta0   99999
             n = wdr.iloc[:,4].sum()
             g = wdr.iloc[:,5].sum()
             f.write(f'\nAllProjects                     {n:.4f}   {g:.4f}\n')
-            for typeno in sorted(unique(case.types)):
+            for typeno in sorted(np.unique(case.types)):
                 ixs = (case.types==typeno).nonzero()[0]
                 p = case.parks[ixs[0]]
                 n = wdr.iloc[ixs].iloc[:,4].sum()
