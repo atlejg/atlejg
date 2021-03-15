@@ -368,10 +368,21 @@ zeta0   99999
         f = open(fnm, 'w')
         f.write(header)
         for i, wdr in enumerate(sectors):
-            f.write(f'\n\nSector\t{i}\n')
+            f.write(f'\nSector\t{i}\n')
             f.write(f'      Xpos   Ypos   Height   GrAEP   NetAEP\n')
             f.write(f' Site [m]    [m]    [m]      [GWh]   [GWh]\n')
             f.write(wdr.to_string(index=False, header=False, formatters=fms))
+            #
+            # write a 'summary' for each park and the total
+            n = wdr.iloc[:,4].sum()
+            g = wdr.iloc[:,5].sum()
+            f.write(f'\nAllProjects                     {n:.4f}   {g:.4f}\n')
+            for typeno in sorted(unique(case.types)):
+                ixs = (case.types==typeno).nonzero()[0]
+                p = case.parks[ixs[0]]
+                n = wdr.iloc[ixs].iloc[:,4].sum()
+                g = wdr.iloc[ixs].iloc[:,5].sum()
+                f.write(f'{p.name:20s}             {n:.4f}   {g:.4f}\n')
         f.write('\n')
         f.close()
         logging.info(f'{fnm} was created')
