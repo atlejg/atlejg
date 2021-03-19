@@ -81,6 +81,8 @@ N_SECTORS = 12
 INV_FILE  = 'Inventory.xml'
 WWH_FILE  = 'FugaAdapted.wwh'
 SEP       = os.path.sep
+REAL = lambda x: f'{x:.4f}'
+INT  = lambda x: f'{x:.0f}'
 
 class Struct(object):
     '''
@@ -327,15 +329,18 @@ def read_inventory(fnm):
     case.xs    = np.array([loc[0] for loc in locs])
     case.ys    = np.array([loc[1] for loc in locs])
     case.ids   = ids
-    case.types = []
     case.wtgs  = []
     case.parks = []
     case.names = []
+    types = []
     for p in parks:
-        case.types.extend(p.types)
+        types.extend(p.types)
         case.wtgs.extend([p.wtg]*p.size)
         case.parks.extend([p]*p.size)
         case.names.extend([p.name]*p.size)
+    case.wtg_names = [wtg.name for wtg in case.wtgs]
+    case.hub_heights = [wtg.hub_height for wtg in case.wtgs]
+    case.types = np.array(types)
     #
     wtgs = _get_windturbines(wtgs_raw)
     #
@@ -343,7 +348,56 @@ def read_inventory(fnm):
     #
     return case, wtgs, parks, wtgs_raw
 
-def create_output1(net, gross, case, fnm=None):
+def _write_sector(net, gross, case, f):
+    # formatting
+    fms = {0:lambda x: f'Turbine site {x:.0f}', 1:INT, 2:INT, 3:INT, 4:REAL, 5:REAL, 6:str}
+    #
+    f.write(f'      Xpos   Ypos   Height   GrAEP   NetAEP\n')
+    f.write(f' Site [m]    [m]    [m]      [GWh]   [GWh]\n')
+    df = pd.DataFrame([case.ids, case.xs, case.ys, case.hub_heights, gross.values, net.values], dtype=np.float64).T  # needs to be float64
+    df[6] = case.wtg_names
+    f.write(df.to_string(index=False, header=False, formatters=fms))
+    #
+    # write a 'summary' for each park and the total
+    f.write(f'\nAllProjects                      {gross.sum().values:.4f}   {net.sum().values:.4f}\n')
+    for typeno in sorted(np.unique(case.types)):
+        ixs = (case.types==typeno).nonzero()[0]
+        g = df.iloc[ixs].iloc[:,4].sum()
+        n = df.iloc[ixs].iloc[:,5].sum()
+        nm = case.names[ixs[0]]
+        f.write(f'{nm:20s}             {g:.4f}   {n:.4f}\n')
+
+def create_output1(net, gross, case, fnm):
+    '''
+    create ouput for knowl
+    '''
+    unit = net.Description.split('[')[1][:-1]
+    assert unit == 'GWh'
+    #
+    header = f'''FUGA Annual Energy production estimates
+z0[m]   99999
+zi[m]   99999
+zeta0   99999
+'''
+    f = open(fnm, 'w')
+    f.write(header)
+    #
+    # write sector by sector
+    for i, wd in enumerate(net.wd.values):
+        f.write(f'\nSector\t{i}\n')
+        nwd = net.sel(wd=wd).sum('ws')
+        gwd = gross.sel(wd=wd).sum('ws')
+        _write_sector(nwd, gwd, case, f)
+    #
+    # write all sectors
+    n = net.sum('wd').sum('ws')
+    g = gross.sum('wd').sum('ws')
+    f.write(f'\nAll sectors\n')
+    _write_sector(n, g, case, f)
+    f.close()
+    logging.info(f'{fnm} was created')
+
+def _create_output1(net, gross, case, fnm=None):
     '''
     create ouput for knowl
     '''
@@ -364,7 +418,7 @@ def create_output1(net, gross, case, fnm=None):
     allsecs[5] = sum([s[5] for s in sectors])
     if fnm:
         # formatting
-        fms = {0:lambda x: f'Turbine site {x:d}', 1:int, 2:int, 3:int, 4:lambda x: f'{x:1.3f}', 5:lambda x: f'{x:1.3f}'}
+        fms = {0:lambda x: f'Turbine site {x:d}', 1:INT, 2:INT, 3:INT, 4:REAL, 5:REAL}
         #
         header = f'''FUGA Annual Energy production estimates
 z0[m]   99999
@@ -397,8 +451,6 @@ zeta0   99999
         f.write(allsecs.to_string(index=False, header=False, formatters=fms))
         #
         # write a 'summary' for each park and the total
-        n = allsecs.iloc[:,4].sum()
-        g = allsecs.iloc[:,5].sum()
         f.write(f'\nAllProjects                      {n:.4f}   {g:.4f}\n')
         for typeno in sorted(np.unique(case.types)):
             ixs = (case.types==typeno).nonzero()[0]
@@ -409,7 +461,7 @@ zeta0   99999
         f.close()
         logging.info(f'{fnm} was created')
     #
-    return sectors
+    return sectors, allsecs
 
 def create_output2(power, case, fnm=None):
     unit = power.Description.split('[')[1][:-1]
@@ -423,8 +475,7 @@ def create_output2(power, case, fnm=None):
         vels.append(pd.DataFrame(vel))
     # 
     if fnm:
-        real = lambda x: f'{x:.4f}'
-        fms = {0:lambda x: f'Turbine site {x:d}', 1:real, 2:real, 3:real, 4:real, 5:real, 6:real, 7:real, 8:real, 9:real, 10:real, 11:real}
+        fms = {0:lambda x: f'Turbine site {x:d}', 1:REAL, 2:REAL, 3:REAL, 4:REAL, 5:REAL, 6:REAL, 7:REAL, 8:REAL, 9:REAL, 10:REAL, 11:REAL}
         binsz = 360. / len(power.wd)
         header = f'''AllProjects
 py_wake results
@@ -527,7 +578,7 @@ if __name__ == '__main__':
     '''
     reporting AEP etc
     '''
-    net   = sim0.aep(with_wake_loss=True)
+    net = sim0.aep(with_wake_loss=True)
     assert(np.all(np.equal(net.x.values, case.xs)))
     assert(np.all(np.equal(net.y.values, case.ys)))
     #
