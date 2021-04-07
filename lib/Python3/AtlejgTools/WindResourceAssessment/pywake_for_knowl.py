@@ -40,6 +40,11 @@ NOTES
         noj_k:
             !!float   0.04         # Only used for Jensen. Wake expansion parameter
 
+        # output
+        output_fnm1:
+            FugaOutput_1.txt
+        output_fnm2:
+            FugaOutput_2.txt
 
         # options
         #
@@ -58,7 +63,7 @@ NOTES
         we have so far used UniformWeibullSite, which obviously does not support this.
         the 'next level' is WaspGridSite, but this is made for complex onshore cases and
         seems a bit complext.
-        therefore, for version-1, we just stick to the first weibull given in the knwl_file
+        therefore, for version-1, we just stick to the first weibull given in the knowl_file
 
  - note3
     on fuga-model
@@ -76,11 +81,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os, sys
 import glob, re, zipfile, logging, yaml
+from scipy.interpolate import interp1d
 
 N_SECTORS = 12
 INV_FILE  = 'Inventory.xml'
 WWH_FILE  = 'FugaAdapted.wwh'
 SEP       = os.path.sep
+EPS       = 1e-9               # small non-zero value
 REAL = lambda x: f'{x:.4f}'
 INT  = lambda x: f'{x:.0f}'
 
@@ -130,12 +137,12 @@ def _get_weibulls(sheet, nparks):
 
 def read_knowl_input(fnm):
     logging.info(f'reading {fnm}')
-    knwl = Struct()
+    knowl = Struct()
     sheet = pd.read_excel(fnm, sheet_name='WindResource')
     np = _nparks(sheet)
-    knwl.weibulls = _get_weibulls(sheet, np)
-    knwl.turb_intens = sheet.iloc[27+N_SECTORS,1]
-    return knwl
+    knowl.weibulls = _get_weibulls(sheet, np)
+    knowl.turb_intens = sheet.iloc[27+N_SECTORS,1]
+    return knowl
 
 def _clean(line):
     line = line.replace('=" ', '="')     # remove spaces that mess things up for some fields
@@ -188,8 +195,8 @@ def _wtgs(data, wtg_nms, hub_hs, diams):
         wtg.ws         = [x[0] for x in wtg.data]
         wtg.pwr        = [x[1] for x in wtg.data]
         wtg.ct         = [x[2] for x in wtg.data]
-        wtg.ct_func    = lambda u: np.interp(u, wtg.ws, wtg.ct)
-        wtg.pwr_func   = lambda u: np.interp(u, wtg.ws, wtg.pwr)
+        wtg.ct_func    = interp1d(wtg.ws, wtg.ct,  bounds_error=False, fill_value=(EPS,EPS))  # TODO: 0 outside?
+        wtg.pwr_func   = interp1d(wtg.ws, wtg.pwr, bounds_error=False, fill_value=(EPS,EPS))  # TODO: 0 outside?
         #
         wtgs.append(wtg)
         ii = ix
@@ -436,10 +443,10 @@ Results given as power [kW]
     #
     return vels
 
-def _unzip(wwh_file, knwl_dir):
+def _unzip(wwh_file, knowl_dir):
     logging.info(f'unzipping {wwh_file}')
     z = zipfile.ZipFile(wwh_file)
-    z.extractall(path=knwl_dir)
+    z.extractall(path=knowl_dir)
 
 def get_yaml(fnm):
     '''
@@ -452,19 +459,57 @@ def get_yaml(fnm):
         s.__dict__[k] = v
     return s
 
-def get_input(knwl_dir, yml_file):
+def get_input(knowl_dir, yml_file):
     opts = get_yaml(yml_file) if yml_file else get_default_opts()
     #
-    knwl = read_knowl_input(glob.glob(knwl_dir+SEP+'knowl*.xlsx')[0])
+    knowl = read_knowl_input(glob.glob(knowl_dir+SEP+'knowl*.xlsx')[0])
     #
     # read inventory_file
-    inv_file = knwl_dir + SEP + INV_FILE
+    inv_file = knowl_dir + SEP + INV_FILE
     if not os.path.exists(inv_file):
-        wwh_file = knwl_dir + SEP + WWH_FILE
+        wwh_file = knowl_dir + SEP + WWH_FILE
         assert(os.path.exists(wwh_file))
-        _unzip(wwh_file, knwl_dir)
+        _unzip(wwh_file, knowl_dir)
     assert(os.path.exists(inv_file))
-    return knwl, opts, inv_file 
+    return knowl, opts, inv_file 
+
+def read_output_file(fnm):
+    '''
+    reads a typical output file (from create_output1 or from Fuga)
+    into an xarray.
+    useful for comparing results.
+    '''
+    lines = open(fnm).readlines()
+    tmpfile = 'tmpfile'
+    ns = []
+    gs = []
+    sector = []
+    #
+    for line in lines:
+        if 'All sectors' in line: break
+        if 'AllProjects' in line:
+            f = open(tmpfile, 'w')
+            f.writelines(sector)
+            f.close()
+            df = pd.read_csv(tmpfile, sep='\s+', header=None, usecols=range(2,9))
+            ns.append(df[7].values)
+            gs.append(df[6].values)
+            sector = []
+            continue
+        if 'Turbine site' in line:
+            sector.append(line)
+            continue
+    os.unlink(tmpfile)
+    #
+    nsecs = len(ns)
+    wds = 360/nsecs * arange(nsecs)
+    #
+    coords = dict(wd=wds, wt=df[2].values, x=(["wt"], df[3].values), y=(["wt"], df[4].values))
+    dims   = ["wd", "wt"]
+    #
+    net   = xr.DataArray(data=ns, dims=dims, coords=coords, attrs=dict(description="Net production"))
+    gross = xr.DataArray(data=gs, dims=dims, coords=coords, attrs=dict(description="Gross production"))
+    return net, gross
 
 
 ################################## -- MAIN LOGIC -- ###########################
@@ -477,22 +522,21 @@ if __name__ == '__main__':
     '''
     get necessary input
     '''
-    wake_model = sys.argv[1]                                 # Fuga, TP / *Turbo*, or NOJ. TP / *Turbo* = TurboPark, NOJ = Jensen
-    knwl_dir   = sys.argv[2] if len(sys.argv) > 2 else '.'   # where to find the knowl-data
+    wake_model = sys.argv[1].upper()                         # Fuga, TP/*Turbo*, or NOJ. TP / *Turbo* = TurboPark, NOJ = Jensen
+    knowl_dir  = sys.argv[2] if len(sys.argv) > 2 else '.'   # where to find the knowl-data
     yml_file   = sys.argv[3] if len(sys.argv) > 3 else None  # yaml input file. see note1 above.
     # 
-    knwl, opts, inv_file = get_input(knwl_dir, yml_file)
+    knowl, opts, inv_file = get_input(knowl_dir, yml_file)
     #
     case, wtgs, _, _  = read_inventory(inv_file)
     #
-    weibull = knwl.weibulls[0]                               # for now, we just use the first one. see note2. TODO!
+    weibull = knowl.weibulls[0]                               # for now, we just use the first one. see note2. TODO!
 
     '''
     pick and initialize the chosen wake model
     '''
-    site = UniformWeibullSite(weibull.freqs, weibull.As, weibull.Ks, knwl.turb_intens)
+    site = UniformWeibullSite(weibull.freqs, weibull.As, weibull.Ks, knowl.turb_intens)
     #
-    wake_model = wake_model.upper()                          # convinient
     if wake_model == 'FUGA':
         assert wtgs.uniq_wtgs == 1                           # see note3
         wf_model = py_wake.Fuga(opts.lut_path, site, wtgs)
@@ -525,7 +569,7 @@ if __name__ == '__main__':
     logging.info(f'Net   = {n:.0f}')
     logging.info(f'Loss  = {wloss:.1f} %')
     #
-    output_fnm1 = knwl_dir + SEP + opts.output_fnm1
+    output_fnm1 = knowl_dir + SEP + opts.output_fnm1
     create_output1(net, gross, case, fnm=output_fnm1)
     #
     power = sim0.Power
@@ -533,7 +577,7 @@ if __name__ == '__main__':
     assert(np.all(np.equal(power.x.values, case.xs)))
     assert(np.all(np.equal(power.y.values, case.ys)))
     #
-    output_fnm2 = knwl_dir + SEP + opts.output_fnm2
+    output_fnm2 = knowl_dir + SEP + opts.output_fnm2
     create_output2(power, case, fnm=output_fnm2)
 
     '''
