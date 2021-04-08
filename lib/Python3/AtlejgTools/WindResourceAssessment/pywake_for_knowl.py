@@ -486,7 +486,7 @@ def read_output_file(fnm):
     sector = []
     #
     for line in lines:
-        if 'All sectors' in line: break
+        #if 'All sectors' in line: break
         if 'AllProjects' in line:
             f = open(tmpfile, 'w')
             f.writelines(sector)
@@ -501,8 +501,9 @@ def read_output_file(fnm):
             continue
     os.unlink(tmpfile)
     #
-    nsecs = len(ns)
-    wds = 360/nsecs * arange(nsecs)
+    nsecs = len(ns) - 1
+    wds = 360/nsecs * arange(nsecs+1)
+    wds[-1] = -1                     # this is the 'all sectors'
     #
     coords = dict(wd=wds, wt=df[2].values, x=(["wt"], df[3].values), y=(["wt"], df[4].values))
     dims   = ["wd", "wt"]
@@ -510,6 +511,51 @@ def read_output_file(fnm):
     net   = xr.DataArray(data=ns, dims=dims, coords=coords, attrs=dict(description="Net production"))
     gross = xr.DataArray(data=gs, dims=dims, coords=coords, attrs=dict(description="Gross production"))
     return net, gross
+
+def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60, unit='GWh'):
+    '''
+    reads two output files and compares them (by plotting)
+    useful for comparing results from different sources.
+    typical usage: compare_outputs('FugaOutput_1.txt', 'pywake1.txt', 'FUGA', 'TurboPark')
+    ms: marker-size. set to None for default
+    '''
+    net1 = read_output_file(fnm1)[0]
+    net2 = read_output_file(fnm2)[0]
+    #
+    for wd in net1.wd.values:
+        n1 = net1.sel(wd=wd)
+        n2 = net2.sel(wd=wd)
+        vmin = min(n1.min(), n2.min())
+        vmax = max(n1.max(), n2.max())
+        #
+        wd_txt = f'wd = {wd:.0f} deg' if wd >= 0 else 'wd = ALL'
+        #
+        figure(figsize=(14,5))
+        #
+        subplot(131)
+        scatter(n1.x.values, n1.y.values, c=n1.values, s=ms)
+        cb = colorbar()
+        cb.set_label(f'AEP [{unit}]')
+        matplotlib.pyplot.clim(vmin, vmax)
+        title(f'{lbl1} ({wd_txt})')
+        xticks([]), yticks([])
+        #
+        subplot(132)
+        scatter(n2.x.values, n2.y.values, c=n2.values, s=ms)
+        cb = colorbar()
+        cb.set_label(f'AEP [{unit}]')
+        matplotlib.pyplot.clim(vmin, vmax)
+        title(f'{lbl2} ({wd_txt})')
+        xticks([]), yticks([])
+        #
+        r = (n2-n1) / n1 * 100
+        subplot(133)
+        scatter(r.x.values, r.y.values, c=r.values, s=ms)
+        colorbar()
+        #matplotlib.pyplot.clim(-5, 5)
+        title(f'Relative diff in percent')
+        xticks([]), yticks([])
+    return net1, net2
 
 
 ################################## -- MAIN LOGIC -- ###########################
@@ -572,13 +618,13 @@ if __name__ == '__main__':
     output_fnm1 = knowl_dir + SEP + opts.output_fnm1
     create_output1(net, gross, case, fnm=output_fnm1)
     #
-    power = sim0.Power
+    pwr = sim0.Power
     #
-    assert(np.all(np.equal(power.x.values, case.xs)))
-    assert(np.all(np.equal(power.y.values, case.ys)))
+    assert(np.all(np.equal(pwr.x.values, case.xs)))
+    assert(np.all(np.equal(pwr.y.values, case.ys)))
     #
     output_fnm2 = knowl_dir + SEP + opts.output_fnm2
-    create_output2(power, case, fnm=output_fnm2)
+    create_output2(pwr, case, fnm=output_fnm2)
 
     '''
     optional stuff
