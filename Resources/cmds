@@ -195,7 +195,8 @@ gnome-system-monitor  : ala  Task Manager in windows. shows number of cpu's etc.
 /project/res/riOctaveScripts
 
 # fluent licenses
-/prog/Fluent/ansys_inc/shared_files/licensing/lic_admin/anslic_admin
+#/prog/Fluent/ansys_inc/shared_files/licensing/lic_admin/anslic_admin
+/prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/shared_files/licensing/lic_admin/anslic_admin
 
 # install python packages
 tar xfz MDP-3.3.tar.gz

@@ -157,23 +157,46 @@ alias vimdiff "vimdiff -c 'syntax off'"  # focus on differences - not syntax
 #
 # FLUENT STUFF
 #
-setenv PATH "${PATH}:/prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192/CFX/bin"
-setenv PATH "${PATH}:/prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192/fluent/bin"
-
 setenv FLUENT_ARCH lnamd64
+
+setenv ANSYS_DIR /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192
+#setenv ANSYS_DIR /project/RCP/active/Ansys/Ansys_2020R1/ansys_inc/v201       # WindModeller does not work with this :-(
+
+setenv PATH "${PATH}:${ANSYS_DIR}/CFX/bin"
+setenv PATH "${PATH}:${ANSYS_DIR}/fluent/bin"
+
 #alias fluent    fluent -cc
 #alias cfx       /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192/CFX/bin/cfx5
-alias workbench /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192/Framework/bin/Linux64/runwb2  # Jan-2021
-alias cfdpost   /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192/CFD-Post/bin/cfdpost
+alias workbench "${ANSYS_DIR}/Framework/bin/Linux64/runwb2"  # Jan-2021
+alias cfdpost   "${ANSYS_DIR}/CFD-Post/bin/cfdpost"
 setenv FLUENT_JOU  ~/Fluent/Jou
 alias anslic_admin /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/Licensemanager/shared_files/licensing/lic_admin/anslic_admin # this is the tool to check fluent licenses
 
 # #
 # WindModeller stuff
 #
-setenv PATH "${PATH}:/project/RCP/active/WindModeller_2014/utilities/scripts"
+#setenv PATH "${PATH}:/project/RCP/active/WindModeller_2014/utilities/scripts"
 #setenv PATH "${PATH}:/project/RCP/active/WindModeller_2014/utilities/bin/linux-amd64"
+setenv SCRIPT_DIR /project/RCP/active/Ansys/windmodeller-150120/utilities/scripts
+setenv PATH "${PATH}:${SCRIPT_DIR}"
+setenv PATH "${PATH}:/project/RCP/active/Ansys/windmodeller-150120/utilities/lib/linux-amd64"
+setenv PERLLIB "${PERLLIB}:${SCRIPT_DIR}"
+setenv PERL5LIB "${PERL5LIB}:${SCRIPT_DIR}"
 
+# trying to fix "error while loading shared libraries: libcgns.so.3.2"
+#
+#setenv RUNTIME_LIBS "${ANSYS_DIR}/CEI/apex32/machines/linux_2.6_64/runtime_libs"
+#setenv RUNTIME_LIBS "${ANSYS_DIR}/CFX/tools/cgns-3.2.0/linx64/lib/"
+#setenv PATH "${PATH}:$RUNTIME_LIBS"
+#setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:${RUNTIME_LIBS}"
+#setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:${RUNTIME_LIBS}/cgns-3.3.0/linx64/lib/"
+#setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:${HOME}/lib"
+#setenv LIBRARY_PATH "${LIBRARY_PATH}:${RUNTIME_LIBS}"
+#setenv LIBRARY_PATH "${LIBRARY_PATH}:${RUNTIME_LIBS}/cgns-3.3.0/linx64/lib/"
+#setenv CFX5_CCL_LIBS $RUNTIME_LIBS
+#setenv CFX5_CCL_LIBSDIR $RUNTIME_LIBS
+#setenv KDEDIRS "${KDEDIRS}:$RUNTIME_LIBS"
+# /usr/lib64
 
 # GAMBIT stuff
 # Wed Jan 13 12:03:05 MET 2016
