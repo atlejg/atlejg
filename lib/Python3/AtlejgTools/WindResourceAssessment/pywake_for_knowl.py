@@ -358,56 +358,7 @@ def read_inventory(fnm):
     case.n_parks = len(parks)
     return case, wtgs
 
-def _write_sector_old(net, gross, case, f):
-    # formatting
-    fms = {0:lambda x: f'Turbine site {x:.0f}', 1:INT, 2:INT, 3:INT, 4:REAL, 5:REAL, 6:str}
-    #
-    f.write(f'      Xpos   Ypos   Height   GrAEP   NetAEP\n')
-    f.write(f' Site [m]    [m]    [m]      [GWh]   [GWh]\n')
-    df = pd.DataFrame([case.ids, case.xs, case.ys, case.hub_heights, gross.values, net.values], dtype=np.float64).T  # needs to be float64
-    df[6] = case.wtg_names
-    f.write(df.to_string(index=False, header=False, formatters=fms))
-    #
-    # write a 'summary' for each park and the total
-    f.write(f'\nAllProjects                      {gross.sum().values:.4f}   {net.sum().values:.4f}\n')
-    for typeno in sorted(np.unique(case.types)):
-        ixs = (case.types==typeno).nonzero()[0]
-        g = df.iloc[ixs].iloc[:,4].sum()
-        n = df.iloc[ixs].iloc[:,5].sum()
-        nm = case.names[ixs[0]]
-        f.write(f'{nm:20s}             {g:.4f}   {n:.4f}\n')
-
-def create_output1_old(net, gross, case, fnm):
-    '''
-    create ouput for knowl
-    '''
-    unit = net.Description.split('[')[1][:-1]
-    assert unit == 'GWh'
-    #
-    header = f'''FUGA Annual Energy production estimates
-z0[m]   99999
-zi[m]   99999
-zeta0   99999
-'''
-    f = open(fnm, 'w')
-    f.write(header)
-    #
-    # write sector by sector
-    for i, wd in enumerate(net.wd.values):
-        f.write(f'\nSector\t{i}\n')
-        nwd = net.sel(wd=wd).sum('ws')
-        gwd = gross.sel(wd=wd).sum('ws')
-        _write_sector(nwd, gwd, case, f)
-    #
-    # write all sectors
-    n = net.sum('wd').sum('ws')
-    g = gross.sum('wd').sum('ws')
-    f.write(f'\nAll sectors\n')
-    _write_sector(n, g, case, f)
-    f.close()
-    logging.info(f'{fnm} was created')
-
-def _write_sector(net, gross, park, f):
+def _write_park_aep(net, gross, park, f):
     # formatting
     fms = {0:lambda x: f'Turbine site {x:.0f}', 1:INT, 2:INT, 3:INT, 4:REAL, 5:REAL, 6:str}
     #
@@ -418,7 +369,7 @@ def _write_sector(net, gross, park, f):
     df[6] = [park.wtg.name]*park.size
     f.write(df.to_string(index=False, header=False, formatters=fms))
 
-def create_output1(sim, case, knowl, opts, fnm):
+def create_output(sim, case, knowl, opts, fnm):
     '''
     create ouput for knowl
     '''
@@ -441,10 +392,9 @@ zeta0   99999
         f.write(f'\nSector\t{i}\n')
         netgross = []
         for j, (park, aep) in enumerate(zip(case.park_list, aeps)):
-            _write_sector(aep[0][:,i], aep[1][:,i], park, f)
-        #
+            _write_park_aep(aep[0][:,i], aep[1][:,i], park, f)
         # write a 'summary' for each park and the total
-        ns, gs = [aep[0].sum() for aep in aeps], [aep[1].sum() for aep in aeps]
+        ns, gs = [aep[0][:,i].sum() for aep in aeps], [aep[1][:,i].sum() for aep in aeps]
         f.write(f'\nAllProjects                      {sum(gs):.4f}   {sum(ns):.4f}\n')
         for n, g in zip(ns, gs):
             f.write(f'{park.name:20s}             {g:.4f}   {n:.4f}\n')
@@ -452,7 +402,13 @@ zeta0   99999
     # write all sectors
     f.write(f'\nAll sectors\n')
     for j, (park, aep) in enumerate(zip(case.park_list, aeps)):
-        _write_sector(aep[0].sum(axis=1), aep[1].sum(axis=1), park, f)
+        _write_park_aep(aep[0].sum(axis=1), aep[1].sum(axis=1), park, f)
+    # write a 'summary' for each park and the total
+    ns, gs = [aep[0].sum(axis=1) for aep in aeps], [aep[1].sum(axis=1) for aep in aeps]
+    f.write(f'\nAllProjects                      {sum(gs):.4f}   {sum(ns):.4f}\n')
+    for n, g in zip(ns, gs):
+        f.write(f'{park.name:20s}             {sum(g):.4f}   {sum(n):.4f}\n')
+    #
     f.close()
     logging.info(f'{fnm} was created')
 
@@ -527,7 +483,7 @@ def get_input(knowl_dir, yml_file):
 
 def read_output_file(fnm):
     '''
-    reads a typical output file (from create_output1 or from Fuga)
+    reads a typical output file (from create_output or from Fuga)
     into an xarray.
     useful for comparing results.
     '''
@@ -564,49 +520,55 @@ def read_output_file(fnm):
     gross = xr.DataArray(data=gs, dims=dims, coords=coords, attrs=dict(description="Gross production"))
     return net, gross
 
-def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60, unit='GWh'):
+def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60):
     '''
     reads two output files and compares them (by plotting)
     useful for comparing results from different sources.
     typical usage: compare_outputs('FugaOutput_1.txt', 'pywake1.txt', 'FUGA', 'TurboPark')
     ms: marker-size. set to None for default
     '''
-    net1 = read_output_file(fnm1)[0]
-    net2 = read_output_file(fnm2)[0]
+    net1, gr1 = read_output_file(fnm1)
+    net2, gr2 = read_output_file(fnm2)
     #
     for wd in net1.wd.values:
-        n1 = net1.sel(wd=wd)
-        n2 = net2.sel(wd=wd)
-        vmin = min(n1.min(), n2.min())
-        vmax = max(n1.max(), n2.max())
+        n1, g1 = net1.sel(wd=wd), gr1.sel(wd=wd)
+        wl1 = (g1-n1) / g1 *100
+        n2, g2 = net2.sel(wd=wd), gr2.sel(wd=wd)
+        wl2 = (g2-n2) / g2 *100
+        min_val = min(wl1.min(), wl2.min())
+        max_val = max(wl1.max(), wl2.max())
         #
         wd_txt = f'wd = {wd:.0f} deg' if wd >= 0 else 'wd = ALL'
         #
-        figure(figsize=(14,5))
+        plt.figure(figsize=(18,5))
         #
-        subplot(131)
-        scatter(n1.x.values, n1.y.values, c=n1.values, s=ms)
-        cb = colorbar()
-        cb.set_label(f'AEP [{unit}]')
-        matplotlib.pyplot.clim(vmin, vmax)
-        title(f'{lbl1} ({wd_txt})')
-        xticks([]), yticks([])
+        plt.subplot(131)
+        plt.scatter(wl1.x.values, wl1.y.values, c=wl1.values, s=ms)
+        plt.axis('equal')
+        cb = plt.colorbar()
+        cb.set_label('Wake loss [%]')
+        plt.clim(min_val, max_val)
+        plt.title(f'{lbl1} ({wd_txt})')
+        plt.xticks([]), yticks([])
         #
-        subplot(132)
-        scatter(n2.x.values, n2.y.values, c=n2.values, s=ms)
-        cb = colorbar()
-        cb.set_label(f'AEP [{unit}]')
-        matplotlib.pyplot.clim(vmin, vmax)
-        title(f'{lbl2} ({wd_txt})')
-        xticks([]), yticks([])
+        plt.subplot(132)
+        plt.scatter(wl2.x.values, wl2.y.values, c=wl2.values, s=ms)
+        plt.axis('equal')
+        cb = plt.colorbar()
+        cb.set_label('Wake loss [%]')
+        plt.clim(min_val, max_val)
+        plt.title(f'{lbl2} ({wd_txt})')
+        plt.xticks([]), yticks([])
         #
-        r = (n2-n1) / n1 * 100
-        subplot(133)
-        scatter(r.x.values, r.y.values, c=r.values, s=ms)
-        colorbar()
-        #matplotlib.pyplot.clim(-5, 5)
-        title(f'Relative diff in percent')
-        xticks([]), yticks([])
+        wld = wl1 - wl2
+        plt.subplot(133)
+        plt.scatter(wld.x.values, wld.y.values, c=wld.values, s=ms)
+        plt.axis('equal')
+        plt.colorbar()
+        cb.set_label('Wake loss [%]')
+        plt.title('Wake loss difference')
+        plt.xticks([]), yticks([])
+        plt.tight_layout()
     return net1, net2
 
 
@@ -650,15 +612,15 @@ if __name__ == '__main__':
     '''
     wd = np.arange(0, 360, opts.dwd)
     ws = np.arange(np.floor(wtgs.ws_min), np.ceil(wtgs.ws_max)+1, opts.dws)
-    #sim = wf_model(case.xs, case.ys, type=case.types, wd=wd, ws=ws)
+    sim = wf_model(case.xs, case.ys, type=case.types, wd=wd, ws=ws)
     assert(np.all(np.equal(sim.x.values, case.xs)))
     assert(np.all(np.equal(sim.y.values, case.ys)))
 
     '''
     reporting AEP etc
     '''
-    output_fnm1 = knowl_dir + SEP + opts.output_fnm1
-    create_output1(sim, case, knowl, opts, output_fnm1)
+    output_fnm = knowl_dir + SEP + opts.output_fnm1
+    create_output(sim, case, knowl, opts, output_fnm)
 
     '''
     optional stuff
