@@ -82,6 +82,7 @@ import pandas as pd
 import os, sys
 import glob, re, zipfile, logging, yaml
 from scipy.interpolate import interp1d
+import AtlejgTools.WindResourceAssessment.Utils as WU
 
 N_SECTORS = 12
 INV_FILE  = 'Inventory.xml'
@@ -254,16 +255,16 @@ def read_inventory(fnm):
     reads knowl-inventory (xml) file for setting up windfarm simulation using pywake.
     #
     typical use then:
-    case, parks, weibull, wtgs, wtgs_raw  = read_inventory(inventory_file)
+    case, wtgs = read_inventory(inventory_file)
     #
     input:
         - fnm      : name of knowl inventory file
     #
     output:
-        - case     : all parks collected into one object
+        - case     : all parks collected into one object.
+                     includes lists of individual WTG's and parks as read from the inventory (wtg_list and park_list)
         - parks    : list of individual parks
         - wtgs     : an WindTurbines object for all WTG used
-        - wtgs_raw : list of individual WTG's as read from the inventory
     '''
     park_nms = []
     ids      = []
@@ -351,11 +352,13 @@ def read_inventory(fnm):
     #
     wtgs = _get_windturbines(wtgs_raw)
     #
-    #weibull = _get_weibull(weib)
-    #
-    return case, wtgs, parks, wtgs_raw
+    # some useful stuff
+    case.wtg_list = wtgs_raw
+    case.park_list = parks
+    case.n_parks = len(parks)
+    return case, wtgs
 
-def _write_sector(net, gross, case, f):
+def _write_sector_old(net, gross, case, f):
     # formatting
     fms = {0:lambda x: f'Turbine site {x:.0f}', 1:INT, 2:INT, 3:INT, 4:REAL, 5:REAL, 6:str}
     #
@@ -374,7 +377,7 @@ def _write_sector(net, gross, case, f):
         nm = case.names[ixs[0]]
         f.write(f'{nm:20s}             {g:.4f}   {n:.4f}\n')
 
-def create_output1(net, gross, case, fnm):
+def create_output1_old(net, gross, case, fnm):
     '''
     create ouput for knowl
     '''
@@ -401,6 +404,55 @@ zeta0   99999
     g = gross.sum('wd').sum('ws')
     f.write(f'\nAll sectors\n')
     _write_sector(n, g, case, f)
+    f.close()
+    logging.info(f'{fnm} was created')
+
+def _write_sector(net, gross, park, f):
+    # formatting
+    fms = {0:lambda x: f'Turbine site {x:.0f}', 1:INT, 2:INT, 3:INT, 4:REAL, 5:REAL, 6:str}
+    #
+    f.write(f'      Xpos   Ypos   Height   GrAEP   NetAEP\n')
+    f.write(f' Site [m]    [m]    [m]      [GWh]   [GWh]\n')
+    hub_heights = [park.wtg.hub_height]*park.size
+    df = pd.DataFrame([park.ids, park.xs, park.ys, hub_heights, gross, net], dtype=np.float64).T  # needs to be float64
+    df[6] = [park.wtg.name]*park.size
+    f.write(df.to_string(index=False, header=False, formatters=fms))
+
+def create_output1(sim, case, knowl, opts, fnm):
+    '''
+    create ouput for knowl
+    '''
+    #
+    header = f'''py_wake Annual Energy production estimates
+z0[m]   99999
+zi[m]   99999
+zeta0   99999
+'''
+    f = open(fnm, 'w')
+    f.write(header)
+    #
+    # calculate AEP for all turbines
+    weibs     = [knowl.weibulls[0]]*case.n_parks                              # for now, we just use the first one. see note2. TODO!
+    pwr_funcs = [wtg.pwr_func for wtg in case.wtg_list]
+    aeps      = WU.calc_AEP(sim, pwr_funcs, weibs, opts.dwd, verbose=True)
+    #
+    # write sector by sector
+    for i, wd in enumerate(weibs[0].dirs):
+        f.write(f'\nSector\t{i}\n')
+        netgross = []
+        for j, (park, aep) in enumerate(zip(case.park_list, aeps)):
+            _write_sector(aep[0][:,i], aep[1][:,i], park, f)
+        #
+        # write a 'summary' for each park and the total
+        ns, gs = [aep[0].sum() for aep in aeps], [aep[1].sum() for aep in aeps]
+        f.write(f'\nAllProjects                      {sum(gs):.4f}   {sum(ns):.4f}\n')
+        for n, g in zip(ns, gs):
+            f.write(f'{park.name:20s}             {g:.4f}   {n:.4f}\n')
+    #
+    # write all sectors
+    f.write(f'\nAll sectors\n')
+    for j, (park, aep) in enumerate(zip(case.park_list, aeps)):
+        _write_sector(aep[0].sum(axis=1), aep[1].sum(axis=1), park, f)
     f.close()
     logging.info(f'{fnm} was created')
 
@@ -574,13 +626,13 @@ if __name__ == '__main__':
     # 
     knowl, opts, inv_file = get_input(knowl_dir, yml_file)
     #
-    case, wtgs, _, _  = read_inventory(inv_file)
+    case, wtgs = read_inventory(inv_file)
     #
-    weibull = knowl.weibulls[0]                               # for now, we just use the first one. see note2. TODO!
 
     '''
     pick and initialize the chosen wake model
     '''
+    weibull = knowl.weibulls[0]                              # for now, we just use the first one. see note2. TODO!
     site = UniformWeibullSite(weibull.freqs, weibull.As, weibull.Ks, knowl.turb_intens)
     #
     if wake_model == 'FUGA':
@@ -596,35 +648,17 @@ if __name__ == '__main__':
     '''
     run wake model for all combinations of wd and ws
     '''
-    ws = np.arange(np.floor(wtgs.ws_min), np.ceil(wtgs.ws_max)+1)
-    sim0 = wf_model(case.xs, case.ys, type=case.types, wd=weibull.dirs, ws=ws)
+    wd = np.arange(0, 360, opts.dwd)
+    ws = np.arange(np.floor(wtgs.ws_min), np.ceil(wtgs.ws_max)+1, opts.dws)
+    #sim = wf_model(case.xs, case.ys, type=case.types, wd=wd, ws=ws)
+    assert(np.all(np.equal(sim.x.values, case.xs)))
+    assert(np.all(np.equal(sim.y.values, case.ys)))
 
     '''
     reporting AEP etc
     '''
-    net = sim0.aep(with_wake_loss=True)
-    assert(np.all(np.equal(net.x.values, case.xs)))
-    assert(np.all(np.equal(net.y.values, case.ys)))
-    #
-    gross = sim0.aep(with_wake_loss=False)
-    g     = gross.values.sum()
-    n     = net.values.sum()
-    wloss = (g-n) / g * 100                                 # wake loss in %
-    #
-    logging.info(f'Gross = {g:.0f}')
-    logging.info(f'Net   = {n:.0f}')
-    logging.info(f'Loss  = {wloss:.1f} %')
-    #
     output_fnm1 = knowl_dir + SEP + opts.output_fnm1
-    create_output1(net, gross, case, fnm=output_fnm1)
-    #
-    pwr = sim0.Power
-    #
-    assert(np.all(np.equal(pwr.x.values, case.xs)))
-    assert(np.all(np.equal(pwr.y.values, case.ys)))
-    #
-    output_fnm2 = knowl_dir + SEP + opts.output_fnm2
-    create_output2(pwr, case, fnm=output_fnm2)
+    create_output1(sim, case, knowl, opts, output_fnm1)
 
     '''
     optional stuff
@@ -636,7 +670,7 @@ if __name__ == '__main__':
         ws_plot = int(weibull.main_ws)
         ws1, ws2 = np.floor(opts.legend_scaler*ws_plot), ws_plot+1
         levels = np.linspace(ws1, ws2, int((ws2-ws1)*10)+1)
-        flow_map = sim0.flow_map(grid=None, wd=weibull.main_dir, ws=ws_plot)
+        flow_map = sim.flow_map(grid=None, wd=weibull.main_dir, ws=ws_plot)
         flow_map.plot_wake_map(levels=levels, plot_ixs=False)
         plt.title(f'{opts.case_nm} :: {opts.wake_model} :: {ws_plot:d} m/s :: {weibull.main_dir:.0f} deg')
         plt.show()

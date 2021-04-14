@@ -24,7 +24,7 @@ wtgs = Dudgeon2.TwoWTGs(n_old, len(wt_x)-n_old, Dudgeon2.D, Dudgeon2.D, Dudgeon2
 
 plot_layout = False
 plot_wind   = True
-do_more     = False
+do_more     = True
 
 # ### Layout
 
@@ -112,62 +112,64 @@ if do_more:
         -------
         y : array_like
         """
-
         # see https://orbit.dtu.dk/en/publications/european-wind-atlas, page 95
+        #
         def G(alpha, k):
             # 1/k times the incomplete gamma function of the two arguments 1/k and alpha^k
             # Note, the scipy incomplete gamma function, gammainc, must be multiplied with gamma(k) to match the
             # the G function used in the European Wind Atlas
             import scipy.special as sc
             return 1 / k * sc.gamma(1 / k) * sc.gammainc(1 / k, alpha**k)
-
+        #
         u0, u1 = u[:-1], u[1:]
         alpha0, alpha1 = (u0 / A), (u1 / A)
         alpha0, alpha1 = (u0 / A)+np.random.rand()*1e-10, (u1 / A)+np.random.rand()*1e-10
-        p0, p1 = power[..., :-1], power[..., 1:]
-
-        res = (p0 * np.exp(-alpha0**k) +  # eq 6.5, p0 * cdf(u0:)
-               (p1 - p0) / (alpha1 - alpha0) * (G(alpha1, k) - G(alpha0, k)) -  # eq 6.4 linear change p0 to p1
-               p1 * np.exp(-alpha1**k)
-               )  # eq 6.5, - p1 * cdf(u1:)
-
+        p0, p1 = power[:, :-1], power[:, 1:]
+        #
+        res = (    p0 * np.exp(-alpha0**k)                                         # eq 6.5, p0 * cdf(u0:)
+                 + (p1 - p0) / (alpha1 - alpha0) * (G(alpha1, k) - G(alpha0, k))   # eq 6.4 linear change p0 to p1
+                 - p1 * np.exp(-alpha1**k)                                         # eq 6.5, - p1 * cdf(u1:)
+        )
+        #
         return res
 
 
-    gpw = np.tile(wf_model.windTurbines.power(sim_res.ws),(sim_res.Power.shape[0],sim_res.Power.shape[1],1))
+    # power per WTG and wind-direction (wt, wd)
+    n_bins = int(site.ds.sector_width / dwd                                                                        # number of bins per sector
+    npwrb = binArray(sim_res.Power.values,1, n_bins, n_bins)                                                       # net power from simulation. binned
+    gpwr  = np.tile(wf_model.windTurbines.power(sim_res.ws), [sim_res.Power.shape[0], sim_res.Power.shape[1], 1])  # gross power - from WTG power curve
+    gpwrb = binArray(gpwr,1, n_bins, n_bins)                                                                       # gross power - from WTG power curve. binned
+
+    # weibull params
+    a = site.ds.Weibull_A.values[:-1]
+    k = site.ds.Weibull_k.values[:-1]
+    f = site.ds.Sector_frequency.values[:-1]
 
 
-    tmp=binArray(sim_res.Power.values,1,60,60)
-    gtmp=binArray(gpw,1,60,60)
-
-
-    a=site.ds.Weibull_A[0:-1].values
-    k=site.ds.Weibull_k[0:-1].values
-    f=site.ds.Sector_frequency[0:-1].values
-
-
-    wagpw=np.ndarray((gtmp.shape[0],gtmp.shape[1],gtmp.shape[2]-1))
-    wapw=np.ndarray((tmp.shape[0],tmp.shape[1],tmp.shape[2]-1))
+    # weighting of bins
+    wagpw=np.ndarray((gpwrb.shape[0],gpwrb.shape[1],gpwrb.shape[2]-1))
+    wapw=np.ndarray((npwrb.shape[0],npwrb.shape[1],npwrb.shape[2]-1))
     for n in range(12):
-        wagpw[:,n,:]=WeightedPower(sim_res.ws.values, gtmp[:,n,:], a[n], k[n])
-        wapw[:,n,:]=WeightedPower(sim_res.ws.values, tmp[:,n,:], a[n], k[n])
+        wagpw[:,n,:]=WeightedPower(sim_res.ws.values, gpwrb[:,n,:], a[n], k[n])
+        wapw[:,n,:]=WeightedPower(sim_res.ws.values, npwrb[:,n,:], a[n], k[n])
 
-
-    pw=0
-    gpw=0
+    # calculate total power using weibulls
+    npw=0.
+    gpw=0.
     for n in range(wapw.shape[1]):
-        gpw+=f[n]*wagpw[:,n,:].sum()
-        pw+=f[n]*wapw[:,n,:].sum()
+        gpw += f[n]*wagpw[:,n,:].sum()
+        npw += f[n]*wapw[:,n,:].sum()
+
+    # AEP
+    wwgross = gpw * 24*365*1e-9                        # 365.24?? TODO
+    wwnet   = npw * 24*365*1e-9
+    wwwl    = ((wwgross-wwnet) / wwgross) * 100
 
 
-    wwgross = gpw*24*365*1e-9
-    wwnet = pw*24*365*1e-9
-    wwwl = ((wwgross-wwnet)/wwgross)*100
-
-
-    pd.DataFrame({'Wake model: {}'.format(wake_model): np.round([wwgross, wwnet, wwwl], 1)},
+    res = pd.DataFrame({'Wake model: {}'.format(wake_model): np.round([wwgross, wwnet, wwwl], 1)},
                  index=['Gross AEP (GWh)', 'Net AEP (GWh)', 'Wake loss (%)'])
-
+    
+    print(res)
 
 show()
 
