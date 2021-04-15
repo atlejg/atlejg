@@ -90,6 +90,7 @@ from py_wake.site._site import UniformWeibullSite
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import xarray as xr
 import os, sys
 import glob, re, zipfile, logging, yaml
 from scipy.interpolate import interp1d
