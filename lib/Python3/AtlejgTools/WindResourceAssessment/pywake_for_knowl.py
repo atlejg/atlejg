@@ -33,12 +33,16 @@ NOTES
 
         # model input / parameters
         #
-        lut_path:
+        lut_path:                  # path to look-up tables (Fuga only)
             ../FugaLUTs/Z0=0.00012000Zi=00790Zeta0=2.00E-7
         tp_A:
             !!float   0.60         # Only used for TurboPark. 'A' parameter in dDw/dx = A*I(x)
         noj_k:
             !!float   0.04         # Only used for Jensen. Wake expansion parameter
+        delta_winddir:
+            !!float   1.0          # delta wind-dir for calculations
+        delta_windspeed:
+            !!float   0.50         # delta wind-vel for calculations
 
         # output
         output_fnm1:
@@ -70,6 +74,13 @@ NOTES
         according to knut seim, fuga cannot be used in cases with more than one type of wtg
         so, it will abort if there is more than one (unique) wtg.
         also, it will need path to fuga look-up tables. (lut_path, see note1 above)
+
+ - note4
+    naming conventions follows typical pywake lingo:
+        - wt: wind turbine
+          wd: wind direction
+          ws: wind speed
+          wl: wake loss
 
 '''
 
@@ -385,7 +396,7 @@ zeta0   99999
     # calculate AEP for all turbines
     weibs     = [knowl.weibulls[0]]*case.n_parks                              # for now, we just use the first one. see note2. TODO!
     pwr_funcs = [wtg.pwr_func for wtg in case.wtg_list]
-    aeps      = WU.calc_AEP(sim, pwr_funcs, weibs, opts.dwd, verbose=True)
+    aeps      = WU.calc_AEP(sim, pwr_funcs, weibs, opts.delta_winddir, verbose=True)
     #
     # write sector by sector
     for i, wd in enumerate(weibs[0].dirs):
@@ -610,8 +621,8 @@ if __name__ == '__main__':
     '''
     run wake model for all combinations of wd and ws
     '''
-    wd = np.arange(0, 360, opts.dwd)
-    ws = np.arange(np.floor(wtgs.ws_min), np.ceil(wtgs.ws_max)+1, opts.dws)
+    wd = np.arange(0, 360, opts.delta_winddir)
+    ws = np.arange(np.floor(wtgs.ws_min), np.ceil(wtgs.ws_max)+1, opts.delta_windspeed)
     sim = wf_model(case.xs, case.ys, type=case.types, wd=wd, ws=ws)
     assert(np.all(np.equal(sim.x.values, case.xs)))
     assert(np.all(np.equal(sim.y.values, case.ys)))
