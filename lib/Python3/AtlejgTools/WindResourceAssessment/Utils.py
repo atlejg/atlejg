@@ -120,7 +120,7 @@ def calc_AEP(sim0, pwr_funcs, weibs, dwd=1., verbose=False):
     #
     for i, (pwr_func, weib) in enumerate(zip(pwr_funcs, weibs)):
         #
-        sim = sim0.where(sim0.type==i)
+        sim = sim0.where(sim0.type==i, drop=True)
         #
         n_sectors = len(weib.freqs)
         sector_w  = 360. / n_sectors

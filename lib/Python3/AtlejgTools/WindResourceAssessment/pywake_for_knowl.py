@@ -384,6 +384,7 @@ def _write_park_aep(net, gross, park, f):
 def create_output(sim, case, knowl, opts, fnm):
     '''
     create ouput for knowl
+    only the 'Wake only' option is supported
     '''
     #
     header = f'''py_wake Annual Energy production estimates
@@ -405,7 +406,7 @@ zeta0   99999
         netgross = []
         for j, (park, aep) in enumerate(zip(case.park_list, aeps)):
             _write_park_aep(aep[0][:,i], aep[1][:,i], park, f)
-        # write a 'summary' for each park and the total
+        # write a 'summary' for the total and each park
         ns, gs = [aep[0][:,i].sum() for aep in aeps], [aep[1][:,i].sum() for aep in aeps]
         f.write(f'\nAllProjects                      {sum(gs):.4f}   {sum(ns):.4f}\n')
         for n, g in zip(ns, gs):
@@ -415,9 +416,12 @@ zeta0   99999
     f.write(f'\nAll sectors\n')
     for j, (park, aep) in enumerate(zip(case.park_list, aeps)):
         _write_park_aep(aep[0].sum(axis=1), aep[1].sum(axis=1), park, f)
-    # write a 'summary' for each park and the total
+    #
+    # write a 'summary' for the total and each park
     ns, gs = [aep[0].sum(axis=1) for aep in aeps], [aep[1].sum(axis=1) for aep in aeps]
-    f.write(f'\nAllProjects                      {sum(gs):.4f}   {sum(ns):.4f}\n')
+    #
+    n, g = sum([sum(x) for x in ns]), sum([sum(x) for x in gs])
+    f.write(f'\nAllProjects                      {sum(g):.4f}   {sum(n):.4f}\n')
     for n, g in zip(ns, gs):
         f.write(f'{park.name:20s}             {sum(g):.4f}   {sum(n):.4f}\n')
     #
@@ -482,7 +486,7 @@ def get_yaml(fnm):
 def get_input(knowl_dir, yml_file):
     opts = get_yaml(yml_file) if yml_file else get_default_opts()
     #
-    knowl = read_knowl_input(glob.glob(knowl_dir+SEP+'knowl*.xlsx')[0])
+    knowl = read_knowl_input(glob.glob(knowl_dir+SEP+'knowl_v*input.xlsx')[0])
     #
     # read inventory_file
     inv_file = knowl_dir + SEP + INV_FILE
