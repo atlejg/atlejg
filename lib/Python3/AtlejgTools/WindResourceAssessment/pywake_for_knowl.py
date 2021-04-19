@@ -44,10 +44,10 @@ NOTES
         delta_windspeed:
             !!float   0.50         # delta wind-vel for calculations
 
-        # output
-        output_fnm1:
+        # output file-names. relative to knowl_dir
+        output_fnm1:               # the file needed when running 'Wake only' from knowl
             FugaOutput_1.txt
-        output_fnm2:
+        output_fnm2:               # the file needed when running 'the other option' from knowl. not implemented yet. TODO!!
             FugaOutput_2.txt
 
         # options
@@ -118,7 +118,7 @@ def get_default_opts():
     opts.case_nm = ''
     opts.inventory_file = 'Inventory.xml'
     opts.output_fnm1    = 'FugaOutput_1.txt'
-    opts.output_fnm2    = 'FugaOutput_2.txt'
+    opts.logfile        = 'pywake.log'
     opts.tp_A           =  0.60
     opts.noj_k          =  0.04
     opts.legend_scaler  =  0.70
@@ -206,10 +206,11 @@ def _wtgs(data, wtg_nms, hub_hs, diams):
         wtg.diameter   = diams[i]
         wtg.data       = data[ii:ix]
         wtg.ws         = [x[0] for x in wtg.data]
-        wtg.pwr        = [x[1] for x in wtg.data]
-        wtg.ct         = [x[2] for x in wtg.data]
-        wtg.ct_func    = interp1d(wtg.ws, wtg.ct,  bounds_error=False, fill_value=(EPS,EPS))  # TODO: 0 outside?
-        wtg.pwr_func   = interp1d(wtg.ws, wtg.pwr, bounds_error=False, fill_value=(EPS,EPS))  # TODO: 0 outside?
+        # use EPS to avoid hard zeros
+        wtg.pwr        = np.maximum([x[1] for x in wtg.data], EPS)
+        wtg.ct         = np.maximum([x[2] for x in wtg.data], EPS)
+        wtg.ct_func    = interp1d(wtg.ws, wtg.ct,  bounds_error=False, fill_value=(EPS,EPS))
+        wtg.pwr_func   = interp1d(wtg.ws, wtg.pwr, bounds_error=False, fill_value=(EPS,EPS))
         #
         wtgs.append(wtg)
         ii = ix
@@ -340,6 +341,8 @@ def read_inventory(fnm):
         p.types = i * np.ones(p.size, dtype=int)
         p.name  = park_nms[i]
         parks.append(p)
+        logging.info(f'Park: {p.name}')
+        logging.info(f'WTG: {p.wtg.name}')
         ii = ix
     #
     # finally, collect all parks into one big case / park
@@ -381,10 +384,10 @@ def _write_park_aep(net, gross, park, f):
     df[6] = [park.wtg.name]*park.size
     f.write(df.to_string(index=False, header=False, formatters=fms))
 
-def create_output(sim, case, knowl, opts, fnm):
+def create_output_aep(sim, case, knowl, opts, fnm):
     '''
     create ouput for knowl
-    only the 'Wake only' option is supported
+    only the 'For wake only' option is supported
     '''
     #
     header = f'''py_wake Annual Energy production estimates
@@ -409,7 +412,7 @@ zeta0   99999
         # write a 'summary' for the total and each park
         ns, gs = [aep[0][:,i].sum() for aep in aeps], [aep[1][:,i].sum() for aep in aeps]
         f.write(f'\nAllProjects                      {sum(gs):.4f}   {sum(ns):.4f}\n')
-        for n, g in zip(ns, gs):
+        for park, n, g in zip(case.park_list, ns, gs):
             f.write(f'{park.name:20s}             {g:.4f}   {n:.4f}\n')
     #
     # write all sectors
@@ -421,14 +424,14 @@ zeta0   99999
     ns, gs = [aep[0].sum(axis=1) for aep in aeps], [aep[1].sum(axis=1) for aep in aeps]
     #
     n, g = sum([sum(x) for x in ns]), sum([sum(x) for x in gs])
-    f.write(f'\nAllProjects                      {sum(g):.4f}   {sum(n):.4f}\n')
-    for n, g in zip(ns, gs):
+    f.write(f'\nAllProjects                      {g:.4f}   {n:.4f}\n')
+    for park, n, g in zip(case.park_list, ns, gs):
         f.write(f'{park.name:20s}             {sum(g):.4f}   {sum(n):.4f}\n')
     #
     f.close()
     logging.info(f'{fnm} was created')
 
-def create_output2(power, case, fnm=None):
+def create_output_power(power, case, fnm=None):
     unit = power.Description.split('[')[1][:-1]
     assert unit == 'W'
     vels = []
@@ -475,9 +478,8 @@ def _unzip(wwh_file, knowl_dir):
 def get_yaml(fnm):
     '''
     read yaml-file into a Struct for easy access.
-    and also avoid the open()
     '''
-    yml = yaml.load(open(fnm))
+    yml = yaml.load(open(fnm), Loader=yaml.SafeLoader)
     s = Struct()
     for k,v in yml.items():
         s.__dict__[k] = v
@@ -489,18 +491,18 @@ def get_input(knowl_dir, yml_file):
     knowl = read_knowl_input(glob.glob(knowl_dir+SEP+'knowl_v*input.xlsx')[0])
     #
     # read inventory_file
-    inv_file = knowl_dir + SEP + INV_FILE
-    if not os.path.exists(inv_file):
+    if not hasattr(opts, 'inv_file') or not opts.inv_file:
+        opts.inv_file = knowl_dir + SEP + INV_FILE
+    if not os.path.exists(opts.inv_file):
         wwh_file = knowl_dir + SEP + WWH_FILE
         assert(os.path.exists(wwh_file))
         _unzip(wwh_file, knowl_dir)
-    assert(os.path.exists(inv_file))
-    return knowl, opts, inv_file 
+    assert(os.path.exists(opts.inv_file))
+    return knowl, opts
 
 def read_output_file(fnm):
     '''
-    reads a typical output file (from create_output or from Fuga)
-    into an xarray.
+    reads a typical output file (from create_output_aep or from Fuga) into an xarray.
     useful for comparing results.
     '''
     lines = open(fnm).readlines()
@@ -593,19 +595,18 @@ def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60):
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=logging.INFO, filename='pywake.log')
-
     '''
     get necessary input
     '''
     wake_model = sys.argv[1].upper()                         # Fuga, TP/*Turbo*, or NOJ. TP / *Turbo* = TurboPark, NOJ = Jensen
-    knowl_dir  = sys.argv[2] if len(sys.argv) > 2 else '.'   # where to find the knowl-data
+    knowl_dir  = sys.argv[2] if len(sys.argv) > 2 else '.'   # where to find the knowl excel-file
     yml_file   = sys.argv[3] if len(sys.argv) > 3 else None  # yaml input file. see note1 above.
     # 
-    knowl, opts, inv_file = get_input(knowl_dir, yml_file)
+    knowl, opts = get_input(knowl_dir, yml_file)
     #
-    case, wtgs = read_inventory(inv_file)
-    #
+    case, wtgs = read_inventory(opts.inv_file)
+
+    logging.basicConfig(level=logging.INFO, filename=opts.logfile)
 
     '''
     pick and initialize the chosen wake model
@@ -627,7 +628,7 @@ if __name__ == '__main__':
     run wake model for all combinations of wd and ws
     '''
     wd = np.arange(0, 360, opts.delta_winddir)
-    ws = np.arange(np.floor(wtgs.ws_min), np.ceil(wtgs.ws_max)+1, opts.delta_windspeed)
+    ws = np.arange(np.floor(wtgs.ws_min/2), np.ceil(wtgs.ws_max)+1, opts.delta_windspeed)
     sim = wf_model(case.xs, case.ys, type=case.types, wd=wd, ws=ws)
     assert(np.all(np.equal(sim.x.values, case.xs)))
     assert(np.all(np.equal(sim.y.values, case.ys)))
@@ -635,8 +636,11 @@ if __name__ == '__main__':
     '''
     reporting AEP etc
     '''
-    output_fnm = knowl_dir + SEP + opts.output_fnm1
-    create_output(sim, case, knowl, opts, output_fnm)
+    if not hasattr(opts, 'output_fnm1') or not opts.output_fnm1:
+        fnm = wake_model + '.txt'
+    else:
+        fnm = opts.output_fnm1
+    create_output_aep(sim, case, knowl, opts, fnm)
 
     '''
     optional stuff
