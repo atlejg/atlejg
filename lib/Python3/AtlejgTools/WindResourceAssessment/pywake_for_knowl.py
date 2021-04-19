@@ -91,7 +91,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import xarray as xr
-import os, sys
+import os, sys, time
 import glob, re, zipfile, logging, yaml
 from scipy.interpolate import interp1d
 import AtlejgTools.WindResourceAssessment.Utils as WU
@@ -607,6 +607,7 @@ if __name__ == '__main__':
     case, wtgs = read_inventory(opts.inv_file)
 
     logging.basicConfig(level=logging.INFO, filename=opts.logfile)
+    tic = time.perf_counter()
 
     '''
     pick and initialize the chosen wake model
@@ -667,3 +668,5 @@ if __name__ == '__main__':
         site.plot_wd_distribution(n_wd=12, ws_bins=[0,5,10,15,20,25])
         plt.show()
 
+    toc = time.perf_counter()
+    logging.info(f"Total runtime: {toc - tic:0.1f} seconds")
