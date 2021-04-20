@@ -487,6 +487,8 @@ def get_yaml(fnm):
 
 def get_input(knowl_dir, yml_file):
     opts = get_yaml(yml_file) if yml_file else get_default_opts()
+    if not hasattr(opts, 'logfile') or not opts.logfile:
+        opts.logfile = None
     #
     knowl = read_knowl_input(glob.glob(knowl_dir+SEP+'knowl_v*input.xlsx')[0])
     #
