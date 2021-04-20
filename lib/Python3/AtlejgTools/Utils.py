@@ -952,3 +952,103 @@ def get_yaml(fnm):
     for k,v in yml.items():
         s.__dict__[k] = v
     return s
+
+
+
+
+def _get_size(bytes):
+    """
+    Returns size of bytes in a nice format
+    """
+    for unit in ['', 'K', 'M', 'G', 'T', 'P']:
+        if bytes < 1024:
+            return f"{bytes:.2f} {unit}B"
+        bytes /= 1024
+
+
+def get_processes_info(sort_by, descending=True, columns=None):
+    '''
+    copied / based on
+    https://www.thepythoncode.com/code/make-process-monitor-python
+    # the data-frame that contain all process info
+    '''
+    import psutil
+    from datetime import datetime
+    import pandas as pd
+    import time
+    #
+    if columns is None:
+        columns = "name,cpu_usage,memory_usage,read_bytes,write_bytes,status,create_time,nice,n_threads,cores"
+    #
+    processes = []
+    for process in psutil.process_iter():
+        # get all process info in one shot
+        with process.oneshot():
+            # get the process id
+            pid = process.pid
+            if pid == 0:
+                # System Idle Process for Windows NT, useless to see anyways
+                continue
+            # get the name of the file executed
+            name = process.name()
+            # get the time the process was spawned
+            try:
+                create_time = datetime.fromtimestamp(process.create_time())
+            except OSError:
+                # system processes, using boot time instead
+                create_time = datetime.fromtimestamp(psutil.boot_time())
+            try:
+                # get the number of CPU cores that can execute this process
+                cores = len(process.cpu_affinity())
+            except psutil.AccessDenied:
+                cores = 0
+            # get the CPU usage percentage
+            cpu_usage = process.cpu_percent()
+            # get the status of the process (running, idle, etc.)
+            status = process.status()
+            try:
+                # get the process priority (a lower value means a more prioritized process)
+                nice = int(process.nice())
+            except psutil.AccessDenied:
+                nice = 0
+            try:
+                # get the memory usage in bytes
+                memory_usage = process.memory_full_info().uss
+            except psutil.AccessDenied:
+                memory_usage = 0
+            # total process read and written bytes
+            io_counters = process.io_counters()
+            read_bytes = io_counters.read_bytes
+            write_bytes = io_counters.write_bytes
+            # get the number of total threads spawned by this process
+            n_threads = process.num_threads()
+            # get the username of user spawned the process
+            try:
+                username = process.username()
+            except psutil.AccessDenied:
+                username = "N/A"
+
+        processes.append({
+            'pid': pid, 'name': name, 'create_time': create_time,
+            'cores': cores, 'cpu_usage': cpu_usage, 'status': status, 'nice': nice,
+            'memory_usage': memory_usage, 'read_bytes': read_bytes, 'write_bytes': write_bytes,
+            'n_threads': n_threads, 'username': username,
+        })
+    #
+    # convert to pandas dataframe
+    pcs = pd.DataFrame(processes)
+    # set the process id as index of a process
+    pcs.set_index('pid', inplace=True)
+    # sort rows by the column passed as argument
+    pcs.sort_values(sort_by, inplace=True, ascending=not descending)
+    # pretty printing bytes
+    pcs['memory_usage'] = pcs['memory_usage'].apply(_get_size)
+    pcs['write_bytes'] = pcs['write_bytes'].apply(_get_size)
+    pcs['read_bytes'] = pcs['read_bytes'].apply(_get_size)
+    # convert to proper date format
+    pcs['create_time'] = pcs['create_time'].apply(datetime.strftime, args=("%Y-%m-%d %H:%M:%S",))
+    # reorder and define used columns
+    pcs = pcs[columns.split(",")]
+    return pcs
+
+
