@@ -95,6 +95,7 @@ import os, sys, time
 import glob, re, zipfile, logging, yaml
 from scipy.interpolate import interp1d
 import AtlejgTools.WindResourceAssessment.Utils as WU
+import AtlejgTools.Utils as UT
 
 N_SECTORS = 12
 INV_FILE  = 'Inventory.xml'
@@ -104,27 +105,24 @@ EPS       = 1e-9               # small non-zero value
 REAL = lambda x: f'{x:.4f}'
 INT  = lambda x: f'{x:.0f}'
 
-class Struct(object):
-    '''
-    just a lazy way of introducing objects
-    '''
-    pass
 
 def get_default_opts():
     '''
     see note1 for description of attributes
     '''
-    opts = Struct()
+    opts = UT.Struct()
     opts.case_nm = ''
-    opts.inventory_file = 'Inventory.xml'
-    opts.output_fnm1    = 'FugaOutput_1.txt'
-    opts.logfile        = 'pywake.log'
-    opts.tp_A           =  0.60
-    opts.noj_k          =  0.04
-    opts.legend_scaler  =  0.70
-    opts.plot_wakemap   =  False
-    opts.plot_layout    =  False
-    opts.plot_wind      =  False
+    opts.inventory_file  = 'Inventory.xml'
+    opts.output_fnm1     = 'FugaOutput_1.txt'
+    opts.logfile         = 'pywake.log'
+    opts.tp_A            =  0.60
+    opts.noj_k           =  0.04
+    opts.legend_scaler   =  0.70
+    opts.plot_wakemap    =  False
+    opts.plot_layout     =  False
+    opts.plot_wind       =  False
+    opts.delta_winddir   = 1.
+    opts.delta_windspeed = 0.5
     #
     return opts
 
@@ -133,10 +131,10 @@ def  _nparks(sheet):
     a = sheet.iloc[7,1::3]
     return len(a[a.notna()].values)
 
-def _get_weibulls(sheet, nparks):
+def _get_weibulls(sheet):
     wbs = []
-    for i in range(nparks):
-        wb = Struct()
+    for i in range(_nparks(sheet)):
+        wb = UT.Struct()
         binsz = 360. / N_SECTORS
         wb.dirs = binsz*np.arange(N_SECTORS)
         wb.As = np.array(sheet.iloc[7:7+N_SECTORS, 3*i+1], dtype=float)
@@ -150,10 +148,9 @@ def _get_weibulls(sheet, nparks):
 
 def read_knowl_input(fnm):
     logging.info(f'reading {fnm}')
-    knowl = Struct()
+    knowl = UT.Struct()
     sheet = pd.read_excel(fnm, sheet_name='WindResource')
-    np = _nparks(sheet)
-    knowl.weibulls = _get_weibulls(sheet, np)
+    knowl.weibulls = _get_weibulls(sheet)
     knowl.turb_intens = sheet.iloc[27+N_SECTORS,1]
     return knowl
 
@@ -200,7 +197,7 @@ def _wtgs(data, wtg_nms, hub_hs, diams):
     wtgs = []
     ii = 0
     for i, ix in enumerate(np.concatenate((ixs, [len(data)]))):     # len(data) to capture last slice
-        wtg = Struct()
+        wtg = UT.Struct()
         wtg.name       = wtg_nms[i]
         wtg.hub_height = hub_hs[i]
         wtg.diameter   = diams[i]
@@ -218,7 +215,7 @@ def _wtgs(data, wtg_nms, hub_hs, diams):
 
 def _windrose(rose):
     rose = sorted(list(rose))
-    wr = Struct()
+    wr = UT.Struct()
     wr.dirs = np.array([x[0] for x in rose])
     wr.freqs = np.array([x[1] for x in rose])
     wr.ix = np.argmax(wr.freqs)
@@ -235,7 +232,7 @@ def _get_weibull(weib):
         freqs.append(data[0])
         As.append(data[1])
         Ks.append(data[2])
-    wb = Struct()
+    wb = UT.Struct()
     wb.dirs  = np.array(dirs)
     wb.freqs = np.array(freqs)
     wb.As    = np.array(As)
@@ -331,7 +328,7 @@ def read_inventory(fnm):
     parks = []
     ii = 0
     for i, ix in enumerate(np.concatenate((ixs, [len(ids)]))):     # len(ids) to capture last slice
-        p = Struct()
+        p = UT.Struct()
         p.locs  = locs[ii:ix]
         p.size  = len(p.locs)
         p.xs    = np.array([loc[0] for loc in p.locs])
@@ -346,7 +343,7 @@ def read_inventory(fnm):
         ii = ix
     #
     # finally, collect all parks into one big case / park
-    case = Struct()
+    case = UT.Struct()
     case.locs  = locs
     case.size  = len(locs)
     case.xs    = np.array([loc[0] for loc in locs])
@@ -480,7 +477,7 @@ def get_yaml(fnm):
     read yaml-file into a Struct for easy access.
     '''
     yml = yaml.load(open(fnm), Loader=yaml.SafeLoader)
-    s = Struct()
+    s = UT.Struct()
     for k,v in yml.items():
         s.__dict__[k] = v
     return s
