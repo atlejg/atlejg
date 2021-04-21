@@ -7,15 +7,31 @@ import tempfile
 from mpl_toolkits.axisartist.parasite_axes import HostAxes, ParasiteAxes
 from matplotlib import rcParams
 import yaml
+import pprint
 
 class Struct(object):
     '''
     a rather flat implempentation of a struct for python
     '''
+    def __init__(self):
+        self._keys = []
+#
     def has(self, key):
-        return key in self.__dict__.keys()
-    def set(self, key, value):
+        return hasattr(self, key)
+#
+    def get(self, key):
+        return self.__dict__[key]
+#
+    def __setattr__(self, key, value):
         self.__dict__[key] = value
+        if key != '_keys': self._keys.append(key)
+#
+    def __str__(self):
+        s = ''
+        for key in self._keys:
+            s += f'{key:20s} : {pprint.pformat(self.get(key))}\n'
+        return s
+
     
     pass
 
