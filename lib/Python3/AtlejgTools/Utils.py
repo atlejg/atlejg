@@ -11,7 +11,8 @@ import pprint
 
 class Struct(object):
     '''
-    a rather flat implempentation of a struct for python
+    a rather flat implempentation of a struct for python.
+    note that attribute _keys is special and *cannot* be used.
     '''
     def __init__(self):
         self._keys = []
@@ -23,12 +24,15 @@ class Struct(object):
         return self.__dict__[key]
 #
     def __setattr__(self, key, value):
+        if hasattr(self, '_keys') and len(self._keys) > 0 and key == '_keys':
+            raise Exception('Cannot use attribute "_keys" for Struct')
         self.__dict__[key] = value
-        if key != '_keys': self._keys.append(key)
+        self._keys.append(key)
 #
-    def __str__(self):
+    def __repr__(self):   # used for __str__ as well
         s = ''
         for key in self._keys:
+            if key == '_keys': continue
             s += f'{key:20s} : {pprint.pformat(self.get(key))}\n'
         return s
 
