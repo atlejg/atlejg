@@ -50,118 +50,7 @@ def _weigthed_pwr(u, power, wb_a, wb_k):
     #
     return wpw
 
-def calc_AEP_v1(sim, pwr_func, weib, dwd=1., verbose=False):
-    '''
-    calculates averaged AEP for each sector.
-    # 
-    based on scriptifie version of knut s. seim's notebook:
-    /cygdrive/c/Appl/atlejg/lib/Python3/AtlejgTools/WindResourceAssessment/KnutSeim_stuff/py_wake_demo2.py
-    #
-    notes: 
-        n1: only single WTG supported
-        n2: only single weibull supported
-        n3: only regular sectors supported
-    # 
-    input:
-        sim      : simulation result from pywake
-        pwr_func : power function for WTG (see n1)
-        weib     : weibull per sector. must have attributes weib.Ks, weib.As, weib.freqs (see n2)
-                   note that sector width is given by number of entries in weibull (see n3)
-        dwd      : delta wd. [deg]. gives number of bins.
-    output:
-        net & gross AEP in GWh per WTG & sector
-    '''
-    #
-    n_sectors = len(weib.freqs)
-    sector_w  = 360. / n_sectors
-    n_bins    = int(sector_w / dwd)                                                                                # number of bins per sector
-    #
-    # power per WTG and wind-direction (wt, wd)
-    npwrb = _binArray(sim.Power.values,1, n_bins, n_bins)                                                          # net power from simulation. binned
-    gpwr  = np.tile(pwr_func(sim.ws), [sim.Power.shape[0], sim.Power.shape[1], 1])                                 # gross power - from WTG power curve
-    gpwrb = _binArray(gpwr,1, n_bins, n_bins)                                                                      # gross power - from WTG power curve. binned
-    #
-    # weighting of bins
-    gwpw = np.ndarray((len(sim.wt), n_sectors, len(sim.ws)-1))
-    nwpw = np.ndarray((len(sim.wt), n_sectors, len(sim.ws)-1))
-    for n in range(n_sectors):
-        gwpw[:,n,:] = _weigthed_pwr(sim.ws.values, gpwrb[:,n,:], weib.As[n], weib.Ks[n])
-        nwpw[:,n,:] = _weigthed_pwr(sim.ws.values, npwrb[:,n,:], weib.As[n], weib.Ks[n])
-    #
-    # calculate AEP per sector & wtg (using weibull freqs)
-    cf = 24*365*1e-9                                                                                               # conversion factor => GWh. 365.24?? TODO
-    naep = cf * weib.freqs * nwpw.sum(axis=2)                                                                      # summing over all velocities
-    gaep = cf * weib.freqs * gwpw.sum(axis=2)
-    #
-    if verbose:
-        g = gaep.sum()
-        n = naep.sum()
-        wloss = (g-n)/g * 100
-        #
-        print(f'Gross AEP (GWh) {g:.1f}\nNet AEP (GWh) {n:.1f}\nWake loss (%) {wloss:.2f}\n')
-    #
-    return gaep, naep
-
-def calc_AEP_v2(sim0, pwr_funcs, weibs, dwd=1., verbose=False):
-    '''
-    calculates averaged AEP for each sector.
-    # 
-    based on scriptifie version of knut s. seim's notebook:
-    /cygdrive/c/Appl/atlejg/lib/Python3/AtlejgTools/WindResourceAssessment/KnutSeim_stuff/py_wake_demo2.py
-    #
-    notes: 
-        n1: assumes one WTG-type & weibull for each park
-        n2: only regular sectors supported
-    # 
-    input:
-        sim0     : simulation result from pywake
-        pwr_funcs: power function for each WTG (see n1)
-        weibs    : weibull per sector per park. must have attributes weib.Ks, weib.As, weib.freqs (see n2)
-                   note that sector width is given by number of entries in weibull (see n3)
-        dwd      : delta wd. [deg]. gives number of bins.
-    output:
-        net & gross AEP per park in GWh (per WTG & sector)
-    '''
-    #
-    aeps = []
-    #
-    for i, (pwr_func, weib) in enumerate(zip(pwr_funcs, weibs)):
-        #
-        sim = sim0.where(sim0.type==i, drop=True)
-        #
-        n_sectors = len(weib.freqs)
-        sector_w  = 360. / n_sectors
-        n_bins    = int(sector_w / dwd)                                                                                # number of bins per sector
-        #
-        # power per WTG and wind-direction (wt, wd)
-        npwrb = _binArray(sim.Power.values,1, n_bins, n_bins)                                                          # net power from simulation. binned
-        gpwr  = np.tile(pwr_func(sim.ws), [sim.Power.shape[0], sim.Power.shape[1], 1])                                 # gross power - from WTG power curve
-        gpwrb = _binArray(gpwr,1, n_bins, n_bins)                                                                      # gross power - from WTG power curve. binned
-        #
-        # weighting of bins
-        nwpw = np.ndarray((len(sim.wt), n_sectors, len(sim.ws)-1))
-        gwpw = np.ndarray((len(sim.wt), n_sectors, len(sim.ws)-1))
-        for n in range(n_sectors):
-            nwpw[:,n,:] = _weigthed_pwr(sim.ws.values, npwrb[:,n,:], weib.As[n], weib.Ks[n])
-            gwpw[:,n,:] = _weigthed_pwr(sim.ws.values, gpwrb[:,n,:], weib.As[n], weib.Ks[n])
-        #
-        # calculate AEP per sector & wtg (using weibull freqs)
-        cf = 24*365*1e-9                                                                                               # conversion factor => GWh. 365.24?? TODO
-        naep = cf * weib.freqs * nwpw.sum(axis=2)                                                                      # summing over all velocities
-        gaep = cf * weib.freqs * gwpw.sum(axis=2)
-        #
-        if verbose:
-            n = naep.sum()
-            g = gaep.sum()
-            wloss = (g-n)/g * 100
-            #
-            print(f'Gross AEP (GWh) {g:.1f}\nNet AEP (GWh) {n:.1f}\nWake loss (%) {wloss:.2f}\n')
-        #
-        aeps.append([naep, gaep])
-    return aeps
-
-
-def calc_AEP_v3(sim0, pwr_funcs, weibs, dwd=1., verbose=False):
+def calc_AEP(sim0, pwr_funcs, weibs, dwd=1., verbose=False):
     '''
     calculates averaged AEP for each sector.
     # 
@@ -224,9 +113,6 @@ def calc_AEP_v3(sim0, pwr_funcs, weibs, dwd=1., verbose=False):
         aeps.append([nx, gx])
     return aeps
 
-def calc_AEP(sim0, pwr_funcs, weibs, dwd=1., verbose=False):
-    return calc_AEP_v3(sim0, pwr_funcs, weibs, dwd=dwd, verbose=verbose)
-
 def _write_park_aep(net, gross, park, f):
     # formatting
     fms = {0:lambda x: f'Turbine site {x:.0f}', 1:INT, 2:INT, 3:INT, 4:REAL, 5:REAL, 6:str}
@@ -238,52 +124,6 @@ def _write_park_aep(net, gross, park, f):
     df[6] = [park.wtg.name]*park.size
     f.write(df.to_string(index=False, header=False, formatters=fms))
 
-def create_output_aep_old(sim, case, knowl, opts, fnm):
-    '''
-    create ouput for knowl
-    only the 'For wake only' option is supported
-    '''
-    #
-    header = f'''py_wake Annual Energy production estimates
-z0[m]   99999
-zi[m]   99999
-zeta0   99999
-'''
-    f = open(fnm, 'w')
-    f.write(header)
-    #
-    # calculate AEP for all turbines
-    weibs     = [knowl.weibulls[0]]*case.n_parks                              # for now, we just use the first one. see note2. TODO!
-    pwr_funcs = [wtg.pwr_func for wtg in case.wtg_list]
-    aeps      = calc_AEP_v2(sim, pwr_funcs, weibs, opts.delta_winddir, verbose=True)
-    #
-    # write sector by sector
-    for i, wd in enumerate(weibs[0].dirs):
-        f.write(f'\nSector\t{i}\n')
-        netgross = []
-        for park, (net, gr) in zip(case.park_list, aeps):
-            _write_park_aep(net[:,i], gr[:,i], park, f)
-        # write a 'summary' for the total and each park
-        ns, gs = [aep[0][:,i].sum() for aep in aeps], [aep[1][:,i].sum() for aep in aeps]
-        f.write(f'\nAllProjects                      {sum(gs):.4f}   {sum(ns):.4f}\n')
-        for park, n, g in zip(case.park_list, ns, gs):
-            f.write(f'{park.name:20s}             {g:.4f}   {n:.4f}\n')
-    #
-    # write all sectors
-    f.write(f'\nAll sectors\n')
-    for j, (park, aep) in enumerate(zip(case.park_list, aeps)):
-        _write_park_aep(aep[0].sum(axis=1), aep[1].sum(axis=1), park, f)
-    #
-    # write a 'summary' for the total and each park
-    ns, gs = [aep[0].sum(axis=1) for aep in aeps], [aep[1].sum(axis=1) for aep in aeps]
-    #
-    n, g = sum([sum(x) for x in ns]), sum([sum(x) for x in gs])
-    f.write(f'\nAllProjects                      {g:.4f}   {n:.4f}\n')
-    for park, n, g in zip(case.park_list, ns, gs):
-        f.write(f'{park.name:20s}             {sum(g):.4f}   {sum(n):.4f}\n')
-    #
-    f.close()
-    logging.info(f'{fnm} was created')
 
 def create_output_aep(sim, case, knowl, opts, fnm):
     '''
@@ -331,6 +171,7 @@ zeta0   99999
     #
     f.close()
     logging.info(f'{fnm} was created')
+    return aeps
 
 def read_output_file(fnm):
     '''
