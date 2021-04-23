@@ -50,7 +50,7 @@ def _weigthed_pwr(u, power, wb_a, wb_k):
     #
     return wpw
 
-def calc_AEP(sim0, pwr_funcs, weibs, dwd=1., verbose=False):
+def calc_AEP(sim0, pwr_funcs, weibs, dwd=1., park_nms=[], verbose=False, return_pwr=False):
     '''
     calculates averaged AEP for each sector.
     # 
@@ -72,8 +72,11 @@ def calc_AEP(sim0, pwr_funcs, weibs, dwd=1., verbose=False):
     '''
     #
     aeps = []
+    pwrs = []
     #
     for i, (pwr_func, weib) in enumerate(zip(pwr_funcs, weibs)):                                                       # loop each park
+        #
+        nm = park_nms[i] if park_nms else ''
         #
         sim = sim0.where(sim0.type==i, drop=True)
         #
@@ -103,15 +106,23 @@ def calc_AEP(sim0, pwr_funcs, weibs, dwd=1., verbose=False):
             g = gaep.sum()
             wloss = (g-n)/g * 100
             #
-            print(f'Gross AEP (GWh) {g:.1f}\nNet AEP (GWh) {n:.1f}\nWake loss (%) {wloss:.2f}\n')
+            print(f'{nm} Gross AEP (GWh) {g:.1f}')
+            print(f'{nm} Net AEP (GWh) {n:.1f}')
+            print(f'{nm} Wake loss (%) {wloss:.2f}')
         #
         # save as DataArray (not SimulationResult - too complex...)
         #
         xa = sim.isel({'wd':range(n_sectors), 'ws':0}).drop('ws')         # just a template with correct dimensions
-        nx = xr.DataArray(data=naep.copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description="Net production"))
-        gx = xr.DataArray(data=gaep.copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description="Gross production"))
+        nx = xr.DataArray(data=naep.copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description="Net production {nm}"))
+        gx = xr.DataArray(data=gaep.copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description="Gross production {nm}"))
         aeps.append([nx, gx])
-    return aeps
+        if return_pwr:
+            nx = xr.DataArray(data=nwpw.mean(axis=2).copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description="Net power {nm}"))
+            gx = xr.DataArray(data=gwpw.mean(axis=2).copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description="Gross power {nm}"))
+            pwrs.append([nx, gx])
+    #
+    if return_pwr: return aeps, pwrs
+    else         : return aeps
 
 def _write_park_aep(net, gross, park, f):
     # formatting
@@ -141,8 +152,7 @@ zeta0   99999
     #
     # calculate AEP for all turbines
     weibs     = [knowl.weibulls[0]]*case.n_parks                              # for now, we just use the first one. see note2. TODO!
-    pwr_funcs = [wtg.pwr_func for wtg in case.wtg_list]
-    aeps      = calc_AEP(sim, pwr_funcs, weibs, opts.delta_winddir, verbose=True)
+    aeps      = calc_AEP(sim, case.pwr_funcs, weibs, dwd=opts.delta_winddir, park_nms=case.park_nms, verbose=True)
     #
     # write sector by sector
     for i, wd in enumerate(weibs[0].dirs):

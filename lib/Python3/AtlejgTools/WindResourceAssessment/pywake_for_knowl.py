@@ -362,6 +362,8 @@ def read_inventory(fnm):
     case.wtg_list = wtgs_raw
     case.park_list = parks
     case.n_parks = len(parks)
+    case.pwr_funcs = [wtg.pwr_func for wtg in case.wtg_list]
+    case.park_nms = park_nms
     return case, wtgs
 
 def _unzip(wwh_file, knowl_dir):
@@ -472,7 +474,7 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     toc = time.perf_counter()
     logging.info(f"Total runtime: {toc - tic:0.1f} seconds")
     #
-    return aeps, sim_res, case, wtgs, site
+    return aeps, sim_res, case, knowl, opts, wtgs, site
 
 ################################## -- MAIN LOGIC -- ###########################
 
