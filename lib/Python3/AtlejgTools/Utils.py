@@ -33,7 +33,7 @@ class Struct(object):
         s = ''
         for key in self._keys:
             if key == '_keys': continue
-            s += f'{key:20s} : {pprint.pformat(self.get(key))}\n'
+            s += f'{key:10s} : {pprint.pformat(self.get(key))}\n'
         return s
 
     

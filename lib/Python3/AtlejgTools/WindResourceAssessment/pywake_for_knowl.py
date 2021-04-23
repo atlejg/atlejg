@@ -102,8 +102,6 @@ INV_FILE  = 'Inventory.xml'
 WWH_FILE  = 'FugaAdapted.wwh'
 SEP       = os.path.sep
 EPS       = 1e-9               # small non-zero value
-REAL = lambda x: f'{x:.4f}'
-INT  = lambda x: f'{x:.0f}'
 
 
 def get_default_opts():
@@ -202,7 +200,7 @@ def _wtgs(data, wtg_nms, hub_hs, diams):
         wtg.hub_height = hub_hs[i]
         wtg.diameter   = diams[i]
         wtg.data       = data[ii:ix]
-        wtg.ws         = [x[0] for x in wtg.data]
+        wtg.ws         = np.array([x[0] for x in wtg.data])
         # use EPS to avoid hard zeros
         wtg.pwr        = np.maximum([x[1] for x in wtg.data], EPS)
         wtg.ct         = np.maximum([x[2] for x in wtg.data], EPS)
@@ -213,16 +211,7 @@ def _wtgs(data, wtg_nms, hub_hs, diams):
         ii = ix
     return wtgs
 
-def _windrose(rose):
-    rose = sorted(list(rose))
-    wr = UT.Struct()
-    wr.dirs = np.array([x[0] for x in rose])
-    wr.freqs = np.array([x[1] for x in rose])
-    wr.ix = np.argmax(wr.freqs)
-    wr.main_dir = wr.dirs[wr.ix]
-    return wr
-
-def _get_weibull(weib):
+def _create_weibull(weib):
     dirs  = []
     freqs = []
     As    = []
@@ -252,9 +241,9 @@ def _get_windturbines(wtgs_raw):
     wtgs =  WindTurbines(names=nms, diameters=ds, hub_heights=hhs, ct_funcs=cfs, power_funcs=pfs, power_unit='W')
     #
     # add min and max windspeed of all wtgs
-    assert('ws_min' not in wtgs.__dict__.keys())    # just in cases ..
-    assert('ws_max' not in wtgs.__dict__.keys())
-    assert('uniq_wtgs' not in wtgs.__dict__.keys())
+    assert(not hasattr(wtgs, 'ws_min'))    # just in cases ..
+    assert(not hasattr(wtgs, 'ws_max'))
+    assert(not hasattr(wtgs, 'uniq_wtgs'))
     wtgs.ws_min = min([wtg.ws[0] for wtg in wtgs_raw])
     wtgs.ws_max = max([wtg.ws[-1] for wtg in wtgs_raw])
     wtgs.uniq_wtgs = len(set(nms))
@@ -280,8 +269,9 @@ def read_inventory(fnm):
     ids      = []
     locs     = []
     wtg_data = []
-    rose     = set()     # seems to be given reduntantly. dont really know what this is anyway... TODO!
-    #weib     = {}        # seems to be given almost reduntantly. TODO!. Not in use - use knowl-input instead
+    #rose     = set()     # seems to be given reduntantly. dont really know what this is anyway... TODO!
+    weib     = {}
+    weibs    = []
     hub_hs   = []
     diams    = []
     wtg_nms  = []
@@ -306,13 +296,16 @@ def read_inventory(fnm):
         if '<Height' in line:
             hub_hs.append(_hub_height(line))
             continue
-        if '<ProductionRoseSector' in line:
-            rose.add(_rose_sector(line))
+        #if '<ProductionRoseSector' in line:
+        #    rose.add(_rose_sector(line))
+        #    continue
+        if '<WeibullWind' in line:
+            angl, data = _weibull(line)
+            weib[angl] = data
             continue
-        #if '<WeibullWind' in line:
-            #angl, data = _weibull(line)
-            #weib[angl] = data
-            #continue
+        if '</RveaWeibullWindRose' in line:
+            weibs.append(_create_weibull(weib))
+            weib = {}
         m = re.search('"Turbine site (\d\d\d\d)"', line)
         if m:
             ids.append(int(m.groups()[0]))
@@ -352,6 +345,7 @@ def read_inventory(fnm):
     case.wtgs  = []
     case.parks = []
     case.names = []
+    case.weibs = weibs
     types = []
     for p in parks:
         types.extend(p.types)
@@ -369,103 +363,6 @@ def read_inventory(fnm):
     case.park_list = parks
     case.n_parks = len(parks)
     return case, wtgs
-
-def _write_park_aep(net, gross, park, f):
-    # formatting
-    fms = {0:lambda x: f'Turbine site {x:.0f}', 1:INT, 2:INT, 3:INT, 4:REAL, 5:REAL, 6:str}
-    #
-    f.write(f'      Xpos   Ypos   Height   GrAEP   NetAEP\n')
-    f.write(f' Site [m]    [m]    [m]      [GWh]   [GWh]\n')
-    hub_heights = [park.wtg.hub_height]*park.size
-    df = pd.DataFrame([park.ids, park.xs, park.ys, hub_heights, gross, net], dtype=np.float64).T  # needs to be float64
-    df[6] = [park.wtg.name]*park.size
-    f.write(df.to_string(index=False, header=False, formatters=fms))
-
-def create_output_aep(sim, case, knowl, opts, fnm):
-    '''
-    create ouput for knowl
-    only the 'For wake only' option is supported
-    '''
-    #
-    header = f'''py_wake Annual Energy production estimates
-z0[m]   99999
-zi[m]   99999
-zeta0   99999
-'''
-    f = open(fnm, 'w')
-    f.write(header)
-    #
-    # calculate AEP for all turbines
-    weibs     = [knowl.weibulls[0]]*case.n_parks                              # for now, we just use the first one. see note2. TODO!
-    pwr_funcs = [wtg.pwr_func for wtg in case.wtg_list]
-    aeps      = WU.calc_AEP(sim, pwr_funcs, weibs, opts.delta_winddir, verbose=True)
-    #
-    # write sector by sector
-    for i, wd in enumerate(weibs[0].dirs):
-        f.write(f'\nSector\t{i}\n')
-        netgross = []
-        for j, (park, aep) in enumerate(zip(case.park_list, aeps)):
-            _write_park_aep(aep[0][:,i], aep[1][:,i], park, f)
-        # write a 'summary' for the total and each park
-        ns, gs = [aep[0][:,i].sum() for aep in aeps], [aep[1][:,i].sum() for aep in aeps]
-        f.write(f'\nAllProjects                      {sum(gs):.4f}   {sum(ns):.4f}\n')
-        for park, n, g in zip(case.park_list, ns, gs):
-            f.write(f'{park.name:20s}             {g:.4f}   {n:.4f}\n')
-    #
-    # write all sectors
-    f.write(f'\nAll sectors\n')
-    for j, (park, aep) in enumerate(zip(case.park_list, aeps)):
-        _write_park_aep(aep[0].sum(axis=1), aep[1].sum(axis=1), park, f)
-    #
-    # write a 'summary' for the total and each park
-    ns, gs = [aep[0].sum(axis=1) for aep in aeps], [aep[1].sum(axis=1) for aep in aeps]
-    #
-    n, g = sum([sum(x) for x in ns]), sum([sum(x) for x in gs])
-    f.write(f'\nAllProjects                      {g:.4f}   {n:.4f}\n')
-    for park, n, g in zip(case.park_list, ns, gs):
-        f.write(f'{park.name:20s}             {sum(g):.4f}   {sum(n):.4f}\n')
-    #
-    f.close()
-    logging.info(f'{fnm} was created')
-
-def create_output_power(power, case, fnm=None):
-    unit = power.Description.split('[')[1][:-1]
-    assert unit == 'W'
-    vels = []
-    for k, wd in enumerate(power.ws):
-        vel = []
-        for i in range(case.size):
-            p = power[i,:,k].values / 1000.       # W => kW
-            vel.append([case.ids[i]] + list(p))
-        vels.append(pd.DataFrame(vel))
-    # 
-    if fnm:
-        fms = {0:lambda x: f'Turbine site {x:d}', 1:REAL, 2:REAL, 3:REAL, 4:REAL, 5:REAL, 6:REAL, 7:REAL, 8:REAL, 9:REAL, 10:REAL, 11:REAL}
-        binsz = 360. / len(power.wd)
-        header = f'''AllProjects
-py_wake results
-Directional averaging: Simple average ±{binsz/2:.2f} deg
-Thrust evaluated by speed at turbine hub
-z0[m]   99999
-zi[m]   99999
-zeta0   99999
-Results given as power [kW]
-'''
-        f = open(fnm, 'w')
-        f.write(header)
-        dirs = ' '.join(f'{x:.2f}' for x in power.wd.values)
-        for i, vel in enumerate(vels):
-            f.write(f'\n\nu [m/s] {power.ws.values[i]:.2f}\n')
-            f.write(f'Dir [deg]        {dirs}\n')
-            f.write(vel.to_string(index=False, header=False, formatters=fms))
-            f.write(f'\nTotal    ')
-            tot = pd.DataFrame(vel.sum()[1:]).T
-            f.write(tot.to_string(index=False, header=False, formatters=fms))
-        f.write('\n')
-        f.close()
-        logging.info(f'{fnm} was created')
-    #
-    return vels
 
 def _unzip(wwh_file, knowl_dir):
     logging.info(f'unzipping {wwh_file}')
@@ -499,121 +396,26 @@ def get_input(knowl_dir, yml_file):
     assert(os.path.exists(opts.inv_file))
     return knowl, opts
 
-def read_output_file(fnm):
+def main(wake_model, knowl_dir='.', yml_file=None):
     '''
-    reads a typical output file (from create_output_aep or from Fuga) into an xarray.
-    useful for comparing results.
+    pick up knowl case description and run PyWake simulation.
+    returns case, sim_res, wtgs and site objects
     '''
-    lines = open(fnm).readlines()
-    tmpfile = 'tmpfile'
-    ns = []
-    gs = []
-    sector = []
     #
-    for line in lines:
-        #if 'All sectors' in line: break
-        if 'AllProjects' in line:
-            f = open(tmpfile, 'w')
-            f.writelines(sector)
-            f.close()
-            df = pd.read_csv(tmpfile, sep='\s+', header=None, usecols=range(2,9))
-            ns.append(df[7].values)
-            gs.append(df[6].values)
-            sector = []
-            continue
-        if 'Turbine site' in line:
-            sector.append(line)
-            continue
-    os.unlink(tmpfile)
-    #
-    nsecs = len(ns) - 1
-    wds = 360/nsecs * arange(nsecs+1)
-    wds[-1] = -1                     # this is the 'all sectors'
-    #
-    coords = dict(wd=wds, wt=df[2].values, x=(["wt"], df[3].values), y=(["wt"], df[4].values))
-    dims   = ["wd", "wt"]
-    #
-    net   = xr.DataArray(data=ns, dims=dims, coords=coords, attrs=dict(description="Net production"))
-    gross = xr.DataArray(data=gs, dims=dims, coords=coords, attrs=dict(description="Gross production"))
-    return net, gross
-
-def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60):
-    '''
-    reads two output files and compares them (by plotting)
-    useful for comparing results from different sources.
-    typical usage: compare_outputs('FugaOutput_1.txt', 'pywake1.txt', 'FUGA', 'TurboPark')
-    ms: marker-size. set to None for default
-    '''
-    net1, gr1 = read_output_file(fnm1)
-    net2, gr2 = read_output_file(fnm2)
-    #
-    for wd in net1.wd.values:
-        n1, g1 = net1.sel(wd=wd), gr1.sel(wd=wd)
-        wl1 = (g1-n1) / g1 *100
-        n2, g2 = net2.sel(wd=wd), gr2.sel(wd=wd)
-        wl2 = (g2-n2) / g2 *100
-        min_val = min(wl1.min(), wl2.min())
-        max_val = max(wl1.max(), wl2.max())
-        #
-        wd_txt = f'wd = {wd:.0f} deg' if wd >= 0 else 'wd = ALL'
-        #
-        plt.figure(figsize=(18,5))
-        #
-        plt.subplot(131)
-        plt.scatter(wl1.x.values, wl1.y.values, c=wl1.values, s=ms)
-        plt.axis('equal')
-        cb = plt.colorbar()
-        cb.set_label('Wake loss [%]')
-        plt.clim(min_val, max_val)
-        plt.title(f'{lbl1} ({wd_txt})')
-        plt.xticks([]), yticks([])
-        #
-        plt.subplot(132)
-        plt.scatter(wl2.x.values, wl2.y.values, c=wl2.values, s=ms)
-        plt.axis('equal')
-        cb = plt.colorbar()
-        cb.set_label('Wake loss [%]')
-        plt.clim(min_val, max_val)
-        plt.title(f'{lbl2} ({wd_txt})')
-        plt.xticks([]), yticks([])
-        #
-        wld = wl1 - wl2
-        plt.subplot(133)
-        plt.scatter(wld.x.values, wld.y.values, c=wld.values, s=ms)
-        plt.axis('equal')
-        plt.colorbar()
-        cb.set_label('Wake loss [%]')
-        plt.title('Wake loss difference')
-        plt.xticks([]), yticks([])
-        plt.tight_layout()
-    return net1, net2
-
-
-################################## -- MAIN LOGIC -- ###########################
-
-
-if __name__ == '__main__':
-
-    '''
-    get necessary input
-    '''
-    wake_model = sys.argv[1].upper()                         # Fuga, TP/*Turbo*, or NOJ. TP / *Turbo* = TurboPark, NOJ = Jensen
-    knowl_dir  = sys.argv[2] if len(sys.argv) > 2 else '.'   # where to find the knowl excel-file
-    yml_file   = sys.argv[3] if len(sys.argv) > 3 else None  # yaml input file. see note1 above.
-    # 
     knowl, opts = get_input(knowl_dir, yml_file)
     #
     case, wtgs = read_inventory(opts.inv_file)
-
+    #
     logging.basicConfig(level=logging.INFO, filename=opts.logfile)
     tic = time.perf_counter()
-
+    #
     '''
     pick and initialize the chosen wake model
     '''
     weibull = knowl.weibulls[0]                              # for now, we just use the first one. see note2. TODO!
     site = UniformWeibullSite(weibull.freqs, weibull.As, weibull.Ks, knowl.turb_intens)
     #
+    wake_model = wake_model.upper()
     if wake_model == 'FUGA':
         assert wtgs.uniq_wtgs == 1                           # see note3
         wf_model = py_wake.Fuga(opts.lut_path, site, wtgs)
@@ -623,16 +425,16 @@ if __name__ == '__main__':
         wf_model = py_wake.NOJ(site, wtgs, k=opts.noj_k)
     else:
         raise Exception('The Fuga, TP, or the NOJ wake models are the only options available.')
-
+    #
     '''
     run wake model for all combinations of wd and ws
     '''
     wd = np.arange(0, 360, opts.delta_winddir)
     ws = np.arange(np.floor(wtgs.ws_min/2), np.ceil(wtgs.ws_max)+1, opts.delta_windspeed)
-    sim = wf_model(case.xs, case.ys, type=case.types, wd=wd, ws=ws)
-    assert(np.all(np.equal(sim.x.values, case.xs)))
-    assert(np.all(np.equal(sim.y.values, case.ys)))
-
+    sim_res = wf_model(case.xs, case.ys, type=case.types, wd=wd, ws=ws)
+    assert(np.all(np.equal(sim_res.x.values, case.xs)))
+    assert(np.all(np.equal(sim_res.y.values, case.ys)))
+    #
     '''
     reporting AEP etc
     '''
@@ -640,8 +442,8 @@ if __name__ == '__main__':
         fnm = wake_model + '.txt'
     else:
         fnm = opts.output_fnm1
-    create_output_aep(sim, case, knowl, opts, fnm)
-
+    WU.create_output_aep(sim_res, case, knowl, opts, fnm)
+    #
     '''
     optional stuff
     '''
@@ -652,7 +454,7 @@ if __name__ == '__main__':
         ws_plot = int(weibull.main_ws)
         ws1, ws2 = np.floor(opts.legend_scaler*ws_plot), ws_plot+1
         levels = np.linspace(ws1, ws2, int((ws2-ws1)*10)+1)
-        flow_map = sim.flow_map(grid=None, wd=weibull.main_dir, ws=ws_plot)
+        flow_map = sim_res.flow_map(grid=None, wd=weibull.main_dir, ws=ws_plot)
         flow_map.plot_wake_map(levels=levels, plot_ixs=False)
         plt.title(f'{opts.case_nm} :: {opts.wake_model} :: {ws_plot:d} m/s :: {weibull.main_dir:.0f} deg')
         plt.show()
@@ -666,6 +468,23 @@ if __name__ == '__main__':
         plt.figure()
         site.plot_wd_distribution(n_wd=12, ws_bins=[0,5,10,15,20,25])
         plt.show()
-
+    #
     toc = time.perf_counter()
     logging.info(f"Total runtime: {toc - tic:0.1f} seconds")
+    #
+    return case, sim_res, wtgs, site
+
+################################## -- MAIN LOGIC -- ###########################
+
+
+if __name__ == '__main__':
+
+    '''
+    get necessary input
+    '''
+    wake_model = sys.argv[1]                                 # Fuga, TP/*Turbo*, or NOJ. TP / *Turbo* = TurboPark, NOJ = Jensen
+    knowl_dir  = sys.argv[2] if len(sys.argv) > 2 else '.'   # where to find the knowl excel-file
+    yml_file   = sys.argv[3] if len(sys.argv) > 3 else None  # yaml input file. see note1 above.
+    # 
+    case, sim_res, wtgs, site = main(wake_model, knowl_dir=knowl_dir, yml_file=yml_file)
+
