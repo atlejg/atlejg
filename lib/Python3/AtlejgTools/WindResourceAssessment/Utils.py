@@ -4,6 +4,7 @@ import pandas as pd
 import logging
 import os
 import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
 
 REAL = lambda x: f'{x:.4f}'
 INT  = lambda x: f'{x:.0f}'
@@ -19,7 +20,7 @@ def _binArray(data, axis, binstep, binsize, func=np.nanmean):
     data = np.array(data).transpose(argdims)
     return data
 
-def _g_func(alpha, k):
+def G_func(alpha, k):
     # 1/k times the incomplete gamma function of the two arguments 1/k and alpha^k
     # Note, the scipy incomplete gamma function, gammainc, must be multiplied with gamma(k) to match the
     # the G function used in the European Wind Atlas
@@ -39,18 +40,111 @@ def _weigthed_pwr(u, power, wb_a, wb_k):
     # see https://orbit.dtu.dk/en/publications/european-wind-atlas, page 95
     #
     u0, u1 = u[:-1], u[1:]
+    #alpha0, alpha1 = (u0 / wb_a)+np.random.rand()*1e-10, (u1 / wb_a)+np.random.rand()*1e-10      # knut s. used this. i try without
     alpha0, alpha1 = (u0 / wb_a), (u1 / wb_a)
-    alpha0, alpha1 = (u0 / wb_a)+np.random.rand()*1e-10, (u1 / wb_a)+np.random.rand()*1e-10
     p0, p1 = power[:, :-1], power[:, 1:]
     #
     wpw = (    p0 * np.exp(-alpha0**wb_k)                                                                          # eq 6.5, p0 * cdf(u0:)
-             + (p1 - p0) / (alpha1 - alpha0) * (_g_func(alpha1, wb_k) - _g_func(alpha0, wb_k))                     # eq 6.4 linear change p0 to p1
+             + (p1 - p0) / (alpha1 - alpha0) * (G_func(alpha1, wb_k) - G_func(alpha0, wb_k))                     # eq 6.4 linear change p0 to p1
              - p1 * np.exp(-alpha1**wb_k)                                                                          # eq 6.5, - p1 * cdf(u1:)
     )
     #
     return wpw
 
-def calc_AEP(sim0, pwr_funcs, weibs, dwd=1., park_nms=[], verbose=False, return_pwr=False):
+def calc_power(sim, wtgs, weib, park_nms=[]):
+    '''
+    calculates weibull-averaged net and gross power for each sector.
+    # 
+    loosely based on scriptified version of knut s. seim's notebook:
+    /cygdrive/c/Appl/atlejg/lib/Python3/AtlejgTools/WindResourceAssessment/KnutSeim_stuff/py_wake_demo2.py
+    #
+    notes: 
+        n1: assumes one WTG-type for each park
+        n2: assumes that each park has it's own type-number
+        n3: assumes one weibull for the whole area
+    # 
+    input:
+        sim  : simulation result from pywake. have typically been coarsen'ed
+        wtgs : wtgs
+        weib : weibull-struct for the entire area (n3)
+    output:
+        net & gross power per park in GW (per WTG & sector & wind-speed)
+    '''
+    #
+    wb_K = interp1d(weib.dirs, weib.Ks, kind='nearest', fill_value='extrapolate')
+    wb_A = interp1d(weib.dirs, weib.As, kind='nearest', fill_value='extrapolate')
+    #
+    pwrs = []
+    for i in np.unique(sim.type.values):                                                                             # loop each park
+        #
+        pwr = sim.where(sim.type==i, drop=True).Power
+        nm = park_nms[i] if park_nms else ''
+        #
+        gross  = np.tile(wtgs.power(pwr.ws, pwr.type), [pwr.sizes['wt'], pwr.sizes['wd'], 1])                         # gross power - from WTG power curve
+        # weighting according to European Wind Atlas
+        #net_w   = np.zeros((len(sim.wt), len(sim.wd), len(sim.ws)-1))
+        #gross_w = np.zeros((len(sim.wt), len(sim.wd), len(sim.ws)-1))
+        net_w   = np.zeros(pwr.values.shape)
+        gross_w = np.zeros(pwr.values.shape)
+        for n, wd in enumerate(pwr.wd.values):
+            net_w[:,n,:-1]   = _weigthed_pwr(pwr.ws.values, pwr.values[:,n,:], wb_A(wd), wb_K(wd))
+            gross_w[:,n,:-1] = _weigthed_pwr(pwr.ws.values, gross[:,n,:],            wb_A(wd), wb_K(wd))
+        #
+        na = xr.DataArray(data=net_w, dims=pwr.dims, coords=pwr.coords, attrs=dict(description=f'Net power {nm}'))
+        ga = xr.DataArray(data=gross_w, dims=pwr.dims, coords=pwr.coords, attrs=dict(description=f'Gross power {nm}'))
+        pwrs.append([na, ga])
+    #
+    return pwrs
+
+def calc_AEP(sim, wtgs, weib, park_nms=[], verbose=False):
+    '''
+    calculates weibull-averaged net and gross AEP for each sector.
+    # 
+    loosely based on scriptified version of knut s. seim's notebook:
+    /cygdrive/c/Appl/atlejg/lib/Python3/AtlejgTools/WindResourceAssessment/KnutSeim_stuff/py_wake_demo2.py
+    #
+    notes: 
+        n1: assumes one WTG-type for each park
+        n2: assumes that each park has it's own type-number
+        n3: assumes one weibull for the whole area
+    # 
+    input:
+        sim  : simulation result from pywake
+        wtgs : wtgs
+        weib : weibull-struct for the entire area (n3)
+    output:
+        net & gross AEP per park in GWh (per WTG & sector)
+    '''
+    #
+    wb_f = interp1d(weib.dirs, weib.freqs, kind='nearest', fill_value='extrapolate')
+    cf = 24*365*1e-9                                                                                               # conversion factor => GWh. 365.24?? TODO
+    #
+    pwrs = calc_power(sim, wtgs, weib, park_nms=park_nms)
+    aeps = []
+    #
+    for net, gross in pwrs:                                                                                                  # loop each park
+        #
+        nm = park_nms[i] if park_nms else ''
+        #
+        # calculate AEP per sector & wtg (using weibull freqs)
+        naep, gaep = net.sum('ws'), gross.sum('ws')
+        for wd in sim.wd.values:
+            naep.sel(wd=wd).values *= wb_f(wd) * cf
+            gaep.sel(wd=wd).values *= wb_f(wd) * cf
+        #
+        if verbose:
+            n = naep.sum().values
+            g = gaep.sum().values
+            wloss = (g-n)/g * 100
+            #
+            print(f'{nm} Gross AEP (GWh) {g:.1f}')
+            print(f'{nm} Net AEP (GWh) {n:.1f}')
+            print(f'{nm} Wake loss (%) {wloss:.2f}')
+        #
+        aeps.append([naep, gaep])
+    return aeps
+
+def calc_AEP_old(sim0, pwr_funcs, weibs, dwd=1., park_nms=[], verbose=False, return_pwr=False):
     '''
     calculates averaged AEP for each sector.
     # 
@@ -113,12 +207,12 @@ def calc_AEP(sim0, pwr_funcs, weibs, dwd=1., park_nms=[], verbose=False, return_
         # save as DataArray (not SimulationResult - too complex...)
         #
         xa = sim.isel({'wd':range(n_sectors), 'ws':0}).drop('ws')         # just a template with correct dimensions
-        nx = xr.DataArray(data=naep.copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description="Net production {nm}"))
-        gx = xr.DataArray(data=gaep.copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description="Gross production {nm}"))
+        nx = xr.DataArray(data=naep.copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description=f'Net production {nm}'))
+        gx = xr.DataArray(data=gaep.copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description=f'Gross production {nm}'))
         aeps.append([nx, gx])
         if return_pwr:
-            nx = xr.DataArray(data=nwpw.mean(axis=2).copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description="Net power {nm}"))
-            gx = xr.DataArray(data=gwpw.mean(axis=2).copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description="Gross power {nm}"))
+            nx = xr.DataArray(data=nwpw.mean(axis=2).copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description=f'Net power {nm}'))
+            gx = xr.DataArray(data=gwpw.mean(axis=2).copy().T, dims=xa.dims, coords=xa.coords, attrs=dict(description=f'Gross power {nm}'))
             pwrs.append([nx, gx])
     #
     if return_pwr: return aeps, pwrs
@@ -217,8 +311,8 @@ def read_output_file(fnm):
     coords = dict(wd=wds, wt=df[2].values, x=(["wt"], df[3].values), y=(["wt"], df[4].values))
     dims   = ["wd", "wt"]
     #
-    net   = xr.DataArray(data=ns, dims=dims, coords=coords, attrs=dict(description="Net production"))
-    gross = xr.DataArray(data=gs, dims=dims, coords=coords, attrs=dict(description="Gross production"))
+    net   = xr.DataArray(data=ns, dims=dims, coords=coords, attrs=dict(description=f'Net production'))
+    gross = xr.DataArray(data=gs, dims=dims, coords=coords, attrs=dict(description=f'Gross production'))
     return net, gross
 
 def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60):

@@ -23,12 +23,14 @@ def _test_cases(pattern):
         net2, gr2 = WU.read_output_file('FugaOutput_1.txt')
         #
         assert np.all(net1 == net2)
+        assert np.all(gr1 == gr2)
         #
         pywake_for_knowl.main('TurbOPark')
         net1, gr1 = WU.read_output_file('TP.txt')
         net2, gr2 = WU.read_output_file('FugaOutput_1.txt')
         #
         assert np.all(net1 == net2)
+        assert np.all(gr1 == gr2)
     os.chdir(cwd)
     logging.info(f'testing OK')
 

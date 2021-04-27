@@ -135,7 +135,7 @@ if do_more:
 
 
     # power per WTG and wind-direction (wt, wd)
-    n_bins = int(site.ds.sector_width / dwd                                                                        # number of bins per sector
+    n_bins = int(site.ds.sector_width / dwd)                                                                       # number of bins per sector
     npwrb = binArray(sim_res.Power.values,1, n_bins, n_bins)                                                       # net power from simulation. binned
     gpwr  = np.tile(wf_model.windTurbines.power(sim_res.ws), [sim_res.Power.shape[0], sim_res.Power.shape[1], 1])  # gross power - from WTG power curve
     gpwrb = binArray(gpwr,1, n_bins, n_bins)                                                                       # gross power - from WTG power curve. binned

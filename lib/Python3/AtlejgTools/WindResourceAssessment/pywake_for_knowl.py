@@ -30,6 +30,7 @@ NOTES
 
         case_nm:                   # if empty, will use basename of *this* file
             Doggerbank
+        inv_file:                  # if empty, will use Inventory.xml
 
         # model input / parameters
         #
@@ -52,12 +53,14 @@ NOTES
 
         # options
         #
-        legend_scaler:
-            !!float   0.70         # lower limit of legend is nominal wind speed times this factor
+        plot_wakemap:
+            !!bool    false
         plot_layout:
             !!bool    false
         plot_wind:
             !!bool    false
+        legend_scaler:
+            !!float   0.70         # lower limit of legend is nominal wind speed times this factor
 
 
  - note2
@@ -474,7 +477,7 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     toc = time.perf_counter()
     logging.info(f"Total runtime: {toc - tic:0.1f} seconds")
     #
-    return aeps, sim_res, case, knowl, opts, wtgs, site
+    return aeps, sim_res, case, knowl, opts, wtgs, site, wf_model
 
 ################################## -- MAIN LOGIC -- ###########################
 
@@ -488,5 +491,5 @@ if __name__ == '__main__':
     knowl_dir  = sys.argv[2] if len(sys.argv) > 2 else '.'   # where to find the knowl excel-file
     yml_file   = sys.argv[3] if len(sys.argv) > 3 else None  # yaml input file. see note1 above.
     # 
-    aeps, sim_res, case, wtgs, site = main(wake_model, knowl_dir=knowl_dir, yml_file=yml_file)
+    aeps, sim_res, case, knowl, opts, wtgs, site, wf_model = main(wake_model, knowl_dir=knowl_dir, yml_file=yml_file)
 
