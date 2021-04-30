@@ -1071,4 +1071,29 @@ def get_processes_info(sort_by, descending=True, columns=None):
     pcs = pcs[columns.split(",")]
     return pcs
 
+def read_graph_grabber_data(fnm):
+    '''
+    reads csv-file from GraphGrabber, with multiple data series, into a Struct
+    '''
+    lines = open(fnm).readlines()
+    #
+    series = []
+    #
+    for no, line in enumerate(lines):
+        line = line.strip()
+        if not line: continue
+        if 'Series' in line:
+            if no > 0: s.x, s.y = np.array(xs), np.array(ys)
+            lbl = ' '.join(line.split()[2:])
+            s = Struct()
+            s.label = lbl
+            series.append(s)
+            xs, ys = [], []
+            continue
+        x, y = line.split(';')
+        xs.append(float(x))
+        ys.append(float(y))
+    #
+    s.x, s.y = np.array(xs), np.array(ys)
+    return series
 
