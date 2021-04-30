@@ -26,7 +26,7 @@ if pywake is to be called from knowl, i suggest that we make a more useful way o
 NOTES
 
  - note1
-    the yaml-input file in the __main__ part should look like this:
+    the yml-input file in the __main__ part should look like this:
 
         case_nm:                   # if empty, will use basename of *this* file
             Doggerbank
@@ -45,11 +45,11 @@ NOTES
         delta_windspeed:
             !!float   0.50         # delta wind-vel for calculations
 
-        # output file-names. relative to knowl_dir
+        # output file-names
+        output_to_knowldir:
+            !!bool    true
         output_fnm1:               # the file needed when running 'Wake only' from knowl
             FugaOutput_1.txt
-        output_fnm2:               # the file needed when running 'the other option' from knowl. not implemented yet. TODO!!
-            FugaOutput_2.txt
 
         # options
         #
@@ -113,17 +113,18 @@ def get_default_opts():
     '''
     opts = UT.Struct()
     opts.case_nm = ''
-    opts.inventory_file  = 'Inventory.xml'
-    opts.output_fnm1     = 'FugaOutput_1.txt'
-    opts.logfile         = 'pywake.log'
-    opts.tp_A            =  0.60
-    opts.noj_k           =  0.04
-    opts.legend_scaler   =  0.70
-    opts.plot_wakemap    =  False
-    opts.plot_layout     =  False
-    opts.plot_wind       =  False
-    opts.delta_winddir   = 1.
-    opts.delta_windspeed = 0.5
+    opts.inventory_file     = 'Inventory.xml'
+    opts.output_fnm1        = 'FugaOutput_1.txt'
+    opts.logfile            = 'pywake.log'
+    opts.tp_A               =  0.60
+    opts.noj_k              =  0.04
+    opts.legend_scaler      =  0.70
+    opts.plot_wakemap       =  False
+    opts.plot_layout        =  False
+    opts.plot_wind          =  False
+    opts.delta_winddir      = 1.
+    opts.delta_windspeed    = 0.5
+    opts.output_to_knowldir = True
     #
     return opts
 
@@ -417,8 +418,8 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     '''
     pick and initialize the chosen wake model
     '''
-    weibull = knowl.weibulls[0]                              # for now, we just use the first one. see note2. TODO!
-    site = UniformWeibullSite(weibull.freqs, weibull.As, weibull.Ks, knowl.turb_intens)
+    weib = knowl.weibulls[0]                              # for now, we just use the first one. see note2. TODO!
+    site = UniformWeibullSite(weib.freqs, weib.As, weib.Ks, knowl.turb_intens)
     #
     wake_model = wake_model.upper()
     if wake_model == 'FUGA':
@@ -440,6 +441,12 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     assert(np.all(np.equal(sim_res.x.values, case.xs)))
     assert(np.all(np.equal(sim_res.y.values, case.ys)))
     #
+    # coarsen it
+    n_sectors = len(weib.freqs)
+    sector_w  = 360. / n_sectors
+    n_bins    = int(sector_w / opts.delta_winddir)                                                                     # number of bins per sector
+    sim = sim_res.coarsen(wd=n_bins).mean()
+    #
     '''
     reporting AEP etc
     '''
@@ -447,7 +454,11 @@ def main(wake_model, knowl_dir='.', yml_file=None):
         fnm = wake_model + '.txt'
     else:
         fnm = opts.output_fnm1
-    aeps = WU.create_output_aep(sim_res, case, knowl, opts, fnm)
+    if opts.output_to_knowldir:
+        fnm = knowl_dir + SEP + fnm
+    #
+    aeps = WU.calc_AEP(sim, wtgs, weib, park_nms=case.park_nms, verbose=True)
+    WU.create_output(aeps, case, fnm)
     #
     '''
     optional stuff
@@ -456,12 +467,12 @@ def main(wake_model, knowl_dir='.', yml_file=None):
         # plot flow map for the dominant wind direction / wind-speed
         # grid=None defaults to HorizontalGrid(resolution=500, extend=0.2)
         plt.figure()
-        ws_plot = int(weibull.main_ws)
+        ws_plot = int(weib.main_ws)
         ws1, ws2 = np.floor(opts.legend_scaler*ws_plot), ws_plot+1
         levels = np.linspace(ws1, ws2, int((ws2-ws1)*10)+1)
-        flow_map = sim_res.flow_map(grid=None, wd=weibull.main_dir, ws=ws_plot)
+        flow_map = sim_res.flow_map(grid=None, wd=weib.main_dir, ws=ws_plot)
         flow_map.plot_wake_map(levels=levels, plot_ixs=False)
-        plt.title(f'{opts.case_nm} :: {opts.wake_model} :: {ws_plot:d} m/s :: {weibull.main_dir:.0f} deg')
+        plt.title(f'{opts.case_nm} :: {opts.wake_model} :: {ws_plot:d} m/s :: {weib.main_dir:.0f} deg')
         plt.show()
     #
     if opts.plot_layout:
@@ -477,7 +488,7 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     toc = time.perf_counter()
     logging.info(f"Total runtime: {toc - tic:0.1f} seconds")
     #
-    return aeps, sim_res, case, knowl, opts, wtgs, site, wf_model
+    return aeps, sim, case, knowl, opts, wtgs, site, wf_model
 
 ################################## -- MAIN LOGIC -- ###########################
 
@@ -491,5 +502,5 @@ if __name__ == '__main__':
     knowl_dir  = sys.argv[2] if len(sys.argv) > 2 else '.'   # where to find the knowl excel-file
     yml_file   = sys.argv[3] if len(sys.argv) > 3 else None  # yaml input file. see note1 above.
     # 
-    aeps, sim_res, case, knowl, opts, wtgs, site, wf_model = main(wake_model, knowl_dir=knowl_dir, yml_file=yml_file)
+    aeps, sim, case, knowl, opts, wtgs, site, wf_model = main(wake_model, knowl_dir=knowl_dir, yml_file=yml_file)
 

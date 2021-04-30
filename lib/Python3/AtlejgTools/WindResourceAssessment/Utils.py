@@ -81,16 +81,15 @@ def calc_power(sim, wtgs, weib, park_nms=[]):
         nm = park_nms[i] if park_nms else ''
         #
         gross  = np.tile(wtgs.power(pwr.ws, pwr.type), [pwr.sizes['wt'], pwr.sizes['wd'], 1])                         # gross power - from WTG power curve
-        # weighting according to European Wind Atlas
-        #net_w   = np.zeros((len(sim.wt), len(sim.wd), len(sim.ws)-1))
-        #gross_w = np.zeros((len(sim.wt), len(sim.wd), len(sim.ws)-1))
+        #
+        # weighting according to European Wind Atlas using the weibull
         net_w   = np.zeros(pwr.values.shape)
         gross_w = np.zeros(pwr.values.shape)
         for n, wd in enumerate(pwr.wd.values):
             net_w[:,n,:-1]   = _weigthed_pwr(pwr.ws.values, pwr.values[:,n,:], wb_A(wd), wb_K(wd))
-            gross_w[:,n,:-1] = _weigthed_pwr(pwr.ws.values, gross[:,n,:],            wb_A(wd), wb_K(wd))
+            gross_w[:,n,:-1] = _weigthed_pwr(pwr.ws.values, gross[:,n,:],      wb_A(wd), wb_K(wd))
         #
-        na = xr.DataArray(data=net_w, dims=pwr.dims, coords=pwr.coords, attrs=dict(description=f'Net power {nm}'))
+        na = xr.DataArray(data=net_w,   dims=pwr.dims, coords=pwr.coords, attrs=dict(description=f'Net power {nm}'))
         ga = xr.DataArray(data=gross_w, dims=pwr.dims, coords=pwr.coords, attrs=dict(description=f'Gross power {nm}'))
         pwrs.append([na, ga])
     #
@@ -121,16 +120,14 @@ def calc_AEP(sim, wtgs, weib, park_nms=[], verbose=False):
     #
     pwrs = calc_power(sim, wtgs, weib, park_nms=park_nms)
     aeps = []
+    if not park_nms: park_nms = [''] * len(aeps)
     #
-    for net, gross in pwrs:                                                                                                  # loop each park
-        #
-        nm = park_nms[i] if park_nms else ''
-        #
-        # calculate AEP per sector & wtg (using weibull freqs)
+    for nm, (net, gross) in zip(park_nms, pwrs):                                                                   # loop each park
         naep, gaep = net.sum('ws'), gross.sum('ws')
         for wd in sim.wd.values:
             naep.sel(wd=wd).values *= wb_f(wd) * cf
             gaep.sel(wd=wd).values *= wb_f(wd) * cf
+        aeps.append([naep, gaep])
         #
         if verbose:
             n = naep.sum().values
@@ -141,7 +138,6 @@ def calc_AEP(sim, wtgs, weib, park_nms=[], verbose=False):
             print(f'{nm} Net AEP (GWh) {n:.1f}')
             print(f'{nm} Wake loss (%) {wloss:.2f}')
         #
-        aeps.append([naep, gaep])
     return aeps
 
 def calc_AEP_old(sim0, pwr_funcs, weibs, dwd=1., park_nms=[], verbose=False, return_pwr=False):
@@ -230,10 +226,11 @@ def _write_park_aep(net, gross, park, f):
     f.write(df.to_string(index=False, header=False, formatters=fms))
 
 
-def create_output_aep(sim, case, knowl, opts, fnm):
+def create_output(aeps, case, fnm):
     '''
     create ouput ala Fuga (for knowl)
     only the 'For wake only' option is supported
+    note1: prefix 'n' is for net, 'g' is for gross
     '''
     #
     header = f'''py_wake Annual Energy production estimates
@@ -244,18 +241,14 @@ zeta0   99999
     f = open(fnm, 'w')
     f.write(header)
     #
-    # calculate AEP for all turbines
-    weibs     = [knowl.weibulls[0]]*case.n_parks                              # for now, we just use the first one. see note2. TODO!
-    aeps      = calc_AEP(sim, case.pwr_funcs, weibs, dwd=opts.delta_winddir, park_nms=case.park_nms, verbose=True)
-    #
     # write sector by sector
-    for i, wd in enumerate(weibs[0].dirs):
+    wds = aeps[0][0].wd.values
+    for i, wd in enumerate(wds):
         f.write(f'\nSector\t{i}\n')
-        netgross = []
         for park, (net, gr) in zip(case.park_list, aeps):
-            _write_park_aep(net[i,:], gr[i,:], park, f)
+            _write_park_aep(net.sel(wd=wd), gr.sel(wd=wd), park, f)
         # write a 'summary' for the total and each park
-        ns, gs = [aep[0][i,:].sum() for aep in aeps], [aep[1][i,:].sum() for aep in aeps]
+        ns, gs = [aep[0].sel(wd=wd).sum() for aep in aeps], [aep[1].sel(wd=wd).sum() for aep in aeps]
         f.write(f'\nAllProjects                      {sum(gs).values:.4f}   {sum(ns).values:.4f}\n')
         for park, n, g in zip(case.park_list, ns, gs):
             f.write(f'{park.name:20s}             {g.values:.4f}   {n.values:.4f}\n')
@@ -263,10 +256,10 @@ zeta0   99999
     # write all sectors
     f.write(f'\nAll sectors\n')
     for j, (park, aep) in enumerate(zip(case.park_list, aeps)):
-        _write_park_aep(aep[0].sum(axis=0), aep[1].sum(axis=0), park, f)
+        _write_park_aep(aep[0].sum(axis=1), aep[1].sum(axis=1), park, f)
     #
     # write a 'summary' for the total and each park
-    ns, gs = [aep[0].sum(axis=0) for aep in aeps], [aep[1].sum(axis=0) for aep in aeps]
+    ns, gs = [aep[0].sum(axis=1) for aep in aeps], [aep[1].sum(axis=1) for aep in aeps]
     #
     n, g = sum([sum(x) for x in ns]), sum([sum(x) for x in gs])
     f.write(f'\nAllProjects                      {g.values:.4f}   {n.values:.4f}\n')
@@ -275,7 +268,6 @@ zeta0   99999
     #
     f.close()
     logging.info(f'{fnm} was created')
-    return aeps
 
 def read_output_file(fnm):
     '''
