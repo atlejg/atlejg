@@ -1,7 +1,5 @@
 import numpy as np
 
-
-
 def _binArray(data, axis, binstep, binsize, func=np.nanmean):
     data = np.array(data)
     dims = np.array(data.shape)
@@ -153,4 +151,11 @@ def calc_AEP(sim0, pwr_funcs, weibs, dwd=1., verbose=False):
         aeps.append([naep, gaep])
     return aeps
 
+def winddir_components(wind_dir):
+    '''
+    wind_dir is wind direction, i.e. angle in degrees from north
+    '''
+    dx = -np.sin(wind_dir/180*np.pi)
+    dy = -np.cos(wind_dir/180*np.pi)
+    return dx, dy
 
