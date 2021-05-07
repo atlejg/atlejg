@@ -49,9 +49,6 @@ set history = 500
 if ( (! $?ENVONLY) && $?prompt ) then
 set prompt='%c2> '
 endif
-# dont want redirected output to overwrite files - unless told to (using >!)
-set noclobber
-set nobeep filec fignore=(.o \~ .BAK)
 
 ### MY ENVIRONMENT VARIABLES
 #
@@ -211,8 +208,9 @@ alias completor "python3 /private/agy/Tools/subscript/src/subscript/completor/ma
 setenv TT /project/RCP/active/reservoir_simulations/agy/Peregrino/Shoebox/Simul/Version12
 setenv PY $HOME/Tools/lib/Python/AtlejgTools/
 
-
-
+# dont want redirected output to overwrite files - unless told to (using >!)
+set noclobber
+set nobeep filec fignore=(.o \~ .BAK)
 
 
 
