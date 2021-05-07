@@ -7,15 +7,35 @@ import tempfile
 from mpl_toolkits.axisartist.parasite_axes import HostAxes, ParasiteAxes
 from matplotlib import rcParams
 import yaml
+import pprint
 
 class Struct(object):
     '''
-    a rather flat implempentation of a struct for python
+    a rather flat implempentation of a struct for python.
+    note that attribute _keys is special and *cannot* be used.
     '''
+    def __init__(self):
+        self._keys = []
+#
     def has(self, key):
-        return key in self.__dict__.keys()
-    def set(self, key, value):
+        return hasattr(self, key)
+#
+    def get(self, key):
+        return self.__dict__[key]
+#
+    def __setattr__(self, key, value):
+        if hasattr(self, '_keys') and len(self._keys) > 0 and key == '_keys':
+            raise Exception('Cannot use attribute "_keys" for Struct')
         self.__dict__[key] = value
+        self._keys.append(key)
+#
+    def __repr__(self):   # used for __str__ as well
+        s = ''
+        for key in self._keys:
+            if key == '_keys': continue
+            s += f'{key:10s} : {pprint.pformat(self.get(key))}\n'
+        return s
+
     
     pass
 
@@ -1051,4 +1071,29 @@ def get_processes_info(sort_by, descending=True, columns=None):
     pcs = pcs[columns.split(",")]
     return pcs
 
+def read_graph_grabber_data(fnm):
+    '''
+    reads csv-file from GraphGrabber, with multiple data series, into a Struct
+    '''
+    lines = open(fnm).readlines()
+    #
+    series = []
+    #
+    for no, line in enumerate(lines):
+        line = line.strip()
+        if not line: continue
+        if 'Series' in line:
+            if no > 0: s.x, s.y = np.array(xs), np.array(ys)
+            lbl = ' '.join(line.split()[2:])
+            s = Struct()
+            s.label = lbl
+            series.append(s)
+            xs, ys = [], []
+            continue
+        x, y = line.split(';')
+        xs.append(float(x))
+        ys.append(float(y))
+    #
+    s.x, s.y = np.array(xs), np.array(ys)
+    return series
 
