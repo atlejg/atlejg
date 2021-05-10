@@ -5,6 +5,7 @@ import logging
 import os
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
+import dateutil
 
 REAL = lambda x: f'{x:.4f}'
 INT  = lambda x: f'{x:.0f}'
@@ -404,3 +405,56 @@ def winddir_components(wind_dir):
     dx = -np.sin(wind_dir/180*np.pi)
     dy = -np.cos(wind_dir/180*np.pi)
     return dx, dy
+
+class Scada(object):
+#
+    def __init__(self, fnm):
+        '''
+        read scada csv-file (from camille) into a DataFrame
+        - input
+            fnm: file name (csv-file, could be gzip'ed)
+        - notes
+            DataArray less useful for scada-data since wind-speeds and wind-directions are not regular
+        '''
+        self.data = pd.read_csv(fnm, parse_dates=['time'], converters={'time':dateutil.parser.parse})
+        self.fnm = fnm
+        '''
+        t = np.unique(scd.time.values)
+        wt = np.unique(scd.Turbine.values)
+        #
+        # read all results into a list (one matrix for each velocity)
+        #
+        # create xarray
+        layout = read_wt_positions(inp)
+        dims   = ["time", "wt"]
+        coords = dict(time=t,
+                      wt=wt,
+                      wd=inp['theta list'],
+                      x=(["wt"], layout.x.values),
+                      y=(["wt"], layout.y.values),
+                      nm=(["wt"], res.index),
+                     )
+        data = []
+        for fnm in get_resultsfiles(inp, rtype):
+            res = pd.read_csv(fnm, sep=',', skiprows=3, index_col=0, header=None)
+            data.append(res.values)
+        return xarray.DataArray(data=data, dims=dims, coords=coords, attrs=dict(description=inp["casenm"]))
+        '''
+#
+    def select(self, nm, wd_min, wd_max, ws_min, ws_max):
+        '''
+        nm: wind turbine name
+        '''
+        data = self.data
+        data = data[data.Turbine==nm]
+        ixs = np.logical_and(data.WindDir>wd_min, data.WindDir<=wd_max)
+        data = data[ixs]
+        ixs = np.logical_and(data.WindSpeed>ws_min, data.WindSpeed<=ws_max)
+        data = data[ixs]
+        return data
+#
+    def attrs(self):
+        '''
+        useful when creating xarray: c.attrs = scd.attrs
+        '''
+        return {'description': 'scada'}

@@ -1,7 +1,8 @@
 import os
+import logging
 import numpy as np
 import pandas as pd
-import xarray as xr
+import xarray
 import AtlejgTools.Utils as UT
 import py_wake 
 import matplotlib.pyplot as plt
@@ -13,7 +14,9 @@ TYP_PWR    = 'pwr'
 TYP_WL     = 'wl'
 ARROW_SIZE = 200.
 
-def read_input(fnm):
+logging.basicConfig(level=logging.INFO)
+
+def read_input(casenm, file_ext='.wm'):
     '''
     reads a WindModeller input file into a dict.
     notes
@@ -23,6 +26,7 @@ def read_input(fnm):
      - adds 'casenm' for identification. this is the basename of the file-name
     '''
     inp = {}
+    fnm = casenm + file_ext
     for line in open(fnm).readlines():
         if not SEP in line: continue
         k, v = line.split(SEP)
@@ -91,9 +95,11 @@ def read_wt_positions(inp=None, fnm=None):
     '''
     reads wt-positions from a WindModeller file.
     one of inp or fnm must be given.
-    inp is a dict as given by read_input
+    inp is a dict as given by read_input or casenm
     '''
-    fnm = inp['WT location file'] if inp else fnm
+    if not fnm:
+        if type(inp) is str: inp = read_input(inp)
+        fnm = inp['WT location file']
     return pd.read_csv(fnm, sep=' ', skiprows=0, skipinitialspace=True, names=['name', 'x', 'y', 'h'], index_col='name')
 
 def relative_wt_positions(wts):
@@ -110,14 +116,6 @@ def relative_wt_positions(wts):
 
 def write_wt_positions(wtgs, fnm):
     wtgs.to_csv(fnm, sep=' ', float_format='%.1f', header=False)
-
-def read_results_old(inp, rtype=TYP_PWR, ws_ix=0):
-    wakedir = 'wakes' if inp['wake model'] else 'no_wakes'
-    fnm = f'{inp["target directory"]}/{wakedir}/'
-    if rtype == TYP_PWR:
-        fnm += 'WT_hub_power_'
-    fnm += f'speed{ws_ix+1:d}.csv'
-    return pd.read_csv(fnm, sep=',', skiprows=3, index_col=0, header=None)
 
 def get_resultsfiles(inp, rtype):
     wakedir = 'wakes' if inp['wake model'] else 'no_wakes'
@@ -136,12 +134,15 @@ def read_results(inp, rtype=TYP_PWR):
     '''
     read WindModeller result-files into an xarray
     - input
-        inp: case dictionary as read from read_input
+        inp: case dictionary as read from read_input or casenm
     '''
+    #
+    if type(inp) is str: inp = read_input(inp)
     #
     # read all results into a list (one matrix for each velocity)
     data = []
     for fnm in get_resultsfiles(inp, rtype):
+        logging.info(f'reading {fnm}')
         res = pd.read_csv(fnm, sep=',', skiprows=3, index_col=0, header=None)
         data.append(res.values)
     #
@@ -155,15 +156,21 @@ def read_results(inp, rtype=TYP_PWR):
                   y=(["wt"], layout.y.values),
                   nm=(["wt"], res.index),
                  )
-    return xr.DataArray(data=data, dims=dims, coords=coords, attrs=dict(description=inp["casenm"]))
+    return xarray.DataArray(data=data, dims=dims, coords=coords, attrs=dict(description=inp["casenm"]))
+
+def res(inp, rtype=TYP_PWR):
+    '''
+    just an alias for read_results
+    '''
+    return read_results(inp, rtype)
 
 def calc_wakelosses(net, gross=None, per_wd=False):
     #
     attrs = net.attrs     # lost in operations
-    net = net.sum('ws')
+    net = net.mean('ws')
     if not per_wd:
-        net = net.sum('wd')
-        if not gross is None: gross = gross.sum('wd')
+        net = net.mean('wd')
+        if not gross is None: gross = gross.mean('wd')
     #
     m = gross if not gross is None else net.max()
     wl = (m-net)/m * 100
@@ -183,17 +190,18 @@ def wtg_scatterplot(sim0, per_wd=False, descr='', fmt='.1f', scaler=1.):
     descr += sim0.attrs["description"]
     if per_wd:
         wds = sim0.wd
+        figsz = (10,7)
     else:
-        if 'wd' in sim0.dims: sim0 = sim0.mean('wd')
+        if 'wd' in sim0.dims:
+            sim = sim0.mean('wd')
+        else:
+            sim = sim0
         wds = [-1]
+        figsz = (7,7)
     #
     for i, wd in enumerate(wds):
         if per_wd:
             sim = sim0.sel(wd=wd)
-            figsz = (10,7)
-        else:
-            sim = sim0
-            figsz = (7,7)
         if 'ws' in sim.dims: sim = sim.mean('ws')
         #
         plt.figure(figsize=figsz)
