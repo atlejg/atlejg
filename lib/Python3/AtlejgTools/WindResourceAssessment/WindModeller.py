@@ -1,18 +1,26 @@
+import os
 import numpy as np
 import pandas as pd
+import xarray as xr
 import AtlejgTools.Utils as UT
 import py_wake 
+import matplotlib.pyplot as plt
+import AtlejgTools.WindResourceAssessment.Utils as WU
 
-SEP     = '='
-TYP_CT  = 'ct'
-TYP_PWR = 'pwr'
+SEP        = '='
+TYP_CT     = 'ct'
+TYP_PWR    = 'pwr'
+TYP_WL     = 'wl'
+ARROW_SIZE = 200.
 
 def read_input(fnm):
     '''
     reads a WindModeller input file into a dict.
     notes
      - booleans are given as proper python booleans (True/False)
-     - wind-directions are always given as a list in inp['theta list']
+     - wind-directions are always given as a list in inp['theta list'] as floats
+     - wind-speeds are floats
+     - adds 'casenm' for identification. this is the basename of the file-name
     '''
     inp = {}
     for line in open(fnm).readlines():
@@ -28,12 +36,17 @@ def read_input(fnm):
     # make sure we have wind-directions on a standard format, i.e. a 'theta list' of floats
     mode = inp['wind direction option'].lower()
     if   mode == 'list':
-        inp['theta list'] = [float(theta) for theta in inp['theta list']]
+        inp['theta list'] = [float(theta) for theta in inp['theta list'].split(',')]
     elif mode == 'start end increment':
         inp['theta list'] = np.arange(float(inp['theta start']), float(inp['theta end'])+1, float(inp['theta increment']))
     elif mode == 'number':
         inp['theta list'] = np.linspace(0, 360, int(inp['number of directions']), endpoint=False)
     #
+    # want speed list as floats
+    inp['speed list'] = [float(speed) for speed in inp['speed list'].split(',')]
+    #
+    # adds 'casenm' for identification
+    if not 'casenm' in inp: inp['casenm'] = UT.basename(fnm)
     return inp
 
 def _write_profile(typ, xs, ys, todir, fnm):
@@ -98,10 +111,128 @@ def relative_wt_positions(wts):
 def write_wt_positions(wtgs, fnm):
     wtgs.to_csv(fnm, sep=' ', float_format='%.1f', header=False)
 
-def read_results(inp, rtype=TYP_PWR, ws_ix=0):
+def read_results_old(inp, rtype=TYP_PWR, ws_ix=0):
     wakedir = 'wakes' if inp['wake model'] else 'no_wakes'
     fnm = f'{inp["target directory"]}/{wakedir}/'
     if rtype == TYP_PWR:
         fnm += 'WT_hub_power_'
     fnm += f'speed{ws_ix+1:d}.csv'
     return pd.read_csv(fnm, sep=',', skiprows=3, index_col=0, header=None)
+
+def get_resultsfiles(inp, rtype):
+    wakedir = 'wakes' if inp['wake model'] else 'no_wakes'
+    pattern = f'{inp["target directory"]}/{wakedir}/'
+    if rtype == TYP_PWR:
+        pattern += 'WT_hub_power_'
+    else:
+        raise Exception(f'have not implemented result-type {rtype}')
+    #
+    pattern += f'speed*.csv'
+    fnms = UT.glob(pattern)
+    fnms.sort(key=lambda x: int(x.split('speed')[1].split('.')[0]))  # sort on speed-index 1,2,3...
+    return fnms
+
+def read_results(inp, rtype=TYP_PWR):
+    '''
+    read WindModeller result-files into an xarray
+    - input
+        inp: case dictionary as read from read_input
+    '''
+    #
+    # read all results into a list (one matrix for each velocity)
+    data = []
+    for fnm in get_resultsfiles(inp, rtype):
+        res = pd.read_csv(fnm, sep=',', skiprows=3, index_col=0, header=None)
+        data.append(res.values)
+    #
+    # create xarray
+    layout = read_wt_positions(inp)
+    dims   = ["ws", "wt", "wd"]
+    coords = dict(ws=inp['speed list'],
+                  wt=range(len(layout)),
+                  wd=inp['theta list'],
+                  x=(["wt"], layout.x.values),
+                  y=(["wt"], layout.y.values),
+                  nm=(["wt"], res.index),
+                 )
+    return xr.DataArray(data=data, dims=dims, coords=coords, attrs=dict(description=inp["casenm"]))
+
+def calc_wakelosses(net, gross=None, per_wd=False):
+    #
+    attrs = net.attrs     # lost in operations
+    net = net.sum('ws')
+    if not per_wd:
+        net = net.sum('wd')
+        if not gross is None: gross = gross.sum('wd')
+    #
+    m = gross if not gross is None else net.max()
+    wl = (m-net)/m * 100
+    wl.attrs = attrs
+    return wl
+
+def wtg_scatterplot(sim0, per_wd=False, descr='', fmt='.1f', scaler=1.):
+    '''
+    plots a scatter-plot with values per wtg.
+    - input
+        sim0  : simulation results. typically wake-loss or power
+        per_wd: if True, it will average all directions
+                else, it will make one plot per wind-dir
+        descr: title prefix
+    '''
+    #
+    descr += sim0.attrs["description"]
+    if per_wd:
+        wds = sim0.wd
+    else:
+        if 'wd' in sim0.dims: sim0 = sim0.mean('wd')
+        wds = [-1]
+    #
+    for i, wd in enumerate(wds):
+        if per_wd:
+            sim = sim0.sel(wd=wd)
+            figsz = (10,7)
+        else:
+            sim = sim0
+            figsz = (7,7)
+        if 'ws' in sim.dims: sim = sim.mean('ws')
+        #
+        plt.figure(figsize=figsz)
+        plt.scatter(sim.x, sim.y, s=50, c='k')
+        for j, val  in enumerate(sim.values/scaler):
+            plt.text(sim.x[j]+30, sim.y[j]+30, f'{val:{fmt}}')
+        #
+        titl = descr
+        if per_wd:
+            # add wind-arrow. make extra space for it
+            x = 1.2*ARROW_SIZE + sim.x.max()
+            y = sim.y.max()-ARROW_SIZE
+            dx, dy = WU.winddir_components(wd)
+            plt.arrow(x, y, ARROW_SIZE*dx, ARROW_SIZE*dy, head_width=ARROW_SIZE/5)
+            plt.xlim(right=x+2.5*ARROW_SIZE)
+            titl += (r' $[%d^o]$'%wd)
+        else:
+            titl += ' [all directions]'
+        plt.title(titl)
+        plt.xticks([])
+        plt.yticks([])
+        plt.axis('equal')
+
+def cp(old, new):
+    '''
+    copy an existing WindModeller input-file to a new one
+    and also update the 'target directory'
+     - input
+         old: existing case without file extension
+         new: new case without file extension
+     - notes
+         - file must be in current working directory
+         - old file must have file extension wm
+    '''
+    if not os.path.exists(f'{old}.wm'):
+        print(f'No such file {old}.wm. Returning')
+        return
+    if os.path.exists(f'{new}.wm'):
+        print(f'File {new}.wm exists. Returning')
+        return
+    cmd = f'sed s/{old}/{new}/g {old}.wm > {new}.wm'
+    UT.tcsh(cmd)
