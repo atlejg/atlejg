@@ -408,16 +408,20 @@ def winddir_components(wind_dir):
 
 class Scada(object):
 #
-    def __init__(self, fnm):
+    def __init__(self, fnm, stype='camille'):
         '''
         read scada csv-file (from camille) into a DataFrame
         - input
             fnm: file name (csv-file, could be gzip'ed)
+            stype: scada format type. for now only 'camille' is implemented
         - notes
             DataArray less useful for scada-data since wind-speeds and wind-directions are not regular
         '''
-        self.data = pd.read_csv(fnm, parse_dates=['time'], converters={'time':dateutil.parser.parse})
-        self.fnm = fnm
+        if stype == 'camille':
+            self.data = pd.read_csv(fnm, parse_dates=['time'], converters={'time':dateutil.parser.parse})
+            self.fnm = fnm
+        else:
+            raise Exception(f'SCADA type {stype} not implemented')
         '''
         t = np.unique(scd.time.values)
         wt = np.unique(scd.Turbine.values)

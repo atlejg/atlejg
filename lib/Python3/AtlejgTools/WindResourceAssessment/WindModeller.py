@@ -12,7 +12,7 @@ import os
 import logging
 import numpy as np
 import pandas as pd
-import xarray
+import xarray as xr
 import AtlejgTools.Utils as UT
 import py_wake 
 import matplotlib.pyplot as plt
@@ -33,8 +33,8 @@ def read_case(casenm, file_ext='.wm'):
       * casenm: this is the basename of the file-name
     - notes
      * booleans are given as proper python booleans (True/False)
-     * wind-directions are always given as a list in case['theta list'] as floats
-     * wind-speeds are floats
+     * wind-directions are always given as a list in case['theta list'] as np.array
+     * wind-speeds is np.array
      * adds 'casenm' for identification. this is the basename of the file-name
     '''
     #
@@ -58,14 +58,14 @@ def read_case(casenm, file_ext='.wm'):
     # make sure we have wind-directions on a standard format, i.e. a 'theta list' of floats
     mode = case['wind direction option'].lower()
     if mode == 'list':
-        case['theta list'] = [float(theta) for theta in case['theta list'].split(',')]
+        case['theta list'] = np.array([float(theta) for theta in case['theta list'].split(',')])
     elif mode == 'start end increment':
         case['theta list'] = np.arange(float(case['theta start']), float(case['theta end'])+1, float(case['theta increment']))
     elif mode == 'number':
         case['theta list'] = np.linspace(0, 360, int(case['number of directions']), endpoint=False)
     #
     # want speed list as floats
-    case['speed list'] = [float(speed) for speed in case['speed list'].split(',')]
+    case['speed list'] = np.array([float(speed) for speed in case['speed list'].split(',')])
     #
     # adds 'casenm' for identification
     if not 'casenm' in case: case['casenm'] = UT.basename(fnm)
@@ -124,7 +124,8 @@ def read_wt_positions(case=None, fnm=None):
     if not fnm:
         if type(case) is str: case = read_case(case)
         fnm = case['WT location file']
-    return pd.read_csv(fnm, sep=' ', skiprows=0, skipinitialspace=True, names=['name', 'x', 'y', 'h'], index_col='name')
+    names = ['name', 'x', 'y', 'h', 'diam', 'ct_nm', 'pwr_nm']
+    return pd.read_csv(fnm, sep=' ', skiprows=0, skipinitialspace=True, names=names, index_col='name')
 
 def relative_wt_positions(wts):
     '''
@@ -161,7 +162,7 @@ def get_resultsfiles(case, rtype):
 
 def read_results(case, rtype=TYP_PWR):
     '''
-    read WindModeller result-files into an xarray
+    read WindModeller result-files into a DataArray
     - input
       * case : case dictionary from read_case or casenm (str)
       * rtype: result-type. only power (TYP_PWR) is implemented. TODO!
@@ -176,7 +177,7 @@ def read_results(case, rtype=TYP_PWR):
         res = pd.read_csv(fnm, sep=',', skiprows=3, index_col=0, header=None)
         data.append(res.values)
     #
-    # create xarray
+    # create DataArray
     layout = read_wt_positions(case)
     dims   = ["ws", "wt", "wd"]
     coords = dict(ws=case['speed list'],
@@ -187,15 +188,10 @@ def read_results(case, rtype=TYP_PWR):
                   nm=(["wt"], res.index),
                  )
     attrs = dict(description=case["casenm"], rtype=rtype)
-    res = xarray.DataArray(data=data, dims=dims, coords=coords, attrs=attrs)
+    res = xr.DataArray(data=data, dims=dims, coords=coords, attrs=attrs)
     logging.info(f'Result dimension: {dict(res.sizes)}. Result type: {rtype}')
     return res
 
-def res(case, rtype=TYP_PWR):
-    '''
-    just an alias for read_results
-    '''
-    return read_results(case, rtype)
 
 def calc_wakelosses(net, gross=None, per_wd=False):
     #
@@ -210,14 +206,18 @@ def calc_wakelosses(net, gross=None, per_wd=False):
     wl.attrs = attrs
     return wl
 
-def wtg_scatterplot(sim0, per_wd=False, descr='', fmt='.1f', scaler=1.):
+def wtg_scatterplot(sim0, per_wd=False, descr='', fmt='.1f', scaler=1., fontsz=13., ms=75):
     '''
     plots a scatter-plot with values per wtg.
     - input
-      * sim0  : simulation results. typically wake-loss or power
+      * sim0  : simulation results as DataArray. typically wake-loss, power, or efficiency
       * per_wd: if True, it will average all directions
                 else, it will make one plot per wind-dir
       * descr: title prefix
+      * fmt   : format of text
+      * scaler: scaling (by division). typically for converting W to MW etc.
+      * fontsz: size of text
+      * ms    : marker size for wt's
     '''
     #
     descr += sim0.attrs["description"]
@@ -235,12 +235,12 @@ def wtg_scatterplot(sim0, per_wd=False, descr='', fmt='.1f', scaler=1.):
     for i, wd in enumerate(wds):
         if per_wd:
             sim = sim0.sel(wd=wd)
-        if 'ws' in sim.dims: sim = sim.mean('ws')
+        if 'ws' in sim.dims: sim = sim.mean('ws')   # could have been done already
         #
         plt.figure(figsize=figsz)
-        plt.scatter(sim.x, sim.y, s=50, c='k')
+        plt.scatter(sim.x, sim.y, s=ms, c='k')
         for j, val  in enumerate(sim.values/scaler):
-            plt.text(sim.x[j]+30, sim.y[j]+30, f'{val:{fmt}}')
+            plt.text(sim.x[j]+30, sim.y[j]+30, f'{val:{fmt}}', fontsize=fontsz)
         #
         titl = descr
         if per_wd:
@@ -279,3 +279,97 @@ def cp(old, new, file_ext='.wm'):
     UT.tcsh(cmd)
     logging.info(cmd)
     return new + file_ext
+
+def write_winddata_file(scd, fnm, std_lvl=0.1, stab='U'):
+    '''
+    writes scada data into a WindModeller file for 'Wind Data Files' as required when
+    using the 'Offshore Array Efficiency and Effective TI' option
+    - input
+      * scd     : scada data. either as WU.Scada object or a DataFrame
+      * std_lvl : standard deviation level
+      * stab   : stability regime (U[nstable], W[ery]U[nstable], S[table], ..)
+    '''
+    if not isinstance(scd, pd.DataFrame):
+        scd = scd.data
+    if not 'stddev' in scd: scd['stddev'] = scd.WindSpeed * std_lvl
+    if not 'stab'   in scd: scd['stab']   = stab
+    f = open(fnm, 'w')
+    f.write('WFU_data,,,,\nDirection,Mean,SD,TIMESTAMP,Stability\n')
+    cols = ['WindDir', 'WindSpeed', 'stddev', 'time', 'stab']
+    scd.to_csv(f, sep=',', columns=cols, index=False, header=False, float_format='%.2f', date_format='%d/%m/%Y %H:%M')
+    logging.info(f'{fnm} is created')
+
+def read_turbine_efficencies(case, raw=False, debug=False):
+    '''
+    for a WindModeller-run of type
+      wind data transposition option = Offshore Array Efficiency and Effective TI
+    a efficiency matrix for each turbine is written to file.
+    this routine reads this file into a DataArray for ease of access
+    - input
+      * case : case dictionary from read_case or casenm (str)
+      * raw  : in the csv-file, it reports wd's and ws's that are slightly off the requested values.
+               here, these values are replaced by the requested values (found in the case-file)
+               if 'raw' is True, it will instead use the values found in the csv-file.
+      * debug: get more data (for debug...)
+    '''
+    if type(case) is str: case = read_case(case)
+    fnm = f'{case["target directory"]}/array_eff_TI/results/TurbineEfficiency.csv'
+    logging.info(f'reading {fnm}')
+    #
+    csvfile = open(fnm)
+    m3 = []                                     # 3-dim matrix for all data
+    nms = []
+    for line in csvfile:
+        line = line.strip()
+        if (not line) or ('Upstream' in line) or ('Turbine efficiency' in line):
+            continue
+        #
+        if 'Turbine:' in line:
+            if len(nms) > 0:
+                m3.append(m2)
+            m2 = []                             # 2-dim matrix of data for this turbine
+            nm = line.split('Turbine:,')[1].strip()
+            nms.append(nm)
+            continue
+        #
+        # 'default': read data into current matrix
+        rec = [float(x) for x in line.split(',')]
+        m2.append(rec)
+    m3.append(m2)
+    csvfile.close()
+    #
+    # build a DataArray
+    da = xr.DataArray(m3)  # convinent
+    if not raw:
+        wd = case['theta list']
+        ws = case['speed list']
+    else:
+        # a bit tricky ...
+        wd = da[0,:,0].values[:len(case['theta list'])]
+        ws = da[0,:,1].values[::len(case['theta list'])]
+    vals = da[:,:,2].values.reshape([len(nms), len(wd), len(ws)])
+    dims   = ['wt', 'wd', 'ws']
+    wtgs = read_wt_positions(case)
+    coords = dict(
+               wt=range(len(nms)),
+               wd=wd,
+               ws=ws,
+               x =(['wt'], wtgs.x.values),
+               y =(['wt'], wtgs.y.values),
+               nm=(['wt'], nms)
+             )
+    eff = xr.DataArray(data=vals, dims=dims, coords=coords, attrs=dict(description=case['casenm']))
+    logging.info(f'Result dimension: {dict(eff.sizes)}')
+    #
+    #  make sure data is consistent
+    assert np.all(wtgs.index == nms)
+    #
+    if debug:
+        return eff, m3, m2, rec, nms
+    else:
+        return eff
+
+
+# aliases
+res = read_results
+
