@@ -286,4 +286,7 @@ zm: close next level
 diff -qr Dir1 Dir2
 
 # converting jupyter notebook to a script
-ipython nbconvert --to script Site.ipynb
+jupytext --to script test.ipynb      # or: ipython nbconvert --to script test.ipynb
+
+# and the other way around...
+jupytext --to notebook test.py
