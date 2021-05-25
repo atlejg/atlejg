@@ -408,7 +408,7 @@ def winddir_components(wind_dir):
 
 class Scada(object):
 #
-    def __init__(self, fnm, stype='camille'):
+    def __init__(self, fnm='', stype='camille'):
         '''
         read scada csv-file (from camille) into a DataFrame
         - input
@@ -418,47 +418,71 @@ class Scada(object):
             DataArray less useful for scada-data since wind-speeds and wind-directions are not regular
         '''
         if stype == 'camille':
-            self.data = pd.read_csv(fnm, parse_dates=['time'], converters={'time':dateutil.parser.parse})
+            if fnm:
+                self.data = pd.read_csv(fnm, parse_dates=['time'], converters={'time':dateutil.parser.parse})
+            else:
+                self.data = pd.DataFrame([])
             self.fnm = fnm
         else:
             raise Exception(f'SCADA type {stype} not implemented')
-        '''
-        t = np.unique(scd.time.values)
-        wt = np.unique(scd.Turbine.values)
-        #
-        # read all results into a list (one matrix for each velocity)
-        #
-        # create xarray
-        layout = read_wt_positions(inp)
-        dims   = ["time", "wt"]
-        coords = dict(time=t,
-                      wt=wt,
-                      wd=inp['theta list'],
-                      x=(["wt"], layout.x.values),
-                      y=(["wt"], layout.y.values),
-                      nm=(["wt"], res.index),
-                     )
-        data = []
-        for fnm in get_resultsfiles(inp, rtype):
-            res = pd.read_csv(fnm, sep=',', skiprows=3, index_col=0, header=None)
-            data.append(res.values)
-        return xarray.DataArray(data=data, dims=dims, coords=coords, attrs=dict(description=inp["casenm"]))
-        '''
 #
-    def select(self, nm, wd_min, wd_max, ws_min, ws_max):
+    def select(self, wd_min, wd_max, ws_min, ws_max, nms=[]):
         '''
-        nm: wind turbine name
+        selecting part of the data.
+        - input
+          * wd_min : min wind-dir
+          * wd_max : max wind-dir
+          * ws_min : min wind-speed
+          * ws_max : max wind-speed
+          * nms    : wind turbine names (list). if [], all are included
+        - returns
+          * DataFrame with the selected data. also available as attribute sel
         '''
-        data = self.data
-        data = data[data.Turbine==nm]
-        ixs = np.logical_and(data.WindDir>wd_min, data.WindDir<=wd_max)
-        data = data[ixs]
-        ixs = np.logical_and(data.WindSpeed>ws_min, data.WindSpeed<=ws_max)
-        data = data[ixs]
-        return data
+        sel = self.data              # pointer to all
+        ixs = np.logical_and(sel.WindDir>wd_min, sel.WindDir<=wd_max)
+        sel = sel[ixs]               # now it's a copy
+        ixs = np.logical_and(sel.WindSpeed>ws_min, sel.WindSpeed<=ws_max)
+        sel = sel[ixs]
+        if nms:
+            ixs = [False]*len(sel)   # init
+            for nm in nms:
+                ixs = np.logical_or(ixs, (sel.Turbine==nm).values)
+            sel = sel[ixs]
+        self.sel = sel               # potentially useful
+        return sel
 #
-    def attrs(self):
+    def net(self, wd_min=-1., wd_max=361., ws_min=-1., ws_max=9999., nms=[]):
         '''
-        useful when creating xarray: c.attrs = scd.attrs
+        return net power production for selected conditions.
+        use defaults if you want all data
+        - input
+          * wd_min : min wind-dir
+          * wd_max : max wind-dir
+          * ws_min : min wind-speed
+          * ws_max : max wind-speed
+          * nms    : wind turbine names (list). if [], all are included
+        - returns
+          * Series with the selected data
         '''
-        return {'description': 'scada'}
+        sel = self.select(wd_min, wd_max, ws_min, ws_max, nms)
+        return sel.groupby('Turbine').mean().ActivePower
+#
+    def gross(self, pwr, wd_min=-1., wd_max=361., ws_min=-1., ws_max=9999., nms=[]):
+        '''
+        return gross power production for selected conditions.
+        use defaults if you want all data
+        - input
+          * pwr    : power-function. assumes one turbine-type only. TODO! 
+          * wd_min : min wind-dir
+          * wd_max : max wind-dir
+          * ws_min : min wind-speed
+          * ws_max : max wind-speed
+          * nms    : wind turbine names (list). if [], all are included
+        - returns
+          * Series with the selected data
+        '''
+        sel = self.select(wd_min, wd_max, ws_min, ws_max, nms)
+        sel['gross'] = pwr(sel.WindSpeed)
+        return sel.groupby('Turbine').mean().gross
+
+
