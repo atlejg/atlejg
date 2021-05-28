@@ -406,9 +406,22 @@ def winddir_components(wind_dir):
     dy = -np.cos(wind_dir/180*np.pi)
     return dx, dy
 
+def to_gross(net, pwr_f):
+    '''
+    useful to get the gross power production
+    with the same dimensions as net
+    - notes
+      * a copy is made so net is not changed
+    '''
+    gr = net.copy()
+    for ws in gr.ws:
+        gr.loc[dict()] = ws
+    gr.values = pwr_f(gr)
+    return gr
+
 class Scada(object):
 #
-    def __init__(self, fnm='', stype='camille'):
+    def __init__(self, fnm='', stype='camille', pwr_f=None):
         '''
         read scada csv-file (from camille) into a DataFrame
         - input
@@ -419,14 +432,17 @@ class Scada(object):
         '''
         if stype == 'camille':
             if fnm:
-                self.data = pd.read_csv(fnm, parse_dates=['time'], converters={'time':dateutil.parser.parse})
+                self.raw = pd.read_csv(fnm, parse_dates=['time'], converters={'time':dateutil.parser.parse})
+                self.wt  = self.raw.Turbine.unique()
+                self.pwr_f = pwr_f
+                self.update()
             else:
-                self.data = pd.DataFrame([])
+                self.raw = pd.DataFrame([])
             self.fnm = fnm
         else:
             raise Exception(f'SCADA type {stype} not implemented')
 #
-    def select(self, wd_min, wd_max, ws_min, ws_max, nms=[]):
+    def select(self, wd_min=-1., wd_max=361., ws_min=-1, ws_max=9999, nms=[]):
         '''
         selecting part of the data.
         - input
@@ -438,7 +454,7 @@ class Scada(object):
         - returns
           * DataFrame with the selected data. also available as attribute sel
         '''
-        sel = self.data              # pointer to all
+        sel = self.raw              # pointer to all
         ixs = np.logical_and(sel.WindDir>wd_min, sel.WindDir<=wd_max)
         sel = sel[ixs]               # now it's a copy
         ixs = np.logical_and(sel.WindSpeed>ws_min, sel.WindSpeed<=ws_max)
@@ -453,7 +469,7 @@ class Scada(object):
 #
     def net(self, wd_min=-1., wd_max=361., ws_min=-1., ws_max=9999., nms=[]):
         '''
-        return net power production for selected conditions.
+        return averaged net power production for selected conditions.
         use defaults if you want all data
         - input
           * wd_min : min wind-dir
@@ -462,27 +478,126 @@ class Scada(object):
           * ws_max : max wind-speed
           * nms    : wind turbine names (list). if [], all are included
         - returns
-          * Series with the selected data
+          * Series with the selected data (per wt)
         '''
         sel = self.select(wd_min, wd_max, ws_min, ws_max, nms)
         return sel.groupby('Turbine').mean().ActivePower
 #
-    def gross(self, pwr, wd_min=-1., wd_max=361., ws_min=-1., ws_max=9999., nms=[]):
+    def gross(self, wd_min=-1., wd_max=361., ws_min=-1., ws_max=9999., nms=[]):
         '''
-        return gross power production for selected conditions.
+        return averaged gross power production for selected conditions.
         use defaults if you want all data
         - input
-          * pwr    : power-function. assumes one turbine-type only. TODO! 
           * wd_min : min wind-dir
           * wd_max : max wind-dir
           * ws_min : min wind-speed
           * ws_max : max wind-speed
           * nms    : wind turbine names (list). if [], all are included
         - returns
-          * Series with the selected data
+          * Series with the selected data (per wt)
         '''
         sel = self.select(wd_min, wd_max, ws_min, ws_max, nms)
-        sel['gross'] = pwr(sel.WindSpeed)
         return sel.groupby('Turbine').mean().gross
-
-
+#
+    def update(self):
+        '''
+        massage the data
+        - notes:
+          * efficency (eff) is in %
+          * wloss is in %
+        '''
+        r = self.raw
+        r['gross'] = self.pwr_f(r.WindSpeed) if self.pwr_f else r.ActivePower
+        r['eff']   = r.ActivePower / r.gross * 100
+        r['wloss'] = 100 - r.eff
+#
+    def per_wt(self, wd_min=-1., wd_max=361., ws_min=-1., ws_max=9999., nms=[]):
+        '''
+        convinent way of getting data per turbine
+        - input
+          * wd_min : min wind-dir
+          * wd_max : max wind-dir
+          * ws_min : min wind-speed
+          * ws_max : max wind-speed
+          * nms    : wind turbine names (list). if [], all are included
+        - returns
+          * List of (wt, data) per turbine
+        '''
+        sel = self.select(wd_min, wd_max, ws_min, ws_max, nms)
+        ret = []
+        for wt in self.wt:
+            d = sel[sel.Turbine==wt]
+            ret.append([wt, d])
+        return ret
+#
+    def bin_it(self, wds=range(0,360), wss=range(0,20), dwd=3., dws=1):
+        '''
+        binning the data. potentially useful... 
+        brute force, not very sophisticated.
+        seems to have performance issues...
+        '''
+        m = np.zeros((len(self.wt), len(wss), len(wds)))
+        for k, wt in enumerate(self.wt):
+            for j, ws in enumerate(wss):
+                for i, wd in enumerate(wds):
+                    sel = self.select(wd-dwd/2, wd+dwd/2, ws-dws/2, ws+dws/2, [wt])
+                    m[k,j,i] = sel.ActivePower.mean()          # NaN if empty
+        #
+        # create DataArray
+        dims   = ["wt", "ws", "wd"]
+        coords = dict(wt=range(len(self.wt)),
+                      ws=wss,
+                      wd=wds,
+                      nm=(["wt"], self.wt),
+                     )
+        attrs = dict(description=self.fnm, rtype='pwr')
+        bn = xr.DataArray(data=m, dims=dims, coords=coords, attrs=attrs)
+        logging.info(f'Result dimension: {dict(bn.sizes)}')
+        self.binned = bn
+        return bn
+#
+    def bin_it2(self):
+        '''
+        binning the data.
+        gave up this one and made bin_it in stead...
+        '''
+        r = self.raw[['Turbine', 'WindDir', 'WindSpeed', 'ActivePower']]
+        r.columns = ['wt', 'WindDir', 'WindSpeed', 'net']
+        ws_max = ceil(r.ws.max())
+        r['wd'] = pd.cut(r.wd, range(0, 361), labels=range(0,360))
+        r['ws'] = pd.cut(r.ws, range(0, ws_max+1), labels=range(0, ws_max))
+        m = r.groupby(['wt', 'wd', 'ws']).mean()
+        return m
+#
+    def polarplot(self, var, ws, dws=0.5, title='', nms=None, kwargs={'ls':'-','lw':3}, ylim=None, onefig=True, unit=''):
+        '''
+        plot polar-plot(s) for the given data. typically used for plotting wakeloss per direction.
+        - notes
+          * note1: plt.polar() defines the angle counter-clockwise from east (positve x-axis), but
+                   we want clockwise from north (positve y-axis). this is handled, but maybe not so elegantly..
+        - input
+          * var   : simulation results as DataArray
+          * ws    : wind-speed to use
+          * dws   : wind-speed +/- this
+          * title : prepend this title
+          * nms   : which wt's to plot for (names)
+          * kwargs: plotting key-words
+          * ylim  : [ymin, ymax]
+          * onefig: boolean. one common figure, or one per wind-turbine
+          * unit  : unit for yticks
+        '''  
+        if onefig: plt.figure(figsize=(7,7))
+        for wt, res in self.per_wt(ws_min=ws-dws, ws_max=ws+dws, nms=nms):
+            if not onefig: plt.figure(figsize=(7,7))
+            res = res.sort_values('WindDir')
+            theta = -res.WindDir.values/180*np.pi + np.pi/2    # negative and shift 90deg to get it right (see note1)
+            plt.polar(theta, res[var].values, **kwargs, label=wt)
+            plt.title(f"{title} ws = {ws}m/s") 
+            plt.tight_layout()
+            plt.legend(loc='best')
+            if not ylim is None: plt.ylim(ylim)
+            if unit:
+                yt = plt.yticks()[0]
+                plt.yticks(yt, [f"{y:.0f}{unit}" for y in yt])
+            plt.xticks(plt.xticks()[0], [])           # remove xticks (see note1)
+        plt.show()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 this is a demo to show that pywake could be used for simulation of knowl-cases.
