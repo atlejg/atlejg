@@ -87,6 +87,7 @@ NOTES
 
 '''
 
+import argparse
 import py_wake
 from py_wake.wind_turbines import WindTurbines
 from py_wake.site._site import UniformWeibullSite
@@ -495,12 +496,18 @@ def main(wake_model, knowl_dir='.', yml_file=None):
 
 if __name__ == '__main__':
 
-    '''
-    get necessary input
-    '''
-    wake_model = sys.argv[1]                                 # Fuga, TP/*Turbo*, or NOJ. TP / *Turbo* = TurboPark, NOJ = Jensen
-    knowl_dir  = sys.argv[2] if len(sys.argv) > 2 else '.'   # where to find the knowl excel-file
-    yml_file   = sys.argv[3] if len(sys.argv) > 3 else None  # yaml input file. see note1 above.
-    # 
-    aeps, sim, case, knowl, opts, wtgs, site, wf_model = main(wake_model, knowl_dir=knowl_dir, yml_file=yml_file)
+    #
+    # get necessary input
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-w", "--wake_model", default=None,
+                        help="wake-model: TP/*Turbo* or NOJ. TP/*Turbo* = TurboPark, NOJ = NO-Jensen")
+    parser.add_argument("-k", "--knowl_dir",  default='.',
+                        help="where to find knowl-files (knowl_v*input.xlsx & Inventory.xml")
+    parser.add_argument("-y", "--yml_file",   default=None,
+                        help="name of yml-file of options for this program")
+    args = parser.parse_args()
+    #
+    # run program
+    aeps, sim, case, knowl, opts, wtgs, site, wf_model = \
+        main(args.wake_model, knowl_dir=args.knowl_dir, yml_file=args.yml_file)
 
