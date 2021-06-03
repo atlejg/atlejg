@@ -556,7 +556,7 @@ class Scada(object):
         self.binned = bn
         return bn
 #
-    def bin_it2(self):
+    def bin_it_old(self):
         '''
         binning the data.
         gave up this one and made bin_it in stead...

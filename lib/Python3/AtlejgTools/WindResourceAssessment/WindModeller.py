@@ -342,6 +342,38 @@ def write_winddata_file(scd, fnm, std_lvl=0.1, stab='U'):
     scd.to_csv(f, sep=',', columns=cols, index=False, header=False, float_format='%.2f', date_format='%d/%m/%Y %H:%M')
     logging.info(f'{fnm} is created')
 
+def plot(res, ws, title='', wts=None, kwargs={'ls':'-','lw':3}, ylim=None, onefig=True, unit=''):
+    '''
+    plot plot(s) for the given data. typically used for plotting wakeloss per direction.
+    - input
+      * res   : simulation results as DataArray
+      * ws    : wind-speed to use
+      * title : prepend this title
+      * wts   : which wt's to plot for (indices)
+      * kwargs: plotting key-words
+      * ylim  : [ymin, ymax]
+      * onefig: boolean. one common figure, or one per wind-turbine
+      * unit  : unit for yticks. will use attrs['unit'] if unit is not given
+    '''  
+    res = res.sel(ws=ws)
+    if wts is None:
+        wts = res.wt.values
+    if onefig: plt.figure(figsize=(7,7))
+    for i in wts:
+        if not onefig: plt.figure(figsize=(7,7))
+        y = res.sel(wt=i).values.ravel()
+        plt.plot(res.wd, y, **kwargs, label=res.nm.values[i])
+        plt.title(f"{title} ws = {ws}m/s") 
+        plt.tight_layout()
+        plt.legend(loc='best')
+        if not ylim is None: plt.ylim(ylim)
+        if not unit and 'unit' in res.attrs:
+            unit = res.attrs['unit']
+        if unit:
+            yt = plt.yticks()[0]
+            plt.yticks(yt, [f"{y:.0f}{unit}" for y in yt])
+    plt.show()
+
 def polarplot(res, ws, title='', wts=None, kwargs={'ls':'-','lw':3}, ylim=None, onefig=True, unit=''):
     '''
     plot polar-plot(s) for the given data. typically used for plotting wakeloss per direction.
@@ -544,21 +576,23 @@ class WindModellerCase(object):
 #
     def performance(self, full=True, plot_it=True, ms=4, ylim=None):
         '''
-        get (and plot) performance-data for a given case (i.e. simulation time, residuals etc)
+        get (and optionally plot) performance-data for a given case (i.e. simulation time, residuals etc)
         - input
           * case
-          * full   : also get (and plot) conservation of variables?
-          * plot_it: boolean
+          * full   : boolean. also get (and plot?) conservation of variables?
+          * plot_it: boolean. plot data?
           * ms     : marker size
-          * ylim   : ylim for imbalances (like [-40, 40]). note that imbalances are plotted in % (but data is not %)
+          * ylim   : ylim for imbalances (like [-40, 40]). see note1
         - returns
-          * perf   : DataFrame with relevant data. column stime is solving-time
+          * perf   : DataFrame with relevant data. column duration is solving-time. also kept as attribute _perf
+        - notes
+          * note1: imbalances are plotted in % (but data is not %)
         '''
-        tmpfile = 't'
+        tmpfile = '/tmp/grepped.txt'
         cmd = f"grep 'CFD Solver wall clock' {self.pm['target directory']}/*.out > {tmpfile}"
         logging.info(cmd)
         os.system(cmd)
-        perf = pd.read_csv(tmpfile, sep=' ', usecols=[0,6], header=None, names=['nm', 'stime'], converters=dict(nm=UT.basename))
+        perf = pd.read_csv(tmpfile, sep=' ', usecols=[0,6], header=None, names=['nm', 'duration'], converters=dict(nm=UT.basename))
         vals = [x.split('_')[-3:-1] for x in perf.nm]
         vs = [int(x[0][-1]) for x in vals]
         thetas = [int(x[1]) for x in vals]
@@ -585,7 +619,7 @@ class WindModellerCase(object):
             plt.figure()
             for i, v in enumerate(self.ws):
                 p = perf[perf.v==i+1]
-                plt.plot(p.theta.values, p.stime.values, 's', ms=ms, label=f'v = {v:.1f} m/s')
+                plt.plot(p.theta.values, p.duration.values, 's', ms=ms, label=f'v = {v:.1f} m/s')
             plt.xlabel('Wind direction')
             plt.ylabel('Simulation runtime [s]')
             plt.title(f"Case {self.name}")
@@ -603,6 +637,7 @@ class WindModellerCase(object):
                     if ylim: plt.ylim(*ylim)
         #
         os.unlink(tmpfile)
+        self._perf = perf
         return perf
 #
     def efficency(self):
