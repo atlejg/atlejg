@@ -88,7 +88,7 @@ def read_params(casenm, file_ext='.wm'):
     #
     # add 'casenm' for identification
     if not 'casenm' in pm: pm['casenm'] = casenm
-    return pm
+    return pm, fnm
 
 def write_curve(typ, xs, ys, todir, fnm):
     '''
@@ -413,14 +413,22 @@ def polarplot(res, ws, title='', wts=None, kwargs={'ls':'-','lw':3}, ylim=None, 
 
 class WindModellerCase(object):
 #
-    def __init__(self, name):
-        self.pm   = read_params(name)
-        # convinent stuff
-        self.name   = self.pm['casenm']
+    def __init__(self, name, read_results=True):
+        self.pm, self.fnm = read_params(name)
+        self.name   = self.pm['casenm']                    # convinent
         self.layout = self.read_layout()
         self.wd     = self.pm['theta list']
         self.ws     = self.pm['speed list']
         self.wt     = self.layout.name.values
+        self.tdir   = self.pm['target directory']          # convinent
+        #
+        # get simulation results
+        if read_results:
+            self.net = self._read_results(rtype=TYP_PWR)   # read simulated power per wt, wd, ws.
+            self.eff = self.efficency()
+            self.gross = self._calc_gross()
+            self.wl = self.wakeloss(average=False)
+            self.perf, self.duration = self._performance()
 #
     def get_curve(self, typ, label='', as_func=True):
         '''
@@ -464,7 +472,7 @@ class WindModellerCase(object):
 #
     def _get_resultsfiles(self, rtype):
         mode = 'wakes' if self.pm['wake model'] else 'no_wakes'
-        pattern = f'{self.pm["target directory"]}/{mode}/'
+        pattern = f'{self.tdir}/{mode}/'
         logging.info(' pattern= '+pattern)
         if rtype == TYP_PWR:
             pattern += 'WT_hub_power_'
@@ -511,7 +519,7 @@ class WindModellerCase(object):
         return res
 #
     def _get_profilefiles(self, ptype):
-        pattern = f'{self.pm["target directory"]}/Report/Profiles/Exported_*_'
+        pattern = f'{self.tdir}/Report/Profiles/Exported_*_'
         if ptype == TYP_VEL:
             pattern += 'normvel*.csv'
         else:
@@ -574,71 +582,80 @@ class WindModellerCase(object):
         #
         return res, list(profs.values())
 #
-    def performance(self, full=True, plot_it=True, ms=4, ylim=None):
+    def _performance(self):
         '''
-        get (and optionally plot) performance-data for a given case (i.e. simulation time, residuals etc)
-        - input
-          * case
-          * full   : boolean. also get (and plot?) conservation of variables?
-          * plot_it: boolean. plot data?
-          * ms     : marker size
-          * ylim   : ylim for imbalances (like [-40, 40]). see note1
+        get  performance-data for a given case (i.e. simulation time, residuals etc)
         - returns
-          * perf   : DataFrame with relevant data. column duration is solving-time. also kept as attribute _perf
+          * perf    : DataFrame with relevant data for each simulation. column duration is solving-time
+          * duration: duration for the whole case
         - notes
-          * note1: imbalances are plotted in % (but data is not %)
+          * note1: imbalances are fractions
+          * note2: durations are in seconds
         '''
+        self._eqs = ['U-Mom', 'V-Mom', 'W-Mom', 'P-Mass']
         tmpfile = '/tmp/grepped.txt'
-        cmd = f"grep 'CFD Solver wall clock' {self.pm['target directory']}/*.out > {tmpfile}"
+        #
+        # get simulation time (duration) for each simulation
+        cmd = f"grep 'CFD Solver wall clock' {self.tdir}/*.out > {tmpfile}"
         logging.info(cmd)
         os.system(cmd)
         perf = pd.read_csv(tmpfile, sep=' ', usecols=[0,6], header=None, names=['nm', 'duration'], converters=dict(nm=UT.basename))
         vals = [x.split('_')[-3:-1] for x in perf.nm]
         vs = [int(x[0][-1]) for x in vals]
         thetas = [int(x[1]) for x in vals]
-        perf['theta'] = thetas
-        perf['v'] = vs
+        perf['theta'] = thetas                  # potentially useful
+        perf['v']     = vs                      # potentially useful
         #
-        if full:
-            eqs = ['U-Mom', 'V-Mom', 'W-Mom', 'P-Mass']
-            cmd = f"grep -a7 'Normalised Imbalance Summary' {self.pm['target directory']}/*.out | grep"
-            for eq in eqs: cmd += f" -e '{eq}'"
-            cmd += f" > {tmpfile}"
-            logging.info(cmd)
-            os.system(cmd)
-            df = pd.read_csv(tmpfile, sep='|', usecols=[0,1,3], header=None, converters={0:UT.basename, 1: lambda x: x.strip()})
-            nms = df[df[1]==eqs[0]][0].values
-            assert np.all(perf.nm.values==nms)
-            #
-            # populate perf-data
-            for eq in eqs:
-                d = df[df[1]==eq]
-                perf[eq] = d[3].values
-        #
-        if plot_it:
-            plt.figure()
-            for i, v in enumerate(self.ws):
-                p = perf[perf.v==i+1]
-                plt.plot(p.theta.values, p.duration.values, 's', ms=ms, label=f'v = {v:.1f} m/s')
-            plt.xlabel('Wind direction')
-            plt.ylabel('Simulation runtime [s]')
-            plt.title(f"Case {self.name}")
-            plt.legend(loc='best')
-            if full:
-                for eq in eqs:
-                    plt.figure()
-                    for i, v in enumerate(self.ws):
-                        p = perf[perf.v==i+1]
-                        plt.plot(p.theta.values, p[eq].values*100, 's', ms=ms, label=f'v = {v:.1f} m/s')
-                    plt.xlabel('Wind direction')
-                    plt.ylabel(f'{eq} imbalance [%]')
-                    plt.title(f"Case {self.name}")
-                    plt.legend(loc='best')
-                    if ylim: plt.ylim(*ylim)
+        # get imbalances for each simulation
+        cmd = f"grep -a7 'Normalised Imbalance Summary' {self.tdir}/*.out | grep"
+        for eq in self._eqs: cmd += f" -e '{eq}'"
+        cmd += f" > {tmpfile}"
+        logging.info(cmd)
+        os.system(cmd)
+        df = pd.read_csv(tmpfile, sep='|', usecols=[0,1,3], header=None, converters={0:UT.basename, 1: lambda x: x.strip()})
+        nms = df[df[1]==self._eqs[0]][0].values
+        assert np.all(perf.nm.values==nms)
+        for eq in self._eqs:
+            d = df[df[1]==eq]
+            perf[eq] = d[3].values
         #
         os.unlink(tmpfile)
-        self._perf = perf
-        return perf
+        #
+        # now get total runtime based on create-time of files
+        fnm1 = f'{self.tdir}/meshspec.xml'
+        fnm2 = UT.glob(f'{self.tdir}/*.res')[-1]   # last result-file from solver
+        duration = np.diff([os.path.getctime(fnm) for fnm in [fnm1, fnm2]])[0]
+        return perf, duration
+#
+    def plot_performance(self, full=True, ms=4, ylim=None):
+        '''
+        plot performance (per simulation).
+        - input
+          * full  : also plot imbalances? (momentum, mass-bal)
+          * ms    : marker size
+          * ylim  : ylim for imbalances (like [-40, 40]). see note1
+        - notes
+          * note1: plots imbalances in % (data is in fractions)
+        '''
+        plt.figure()
+        for i, v in enumerate(self.ws):
+            p = self.perf[self.perf.v==i+1]
+            plt.plot(p.theta.values, p.duration.values, 's', ms=ms, label=f'v = {v:.1f} m/s')
+        plt.xlabel('Wind direction')
+        plt.ylabel('Simulation runtime [s]')
+        plt.title(f"Case {self.name}")
+        plt.legend(loc='best')
+        if full:
+            for eq in self._eqs:
+                plt.figure()
+                for i, v in enumerate(self.ws):
+                    p = self.perf[self.perf.v==i+1]
+                    plt.plot(p.theta.values, p[eq].values*100, 's', ms=ms, label=f'v = {v:.1f} m/s')
+                plt.xlabel('Wind direction')
+                plt.ylabel(f'{eq} imbalance [%]')
+                plt.title(f"Case {self.name}")
+                plt.legend(loc='best')
+                if ylim: plt.ylim(*ylim)
 #
     def efficency(self):
         '''
@@ -646,15 +663,15 @@ class WindModellerCase(object):
           'wind data transposition option' = 'Offshore Array Efficiency and Effective TI'
         an efficiency matrix for each turbine is written to file.
         this routine reads this file into a DataArray for ease of access
+        - returns
+          * DataArray. unit is %
         - notes
           * in the csv-file, it reports wd's and ws's that are slightly off the requested values.
             here, these values are replaced by the requested values (found in the case-file)
-        - returns
-          * DataArray. unit is %
         '''
         if not self.pm['wind data transposition option'] == 'Offshore Array Efficiency and Effective TI':
             raise Exception("'wind data transposition option' must be 'Offshore Array Efficiency and Effective TI'")
-        fnm = f'{self.pm["target directory"]}/array_eff_TI/results/TurbineEfficiency.csv'
+        fnm = f'{self.tdir}/array_eff_TI/results/TurbineEfficiency.csv'
         logging.info(f'reading {fnm}')
         #
         csvfile = open(fnm)
@@ -702,37 +719,18 @@ class WindModellerCase(object):
         #
         return eff
 #
-    def net(self, reread=False):
+    def _calc_gross(self):
         '''
-        read simulated power per wt, wd, ws.
-        - input:
-          * reread: force re-reading if this has been read already
-        '''
-        if reread or not hasattr(self, '_net'):
-            self._net = self._read_results(rtype=TYP_PWR)
-        return self._net
-#
-    def gross(self, reread=False):
-        '''
-        see docs for efficency()
         this one is just net / efficency
-        - input:
-          * reread: see net()
         '''
-        if not reread and hasattr(self, '_gross'):
-            return self._gross
-        net = self.net(reread=reread)
-        eff = self.efficency()
-        scaler = 100. if eff.attrs['unit'] == UNIT_PRCNT else 1.
-        gross = net / (eff/scaler)
-        gross.attrs = net.attrs.copy()
-        self._gross = gross
-        self._eff   = eff
+        scaler = 100. if self.eff.attrs['unit'] == UNIT_PRCNT else 1.
+        gross = self.net / (self.eff/scaler)
+        gross.attrs = self.net.attrs.copy()
         return gross
 #
     def wakeloss(self, ws_list=None, wd_list=None, average=True):
         '''
-        calculating wakeloss for each turbine
+        calculating wakeloss.
         - input
           * ws_list: selection of wind-speeds. None means all..
           * wd_list: selection of wind-dirs. None means all..
@@ -740,8 +738,8 @@ class WindModellerCase(object):
         - output
           * DataArray. unit is %
         '''
-        net   = self.net()
-        gross = self.gross()
+        net   = self.net
+        gross = self.gross
         if not ws_list is None:
             net   = net.sel(ws=ws_list)
             gross = gross.sel(ws=ws_list)
@@ -751,9 +749,9 @@ class WindModellerCase(object):
         if average:
             net   = net.mean('ws').mean('wd')
             gross = gross.mean('ws').mean('wd')
-        self.wl = (1 - net/gross) * 100
-        self.wl.attrs = dict(rtype=TYP_WKL, description=self.name, unit=UNIT_PRCNT)
-        return self.wl
+        wl = (1 - net/gross) * 100
+        wl.attrs = dict(rtype=TYP_WKL, description=self.name, unit=UNIT_PRCNT)
+        return wl
 
 # TEST FUNCTIONS
 

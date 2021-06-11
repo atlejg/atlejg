@@ -967,7 +967,7 @@ def get_yaml(fnm):
     read yaml-file into a Struct for easy access.
     and also avoid the open()
     '''
-    yml = yaml.load(open(fnm))
+    yml = yaml.load(open(fnm), Loader=yaml.SafeLoader)
     s = Struct()
     for k,v in yml.items():
         s.__dict__[k] = v
