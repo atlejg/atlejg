@@ -69,7 +69,7 @@ NOTES
         i have not found an easy way to do this with pywake.
         we have so far used UniformWeibullSite, which obviously does not support this.
         the 'next level' is WaspGridSite, but this is made for complex onshore cases and
-        seems a bit complext.
+        seems a bit tricky.
         therefore, for version-1, we just stick to the first weibull given in the knowl_file
 
  - note3
@@ -108,24 +108,23 @@ SEP       = os.path.sep
 EPS       = 1e-9               # small non-zero value
 
 
-def get_default_opts():
+def set_default_opts(opts):
     '''
     see note1 for description of attributes
     '''
-    opts = UT.Struct()
-    opts.case_nm = ''
-    opts.inventory_file     = 'Inventory.xml'
-    opts.output_fnm1        = 'FugaOutput_1.txt'
-    opts.logfile            = 'pywake.log'
-    opts.tp_A               =  0.60
-    opts.noj_k              =  0.04
-    opts.legend_scaler      =  0.70
-    opts.plot_wakemap       =  False
-    opts.plot_layout        =  False
-    opts.plot_wind          =  False
-    opts.delta_winddir      = 1.
-    opts.delta_windspeed    = 0.5
-    opts.output_to_knowldir = True
+    if not hasattr(opts, 'case_nm'):            opts.case_nm            = ''
+    if not hasattr(opts, 'inventory_file'):     opts.inventory_file     = 'Inventory.xml'
+    if not hasattr(opts, 'output_fnm1'):        opts.output_fnm1        = 'FugaOutput_1.txt'
+    if not hasattr(opts, 'tp_A'):               opts.tp_A               =  0.60
+    if not hasattr(opts, 'noj_k'):              opts.noj_k              =  0.04
+    if not hasattr(opts, 'legend_scaler'):      opts.legend_scaler      =  0.70
+    if not hasattr(opts, 'plot_wakemap'):       opts.plot_wakemap       =  False
+    if not hasattr(opts, 'plot_layout'):        opts.plot_layout        =  False
+    if not hasattr(opts, 'plot_wind'):          opts.plot_wind          =  False
+    if not hasattr(opts, 'delta_winddir'):      opts.delta_winddir      = 1.
+    if not hasattr(opts, 'delta_windspeed'):    opts.delta_windspeed    = 0.5
+    if not hasattr(opts, 'output_to_knowldir'): opts.output_to_knowldir = True
+    if not hasattr(opts, 'logfile') or not opts.logfile: opts.logfile   = None
     #
     return opts
 
@@ -387,9 +386,8 @@ def get_yaml(fnm):
     return s
 
 def get_input(knowl_dir, yml_file):
-    opts = get_yaml(yml_file) if yml_file else get_default_opts()
-    if not hasattr(opts, 'logfile') or not opts.logfile:
-        opts.logfile = None
+    opts = get_yaml(yml_file) if yml_file else UT.Struct()
+    set_default_opts(opts)
     #
     knowl = read_knowl_input(glob.glob(knowl_dir+SEP+'knowl_v*input.xlsx')[0])
     #
