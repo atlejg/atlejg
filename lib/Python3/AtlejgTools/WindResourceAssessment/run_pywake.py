@@ -10,32 +10,6 @@ there are still a few things to be worked out:
 
 NOTES
 
- - note1
-    the yaml-input file in the __main__ part should look like this:
-
-        case_nm:            !!str      Doggerbank-C Demo
-
-        layout_file:        !!str      ../../../../InputData/Layouts/<LAYOUTFILE>
-        layout_sheet:       !!str      <LAYOUT>
-        weibull_file:       !!str      ../../../../InputData/WindMaps/<WINDRESOURCE>
-        A_scaler:           !!float    <A_SCALER>
-        wtg_file:           !!str      ../../../../InputData/WTGs/<WTG>
-        n_wtgs:             !!int      <N_WTGS>
-
-        wake_model:         !!str      <WAKE_MODEL>
-
-        tp_A:               !!float    0.60                                      # Only used for TurbOPark. 'A' parameter in dDw/dx = A*I(x)
-        noj_k:              !!float    0.04                                      # Only used for Jensen. Wake expansion parameter
-        turb_intens:        !!float    0.053
-
-        ws_min:             !!float    2.
-        ws_max:             !!float    30.
-        delta_winddir:      !!float    1.0                                       # delta wind-dir for calculations
-        delta_windspeed:    !!float    0.50                                      # delta wind-vel for calculations
-
-        outfile:            !!str      pywake_results.csv
-        webviz_output:      !!bool     true
-        webviz_file:        !!str      share/results/volumes/webviz.csv
 
 
  - note2
@@ -123,9 +97,21 @@ def write_results(opts, wtgs, net, gross):
     logging.info(f'writing results to : {opts.outfile}')
 
 def set_defaults(opts):
-    if not hasattr(opts, 'layout_sheet'): opts.layout_sheet = ''
-    if not hasattr(opts, 'n_wtgs'):       opts.n_wtgs       = -1
-    if not hasattr(opts, 'A_scaler'):     opts.A_scaler     = 1.
+    if not hasattr(opts, 'layout_sheet'):    opts.layout_sheet    = ''
+    if not hasattr(opts, 'n_wtgs'):          opts.n_wtgs          = -1
+    if not hasattr(opts, 'A_scaler'):        opts.A_scaler        = 1.
+    if not hasattr(opts, 'case_nm'):         opts.case_nm         = 'pywake'
+    if not hasattr(opts, 'wake_model'):      opts.wake_model      = 'TurbOPark'
+    if not hasattr(opts, 'tp_A'):            opts.tp_A            = 0.60
+    if not hasattr(opts, 'noj_k'):           opts.noj_k           = 0.04
+    if not hasattr(opts, 'turb_intens'):     opts.turb_intens     = 0.05
+    if not hasattr(opts, 'ws_min'):          opts.ws_min          = 2.
+    if not hasattr(opts, 'ws_max'):          opts.ws_max          = 30.
+    if not hasattr(opts, 'delta_winddir'):   opts.delta_winddir   = 1.
+    if not hasattr(opts, 'delta_windspeed'): opts.delta_windspeed = 0.5
+    if not hasattr(opts, 'outfile'):         opts.outfile         = 'pywake_results.csv'
+    if not hasattr(opts, 'webviz_output'):   opts.webviz_output   = False
+    if not hasattr(opts, 'webviz_file'):     opts.webviz_file     = ''
 
 def get_weibull(fnm, A_scaler=1.):
     '''
@@ -168,9 +154,35 @@ def read_wtgs(wtg_file, gap=30.):
 def main(yaml_file):
     '''
     - input
-      * yaml_file
+      * yaml_file like this:
+            #
+            case_nm:            !!str      Doggerbank-C Demo
+            #
+            layout_file:        !!str      ../../../../InputData/Layouts/<LAYOUTFILE>
+            layout_sheet:       !!str      <LAYOUT>
+            weibull_file:       !!str      ../../../../InputData/WindMaps/<WINDRESOURCE>
+            A_scaler:           !!float    <A_SCALER>
+            wtg_file:           !!str      ../../../../InputData/WTGs/<WTG>
+            n_wtgs:             !!int      <N_WTGS>
+            #
+            wake_model:         !!str      <WAKE_MODEL>
+            #
+            tp_A:               !!float    0.60                                      # Only used for TurbOPark. 'A' parameter in dDw/dx = A*I(x)
+            noj_k:              !!float    0.04                                      # Only used for Jensen. Wake expansion parameter
+            turb_intens:        !!float    0.053
+            #
+            ws_min:             !!float    2.
+            ws_max:             !!float    30.
+            delta_winddir:      !!float    1.0                                       # delta wind-dir for calculations
+            delta_windspeed:    !!float    0.50                                      # delta wind-vel for calculations
+            #
+            outfile:            !!str      pywake_results.csv
+            webviz_output:      !!bool     true
+            webviz_file:        !!str      share/results/volumes/webviz.csv
     - returns
-      * sim, layout, opts, wtgs, site, wake_model
+      * sim, layout, opts, wtgs, weib, site, wake_model
+    - notes
+      * many attributes of the yaml-file has a default value; see set_defaults()
     '''
     #
     # house-keeping
