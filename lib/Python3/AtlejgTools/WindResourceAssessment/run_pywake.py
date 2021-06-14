@@ -11,34 +11,32 @@ there are still a few things to be worked out:
 NOTES
 
  - note1
-    the yml-input file in the __main__ part should look like this:
+    the yaml-input file in the __main__ part should look like this:
 
-        case_nm:                   # if empty, will use basename of *this* file
-            Hywind Scotland
-        layout_file:
-            ../InputData/layout1.csv
-        weibull_file:
-            ../InputData/weibull1.csv
-        wtg_file:
-            ../InputData/SWT-6.0-154 DDG3.wtg
-        wake_model:
-            NOJ
-        tp_A:
-            !!float   0.60         # Only used for TurboPark. 'A' parameter in dDw/dx = A*I(x)
-        noj_k:
-            !!float   0.04         # Only used for Jensen. Wake expansion parameter
-        turb_intens:
-            !!float   0.053
-        ws_min:
-            !!float    3.
-        ws_max:
-            !!float   30.
-        delta_winddir:
-            !!float   1.0          # delta wind-dir for calculations
-        delta_windspeed:
-            !!float   0.50         # delta wind-vel for calculations
-        outfile:
-            results.txt
+        case_nm:            !!str      Doggerbank-C Demo
+
+        layout_file:        !!str      ../../../../InputData/Layouts/<LAYOUTFILE>
+        layout_sheet:       !!str      <LAYOUT>
+        weibull_file:       !!str      ../../../../InputData/WindMaps/<WINDRESOURCE>
+        A_scaler:           !!float    <A_SCALER>
+        wtg_file:           !!str      ../../../../InputData/WTGs/<WTG>
+        n_wtgs:             !!int      <N_WTGS>
+
+        wake_model:         !!str      <WAKE_MODEL>
+
+        tp_A:               !!float    0.60                                      # Only used for TurbOPark. 'A' parameter in dDw/dx = A*I(x)
+        noj_k:              !!float    0.04                                      # Only used for Jensen. Wake expansion parameter
+        turb_intens:        !!float    0.053
+
+        ws_min:             !!float    2.
+        ws_max:             !!float    30.
+        delta_winddir:      !!float    1.0                                       # delta wind-dir for calculations
+        delta_windspeed:    !!float    0.50                                      # delta wind-vel for calculations
+
+        outfile:            !!str      pywake_results.csv
+        webviz_output:      !!bool     true
+        webviz_file:        !!str      share/results/volumes/webviz.csv
+
 
  - note2
     naming conventions follows typical pywake lingo:
@@ -81,6 +79,10 @@ def read_layout(fnm, sheetnm=None, n_wtgs=-1):
 def write_for_webviz(fnm, net, gross):
     '''
     reports at farm level
+    - input:
+      * fnm    : file to write
+      * net    : net AEP for the farm
+      * gross  : gross AEP for the farm
     '''
     wl    = (gross - net) / gross * 100                      # wakeloss in %
     #maxpwr = max(wtgs.power(ws))
@@ -94,9 +96,14 @@ def write_for_webviz(fnm, net, gross):
 def write_results(opts, wtgs, net, gross):
     '''
     reports at wtg level
+    - input:
+      * fnm    : file to write
+      * opts   : options from the yaml
+      * net    : net AEP per wtg
+      * gross  : gross AEP per wtg
     '''
-    net     = net.sum('wd').sum('ws')
-    gross   = gross.sum('wd').sum('ws')
+    net     = net
+    gross   = gross
     wtg     = os.path.basename(opts.wtg_file)
     weibull = os.path.basename(opts.weibull_file)
     res = pd.DataFrame()
@@ -158,10 +165,10 @@ def read_wtgs(wtg_file, gap=30.):
         raise Exception(f'wtg-file {wtg_file} not supported')
 
 
-def main(yml_file):
+def main(yaml_file):
     '''
     - input
-      * yml_file
+      * yaml_file
     - returns
       * sim, layout, opts, wtgs, site, wake_model
     '''
@@ -170,9 +177,9 @@ def main(yml_file):
     tic = time.perf_counter()
     logging.basicConfig(level=logging.INFO)
     #
-    opts = UT.get_yaml(yml_file)
+    opts = UT.get_yaml(yaml_file)
     set_defaults(opts)
-    logging.info(f"Reading input file: {yml_file}")
+    logging.info(f"Reading input file: {yaml_file}")
     #
     # setup things
     layout = read_layout(opts.layout_file, opts.layout_sheet, opts.n_wtgs)
@@ -197,7 +204,7 @@ def main(yml_file):
     # calculate and report
     net   = sim.aep(with_wake_loss=True)
     gross = sim.aep(with_wake_loss=False)
-    write_results(opts, wtgs, net, gross)
+    write_results(opts, wtgs, net.sum('wd').sum('ws'), gross.sum('wd').sum('ws'))
     #
     if opts.webviz_output:
         write_for_webviz(opts.webviz_file, net.sum().values, gross.sum().values)
@@ -214,6 +221,6 @@ def main(yml_file):
 if __name__ == '__main__':
 
     # run program
-    yml_file = sys.argv[1]
-    sim, layout, opts, wtgs, weib, site, wake_model = main(yml_file)
+    yaml_file = sys.argv[1]
+    sim, layout, opts, wtgs, weib, site, wake_model = main(yaml_file)
 
