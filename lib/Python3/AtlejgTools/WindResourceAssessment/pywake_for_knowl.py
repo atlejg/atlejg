@@ -404,7 +404,20 @@ def get_input(knowl_dir, yml_file):
 def main(wake_model, knowl_dir='.', yml_file=None):
     '''
     pick up knowl case description and run PyWake simulation.
-    returns case, sim_res, wtgs and site objects
+    if wake_model is None, it *must* be given in the yml_file
+    - input
+      * wake_model
+      * knowl_dir
+      * yml_file
+    - returns
+      * aeps
+      * sim
+      * case
+      * knowl
+      * opts
+      * wtgs
+      * site
+      * wf_model
     '''
     #
     knowl, opts = get_input(knowl_dir, yml_file)
@@ -414,15 +427,15 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     logging.basicConfig(level=logging.INFO, filename=opts.logfile)
     tic = time.perf_counter()
     #
-    '''
-    pick and initialize the chosen wake model
-    '''
-    weib = knowl.weibulls[0]                              # for now, we just use the first one. see note2. TODO!
+    # setup things
+    weib = knowl.weibulls[0]                               # for now, we just use the first one. see note2. TODO!
     site = UniformWeibullSite(weib.freqs, weib.As, weib.Ks, knowl.turb_intens)
     #
+    # pick and initialize the chosen wake model
+    if not wake_model: wake_model = opts.wake_model
     wake_model = wake_model.upper()
     if wake_model == 'FUGA':
-        assert wtgs.uniq_wtgs == 1                           # see note3
+        assert wtgs.uniq_wtgs == 1                         # see note3
         wf_model = py_wake.Fuga(opts.lut_path, site, wtgs)
     elif wake_model == 'TP' or 'TURBO' in wake_model:
         wf_model = py_wake.TP(site, wtgs, k=opts.tp_A)
@@ -431,24 +444,20 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     else:
         raise Exception('The Fuga, TP, or the NOJ wake models are the only options available.')
     #
-    '''
-    run wake model for all combinations of wd and ws
-    '''
+    # run wake model for all combinations of wd and ws
     wd = np.arange(0, 360, opts.delta_winddir)
     ws = np.arange(np.floor(wtgs.ws_min/2), np.ceil(wtgs.ws_max)+1, opts.delta_windspeed)
     sim_res = wf_model(case.xs, case.ys, type=case.types, wd=wd, ws=ws)
     assert(np.all(np.equal(sim_res.x.values, case.xs)))
     assert(np.all(np.equal(sim_res.y.values, case.ys)))
     #
-    # coarsen it
+    # coarsen it by averaging
     n_sectors = len(weib.freqs)
-    sector_w  = 360. / n_sectors
-    n_bins    = int(sector_w / opts.delta_winddir)                                                                     # number of bins per sector
+    width  = 360. / n_sectors
+    n_bins    = int(width / opts.delta_winddir)         # number of bins per sector
     sim = sim_res.coarsen(wd=n_bins).mean()
     #
-    '''
-    reporting AEP etc
-    '''
+    # reporting AEP etc
     if not hasattr(opts, 'output_fnm1') or not opts.output_fnm1:
         fnm = wake_model + '.txt'
     else:
@@ -459,9 +468,7 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     aeps = WU.calc_AEP(sim, wtgs, weib, park_nms=case.park_nms, verbose=True)
     WU.create_output(aeps, case, fnm)
     #
-    '''
-    optional stuff
-    '''
+    # optional stuff
     if opts.plot_wakemap:
         # plot flow map for the dominant wind direction / wind-speed
         # grid=None defaults to HorizontalGrid(resolution=500, extend=0.2)
@@ -485,7 +492,7 @@ def main(wake_model, knowl_dir='.', yml_file=None):
         plt.show()
     #
     toc = time.perf_counter()
-    logging.info(f"Total runtime: {toc - tic:0.1f} seconds")
+    logging.info(f"Total runtime: {toc-tic:0.1f} seconds")
     #
     return aeps, sim, case, knowl, opts, wtgs, site, wf_model
 

@@ -70,6 +70,11 @@ setenv ECLHOME /prog/ecl/grid
 setenv PATH "${PATH}:/prog/ecl/grid/macros"
 #setenv PATH "${PATH}:/project/res/resscript/"              # statoil res-sim scripts. ref. thorbjorn skille. should be included by SDP_cshrc
 setenv PATH "${PATH}:$RC/lib/Python/vkip/Python3/scripts"                           # vegard kippe stuff
+setenv PATH "${PATH}:/private/agy/.local/bin"               # this is where 'pip install <package> --user' puts stuff
+
+
+#
+# PERL-stuff
 setenv PERLLIB "/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/site_perl:/project/res/x86_64_RH_5/lib64/perl5/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5:/project/res/x86_64_RH_5/lib/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib/perl5/site_perl:/project/res/x86_64_RH_5/lib/perl5/5.8.8:/project/res/x86_64_RH_5/lib/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib/perl5"
 
 ### MY ALIASES
@@ -172,28 +177,11 @@ alias anslic_admin /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/Licensemanager
 # #
 # WindModeller stuff
 #
-#setenv PATH "${PATH}:/project/RCP/active/WindModeller_2014/utilities/scripts"
-#setenv PATH "${PATH}:/project/RCP/active/WindModeller_2014/utilities/bin/linux-amd64"
 setenv SCRIPT_DIR /project/RCP/active/Ansys/windmodeller-150120/utilities/scripts
 setenv PATH "${PATH}:${SCRIPT_DIR}"
 setenv PATH "${PATH}:/project/RCP/active/Ansys/windmodeller-150120/utilities/lib/linux-amd64"
 setenv PERLLIB "${PERLLIB}:${SCRIPT_DIR}"
 setenv PERL5LIB "${PERL5LIB}:${SCRIPT_DIR}"
-
-# trying to fix "error while loading shared libraries: libcgns.so.3.2"
-#
-#setenv RUNTIME_LIBS "${ANSYS_DIR}/CEI/apex32/machines/linux_2.6_64/runtime_libs"
-#setenv RUNTIME_LIBS "${ANSYS_DIR}/CFX/tools/cgns-3.2.0/linx64/lib/"
-#setenv PATH "${PATH}:$RUNTIME_LIBS"
-#setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:${RUNTIME_LIBS}"
-#setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:${RUNTIME_LIBS}/cgns-3.3.0/linx64/lib/"
-#setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:${HOME}/lib"
-#setenv LIBRARY_PATH "${LIBRARY_PATH}:${RUNTIME_LIBS}"
-#setenv LIBRARY_PATH "${LIBRARY_PATH}:${RUNTIME_LIBS}/cgns-3.3.0/linx64/lib/"
-#setenv CFX5_CCL_LIBS $RUNTIME_LIBS
-#setenv CFX5_CCL_LIBSDIR $RUNTIME_LIBS
-#setenv KDEDIRS "${KDEDIRS}:$RUNTIME_LIBS"
-# /usr/lib64
 
 # GAMBIT stuff
 # Wed Jan 13 12:03:05 MET 2016
