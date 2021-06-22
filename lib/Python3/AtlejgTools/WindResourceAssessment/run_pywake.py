@@ -10,7 +10,11 @@ there are still a few things to be worked out:
 
 NOTES
 
+ - note1
+    assumes only one WTG-type.
 
+ - note2
+    assumes only one Weibull-distribution
 
  - note2
     naming conventions follows typical pywake lingo:
@@ -27,17 +31,13 @@ from py_wake.site._site import UniformWeibullSite
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import xarray as xr
 import os, sys, time
-import glob, re, zipfile, logging, yaml
+import re, logging
 from scipy.interpolate import interp1d
-import AtlejgTools.WindResourceAssessment.Utils as WU
 import AtlejgTools.Utils as UT
 
 N_SECTORS = 12
 EPS       = 1e-9               # small non-zero value
-
-
 
 def read_layout(fnm, sheetnm=None, n_wtgs=-1):
     if fnm.endswith('.csv'):
@@ -71,29 +71,34 @@ def write_results(opts, wtgs, net, gross):
     '''
     reports at wtg level
     - input:
-      * fnm    : file to write
       * opts   : options from the yaml
+      * wtgs   : WindTurbines 
       * net    : net AEP per wtg
       * gross  : gross AEP per wtg
     '''
-    net     = net
-    gross   = gross
     wtg     = os.path.basename(opts.wtg_file)
     weibull = os.path.basename(opts.weibull_file)
+    #
     res = pd.DataFrame()
-    res['x']      = net.x
-    res['y']      = net.y
-    res['h']      = net.h
-    res['diam']   = wtgs.diameter()
-    res['net']    = net.values
-    res['gross']  = gross.values
-    res['wkmod']  = opts.wake_model
-    res['A_scl']  = opts.A_scaler
-    res['layout'] = opts.layout_sheet
-    res['nWTGs']  = opts.n_wtgs
-    res['wtg']    = wtg
-    res['weib']   = weibull
+    res['wtg_id']      = net.wt
+    res['x']           = net.x
+    res['y']           = net.y
+    res['h']           = net.h
+    res['diam']        = wtgs.diameter()
+    res['net_AEP']     = net.values
+    res['gross_AEP']   = gross.values
+    res['wakemodel']   = opts.wake_model
+    res['A_scaler']    = opts.A_scaler
+    res['layout']      = opts.layout_sheet
+    res['nWTGs']       = opts.n_wtgs
+    res['wtg']         = wtg
+    res['weibull']     = weibull
+    res['turb_intens'] = opts.turb_intens
+    res['noj_k']       = opts.noj_k
+    res['tp_A']        = opts.tp_A
+    #
     res.to_csv(opts.outfile, sep=',')
+    #
     logging.info(f'writing results to : {opts.outfile}')
 
 def set_defaults(opts):
