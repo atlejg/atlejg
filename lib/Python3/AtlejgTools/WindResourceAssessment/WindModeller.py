@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import AtlejgTools.WindResourceAssessment.Utils as WU
 from scipy.interpolate import interp1d
 
+
 SEP        = '='                    # key-value separator in WindModeller case-file (wm-file)
 TYP_CT     = 'ct'                   # thrust coefficient for turbine [-]
 TYP_PWR    = 'pwr'                  # power as reported by WindModeller [W]
@@ -413,14 +414,27 @@ def polarplot(res, ws, title='', wts=None, kwargs={'ls':'-','lw':3}, ylim=None, 
 
 class WindModellerCase(object):
 #
-    def __init__(self, name, read_results=True):
+    def __init__(self, name, read_results=True, doc_file='readme.txt'):
+        '''
+        an object for input & results of a WindModeller case.
+        one case represents multiple simulations, typically multiple wind-speeds (ws)
+        and wind-directions (wd)
+        - input
+          * name: name of the case, i.e. name of the WindModeller input file (typically a01.wm or just a01)
+          * read_results: boolean
+          * doc_file: tries to find a description (one-liner) abut this case in this file
+        '''
+        #
         self.pm, self.fnm = read_params(name)
-        self.name   = self.pm['casenm']                    # convinent
+        #
+        # convinent stuff
+        self.name   = self.pm['casenm']
         self.layout = self.read_layout()
         self.wd     = self.pm['theta list']
         self.ws     = self.pm['speed list']
         self.wt     = self.layout.name.values
-        self.tdir   = self.pm['target directory']          # convinent
+        self.tdir   = self.pm['target directory']
+        self.descr  = self.description(doc_file)
         #
         # get simulation results
         if read_results:
@@ -429,6 +443,20 @@ class WindModellerCase(object):
             self.gross = self._calc_gross()
             self.wl = self.wakeloss(average=False)
             self.perf, self.duration = self._performance()
+#
+    def description(self, doc_file):
+        '''
+        tries to find info abut this case in a doc-file (typically readme.txt')
+        looks for <casenm>: bla bla
+        like this:      d00: based on a00. for doing Array Efficiency
+        '''
+        #
+        desc = UT.grep(f'{self.name}:', open(doc_file).readlines())
+        #
+        if desc:
+            return desc[0].strip()
+        else:
+            return ''
 #
     def get_curve(self, typ, label='', as_func=True):
         '''
@@ -728,13 +756,15 @@ class WindModellerCase(object):
         gross.attrs = self.net.attrs.copy()
         return gross
 #
-    def wakeloss(self, ws_list=None, wd_list=None, average=True):
+    def wakeloss(self, ws_list=None, wd_list=None, average=True, freq=1.):
         '''
         calculating wakeloss.
         - input
           * ws_list: selection of wind-speeds. None means all..
           * wd_list: selection of wind-dirs. None means all..
           * average: boolean => averaging over wd and ws
+          * freq   : frequencies of (wt, wd, ws) combinations. shape must be according to
+                     ws_list & wd_list
         - output
           * DataArray. unit is %
         '''
@@ -746,12 +776,33 @@ class WindModellerCase(object):
         if not wd_list is None:
             net   = net.sel(wd=wd_list)
             gross = gross.sel(wd=wd_list)
+        net   = net*freq
+        gross = gross*freq
         if average:
             net   = net.mean('ws').mean('wd')
             gross = gross.mean('ws').mean('wd')
         wl = (1 - net/gross) * 100
         wl.attrs = dict(rtype=TYP_WKL, description=self.name, unit=UNIT_PRCNT)
         return wl
+
+def get_cases(pattern, file_ext='.wm', sortit=True):
+    '''
+    useful for analysing multiple cases.
+    f.ex. [plot(c.wd, c.wl.mean('wt').mean('ws').values, color=UT.COLOURS_OLD[i], label=c.name) for i,c in enumerate(wm.get_cases('a1*'))]; legend()
+    - input
+      * pattern: unix-file-pattern for selecting cases. ala a1? or a1*
+      * file_ext: file extension.
+    - returns
+      * list of WindModellerCase's (or single object if only one is found)
+    '''
+    if not '.' in pattern: pattern += file_ext
+    fnms = UT.glob(pattern, sortit=sortit)
+    if len(fnms) == 1: 
+        return CM.get(fnms[0])
+    else:
+        return [CM.get(fnm) for fnm in fnms]
+
+CM = UT.CacheManager(WindModellerCase)
 
 # TEST FUNCTIONS
 
@@ -760,3 +811,5 @@ def test_efficency(testcase):
     eff = wmc.efficency()
     assert np.all(eff.values == np.linspace(0.1, 1, 10))
 
+# ALIAS'es
+get = get_cases
