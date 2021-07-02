@@ -6,6 +6,7 @@ import os
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import dateutil
+import py_wake
 
 REAL = lambda x: f'{x:.4f}'
 INT  = lambda x: f'{x:.0f}'
@@ -681,3 +682,92 @@ class Scada(object):
         plt.ylabel('Wind speed [m/s]')
         plt.title(self.wt[wt])
         plt.show()
+
+def read_wrg(fnm):
+    '''
+    read wrg-file. typical usage:
+    site = py_wake.site.WaspGridSite(read_wrg(wrg_file))
+    - input
+      * fnm   : file name
+    - returns
+      * ds    : xarray.Dataset with the map (and some other variables needed for WaspGridSite)
+    '''
+    #
+    logging.info(f'reading {fnm}')
+    #
+    head = pd.read_csv(fnm, nrows=1, header=None, delim_whitespace=True).values.ravel()
+    wrg = pd.read_csv(fnm, skiprows=1, header=None, delim_whitespace=True)
+    #
+    keymap = {1:'x', 2:'y', 4:'h', 8:'n_sectors'}
+    wrg.rename(columns=keymap, inplace=True)         # convinent
+    #
+    nx, ny = head[0:2]
+    n_sectors = wrg.n_sectors[0]       # assume all gridpoints have same number of sectors
+    h = float(wrg.h[0])                # assume only one height
+    binsz = 360. / n_sectors
+    #
+    # weibull f,A,k are located as columns sector by sector
+    ixf = 9 + np.arange(n_sectors)*3
+    ixa = ixf + 1
+    ixk = ixf + 2
+    #
+    # for some reason the wrg-files has scaled their numbers. see docs from knut b.
+    f_sc, A_sc, k_sc = 10., 10., 100.
+    #
+    f = (wrg.iloc[:,ixf]/f_sc).values.reshape((nx, ny, 1, n_sectors), order='F')
+    A = (wrg.iloc[:,ixa]/A_sc).values.reshape((nx, ny, 1, n_sectors), order='F')
+    k = (wrg.iloc[:,ixk]/k_sc).values.reshape((nx, ny, 1, n_sectors), order='F')
+    #
+    sectors = np.arange(1, n_sectors+1)
+    x = np.float64(wrg.x.unique())
+    y = np.float64(wrg.y.unique())
+    dims = ['x', 'y', 'z', 'sec']
+    coords = dict(sec=sectors, x=x, y=y, z=[h], )
+    #
+    wb_f = xr.DataArray(data=f, dims=dims, coords=coords)
+    wb_A = xr.DataArray(data=A, dims=dims, coords=coords)
+    wb_k = xr.DataArray(data=k, dims=dims, coords=coords)
+    #
+    zero = xr.DataArray(data=0., dims=dims, coords=coords)
+    one  = xr.DataArray(data=1., dims=dims, coords=coords)
+    tke  = 0.05 * xr.DataArray(data=1., dims=dims, coords=coords)
+    #
+    data = {
+           'A':         wb_A,
+           'k':         wb_k,
+           'f':         wb_f/100.,                  # % to [1]
+           'tke':       tke,
+           'elev':      zero.sel({'sec':1, 'z':h}), # only function of x,y
+           'ws_mean':   wb_A,                       # just using this for now.  TODO?
+           'flow_inc':  zero,
+           'orog_spd':  zero,                       # for testcase parquefitio this is not zero, but closer to one. TODO?
+           'orog_trn':  zero,
+           'spd':       one,                        # if zero => Power is zero. but is one ok? TODO?
+           'flow_inc':  zero,
+           }
+    #
+    ds = xr.Dataset(data)
+    return ds
+
+def write_wrg(fnm, x0,y0, x1,y1, h, wbf, wba, wbk, f_sc=10*100, a_sc=10, k_sc=100):
+    '''
+    write a single weibull distribution into a wrg-file that maps a large area.
+    for some reason the wrg-files has scaled their numbers. see docs from knut b.
+    '''
+    wb_coeffs = np.array(list(zip(wbf*f_sc, wba*a_sc, wbk*k_sc))).ravel()  # freq is in %
+    #
+    ma = np.mean(wba)
+    mk = np.mean(wbk)
+    #
+    data = []
+    data.append(['GridPoint', x0, y0, h, h, ma, mk, 999, 12] + list(wb_coeffs))
+    data.append(['GridPoint', x1, y0, h, h, ma, mk, 999, 12] + list(wb_coeffs))
+    data.append(['GridPoint', x1, y1, h, h, ma, mk, 999, 12] + list(wb_coeffs))
+    data.append(['GridPoint', x0, y1, h, h, ma, mk, 999, 12] + list(wb_coeffs))
+    wrg = pd.DataFrame(data)
+    #
+    f = open(fnm, 'w', newline='')
+    f.write(f'  2  2  {x0:.0f}  {y0:.0f}  {x1-x0:.0f}\n')
+    wrg.to_csv(f, sep=' ', header=False, index=False, float_format='%.0f', line_terminator='\n')
+    f.close()
+    logging.info(f'{fnm} was created')

@@ -69,7 +69,7 @@ NOTES
         i have not found an easy way to do this with pywake.
         we have so far used UniformWeibullSite, which obviously does not support this.
         the 'next level' is WaspGridSite, but this is made for complex onshore cases and
-        seems a bit complext.
+        seems a bit tricky.
         therefore, for version-1, we just stick to the first weibull given in the knowl_file
 
  - note3
@@ -108,24 +108,25 @@ SEP       = os.path.sep
 EPS       = 1e-9               # small non-zero value
 
 
-def get_default_opts():
+def set_default_opts(opts):
     '''
     see note1 for description of attributes
     '''
-    opts = UT.Struct()
-    opts.case_nm = ''
-    opts.inventory_file     = 'Inventory.xml'
-    opts.output_fnm1        = 'FugaOutput_1.txt'
-    opts.logfile            = 'pywake.log'
-    opts.tp_A               =  0.60
-    opts.noj_k              =  0.04
-    opts.legend_scaler      =  0.70
-    opts.plot_wakemap       =  False
-    opts.plot_layout        =  False
-    opts.plot_wind          =  False
-    opts.delta_winddir      = 1.
-    opts.delta_windspeed    = 0.5
-    opts.output_to_knowldir = True
+    if not hasattr(opts, 'case_nm'):            opts.case_nm            = ''
+    if not hasattr(opts, 'inventory_file'):     opts.inventory_file     = 'Inventory.xml'
+    if not hasattr(opts, 'output_fnm1'):        opts.output_fnm1        = 'FugaOutput_1.txt'
+    if not hasattr(opts, 'tp_A'):               opts.tp_A               =  0.60
+    if not hasattr(opts, 'noj_k'):              opts.noj_k              =  0.04
+    if not hasattr(opts, 'legend_scaler'):      opts.legend_scaler      =  0.70
+    if not hasattr(opts, 'plot_wakemap'):       opts.plot_wakemap       =  False
+    if not hasattr(opts, 'plot_layout'):        opts.plot_layout        =  False
+    if not hasattr(opts, 'plot_wind'):          opts.plot_wind          =  False
+    if not hasattr(opts, 'delta_winddir'):      opts.delta_winddir      = 1.
+    if not hasattr(opts, 'delta_windspeed'):    opts.delta_windspeed    = 0.5
+    if not hasattr(opts, 'output_to_knowldir'): opts.output_to_knowldir = True
+    if not hasattr(opts, 'shift_wind_map'):     opts.shift_wind_map     = False      # for development
+    if not hasattr(opts, 'dont_report_aep'):    opts.dont_report_aep    = False      # for development
+    if not hasattr(opts, 'logfile') or not opts.logfile: opts.logfile   = None
     #
     return opts
 
@@ -154,7 +155,15 @@ def read_knowl_input(fnm):
     knowl = UT.Struct()
     sheet = pd.read_excel(fnm, sheet_name='WindResource')
     knowl.weibulls = _get_weibulls(sheet)
-    knowl.turb_intens = sheet.iloc[27+N_SECTORS,1]
+    # see knowl_v*.m for location of parameters (search for j0, j1, j2...)
+    knowl.turb_intens = sheet.iloc[39,1]
+    knowl.weiba_fnm = sheet.iloc[71,1]
+    knowl.weibk_fnm = sheet.iloc[72,1]
+    try:
+        knowl.wrg_file  = sheet.iloc[76,1]
+        if not type(knowl.wrg_file) is str: knowl.wrg_file = None
+    except:
+        knowl.wrg_file  = None
     return knowl
 
 def _clean(line):
@@ -371,6 +380,47 @@ def read_inventory(fnm):
     case.park_nms = park_nms
     return case, wtgs
 
+def _read_header(fnm):
+    hdr = pd.read_csv(fnm, nrows=6, header=None, delim_whitespace=True)
+    keys = hdr.T.iloc[0,:].values
+    vals = hdr.T.iloc[1,:].values
+    hd = dict(zip(keys, vals))
+    hd['ncols'] = int(hd['ncols'])
+    hd['nrows'] = int(hd['nrows'])
+    return hd
+
+def get_site(weiba_fnm, weibk_fnm, mwb):
+    '''
+    this function should solve note2
+        what i've learned:
+         - neet to use WaspGridSite for variable Weibulls
+           * requires regular grid of the weibulls
+           * this is what is found in wind-maps like vortex.a.140.asc
+        what remains:
+         - not sure how the vortex-files handles wind-direction or frequencies.
+    - input
+      * weiba_fnm: name of weibull A-parameter file (found in knowl-excel)
+      * weibk_fnm: name of weibull k-parameter file (found in knowl-excel)
+      * mwb      : main weibull (fron knowl excel input)
+    '''
+    h = float(re.search('(\d+)', weiba_fnm).group())   # extract h from file-name (typically vortex.a.140.asc)
+    hd = _read_header(weiba_fnm)
+    a = pd.read_csv(weiba_fnm, skiprows=6, header=None, delim_whitespace=True)
+    k = pd.read_csv(weibk_fnm, skiprows=6, header=None, delim_whitespace=True)
+    x = hd['xllcorner'] + hd['cellsize']*np.arange(hd['ncols'])
+    y = hd['yllcorner'] + hd['cellsize']*np.arange(hd['nrows'])
+    binsz = 360. / N_SECTORS
+    wds = binsz*np.arange(N_SECTORS)
+    dims   = ["h", "wd", "x", "y"]
+    coords = dict(h=[h],
+                  wd=mwb.dirs,
+                  x=x,
+                  y=y,
+                 )
+    a_map = np.tile(a, [len(mwb.dirs), 1])
+    wba = xr.DataArray(data=[a_map], dims=dims, coords=coords)
+    stop
+
 def _unzip(wwh_file, knowl_dir):
     logging.info(f'unzipping {wwh_file}')
     z = zipfile.ZipFile(wwh_file)
@@ -387,9 +437,8 @@ def get_yaml(fnm):
     return s
 
 def get_input(knowl_dir, yml_file):
-    opts = get_yaml(yml_file) if yml_file else get_default_opts()
-    if not hasattr(opts, 'logfile') or not opts.logfile:
-        opts.logfile = None
+    opts = get_yaml(yml_file) if yml_file else UT.Struct()
+    set_default_opts(opts)
     #
     knowl = read_knowl_input(glob.glob(knowl_dir+SEP+'knowl_v*input.xlsx')[0])
     #
@@ -430,8 +479,19 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     tic = time.perf_counter()
     #
     # setup things
-    weib = knowl.weibulls[0]                               # for now, we just use the first one. see note2. TODO!
-    site = UniformWeibullSite(weib.freqs, weib.As, weib.Ks, knowl.turb_intens)
+    if not knowl.wrg_file:
+        weib = knowl.weibulls[0]                               # for now, we just use the first one. see note2. TODO!
+        site = UniformWeibullSite(weib.freqs, weib.As, weib.Ks, knowl.turb_intens)
+    else:
+        wrg = WU.read_wrg(knowl.wrg_file)
+        if opts.shift_wind_map:                                # for testing/development only
+            #xm1, ym1 = wrg.x.mean(), wrg.y.mean()
+            #xm2, ym2 = case.xs.mean(), case.ys.mean()
+            #x = wrg.x + xm2 - xm1
+            #y = wrg.y + ym2 - ym1
+            #wrg = wrg.assign_coords(x=x, y=y, z=case.hub_heights[:1])
+            wrg = wrg.assign_coords(z=case.hub_heights[:1])
+        site = py_wake.site.WaspGridSite(wrg)
     #
     # pick and initialize the chosen wake model
     if not wake_model: wake_model = opts.wake_model
@@ -446,12 +506,16 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     else:
         raise Exception('The Fuga, TP, or the NOJ wake models are the only options available.')
     #
-    # run wake model for all combinations of wd and ws
+    # run simulations
+    logging.info(f'run wake model {wake_model} for all combinations of wd and ws')
     wd = np.arange(0, 360, opts.delta_winddir)
     ws = np.arange(np.floor(wtgs.ws_min/2), np.ceil(wtgs.ws_max)+1, opts.delta_windspeed)
     sim_res = wf_model(case.xs, case.ys, type=case.types, wd=wd, ws=ws)
     assert(np.all(np.equal(sim_res.x.values, case.xs)))
     assert(np.all(np.equal(sim_res.y.values, case.ys)))
+    #
+    if opts.dont_report_aep:
+        return sim_res, case, knowl, opts, wtgs, site, wf_model
     #
     # coarsen it by averaging
     n_sectors = len(weib.freqs)
