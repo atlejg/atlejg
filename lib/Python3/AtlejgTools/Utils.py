@@ -203,7 +203,7 @@ def smooth(x,window_len=11,window='hanning'):
     y=np.convolve(w/w.sum(),s,mode='same')
     return y[window_len-1:-window_len+1]
 
-def glob(patterns, sortit=False, suffix=None):
+def glob(patterns, sortit=True, suffix=None):
     '''
     Just a wrapper around glob to make it accept lists. Useful when running scripts under
     ipython which doesnt expand filenames from wildcards.
