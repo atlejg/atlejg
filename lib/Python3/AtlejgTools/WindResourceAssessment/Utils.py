@@ -603,12 +603,14 @@ class Scada(object):
             plt.xticks(plt.xticks()[0], [])           # remove xticks (see note1)
         plt.show()
 
-def read_wrg(fnm):
+def read_wrg(fnm, tke=0.05, full=True):
     '''
     read wrg-file. typical usage:
     site = py_wake.site.WaspGridSite(read_wrg(wrg_file))
     - input
       * fnm   : file name
+      * tke   : turbulent kinetic energy
+      * full  : add properties that is expected by WaspGridSite
     - returns
       * ds    : xarray.Dataset with the map (and some other variables needed for WaspGridSite)
     '''
@@ -648,23 +650,24 @@ def read_wrg(fnm):
     wb_A = xr.DataArray(data=A, dims=dims, coords=coords)
     wb_k = xr.DataArray(data=k, dims=dims, coords=coords)
     #
-    zero = xr.DataArray(data=0., dims=dims, coords=coords)
     one  = xr.DataArray(data=1., dims=dims, coords=coords)
-    tke  = 0.05 * xr.DataArray(data=1., dims=dims, coords=coords)
     #
     data = {
            'A':         wb_A,
            'k':         wb_k,
            'f':         wb_f/100.,                  # % to [1]
-           'tke':       tke,
-           'elev':      zero.sel({'sec':1, 'z':h}), # only function of x,y
-           'ws_mean':   wb_A,                       # just using this for now.  TODO?
-           'flow_inc':  zero,
-           'orog_spd':  zero,                       # for testcase parquefitio this is not zero, but closer to one. TODO?
-           'orog_trn':  zero,
-           'spd':       one,                        # if zero => Power is zero. but is one ok? TODO?
-           'flow_inc':  zero,
+           'tke':       tke*one
            }
+    #
+    if full:
+        zero = 0. * one
+        data['elev']     = zero.sel({'sec':1, 'z':h}) # only function of x,y
+        data['ws_mean']  = wb_A                       # just using this for now.  TODO?
+        data['flow_inc'] = zero
+        data['orog_spd'] = zero                       # for testcase parquefitio this is not zero, but closer to one. TODO?
+        data['orog_trn'] = zero
+        data['spd']      = one                        # if zero => Power is zero. but is one ok? TODO?
+        data['flow_inc'] = zero
     #
     ds = xr.Dataset(data)
     return ds
