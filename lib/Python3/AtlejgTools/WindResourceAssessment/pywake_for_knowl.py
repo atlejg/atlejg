@@ -124,8 +124,8 @@ def set_default_opts(opts):
     if not hasattr(opts, 'delta_winddir'):      opts.delta_winddir      = 1.
     if not hasattr(opts, 'delta_windspeed'):    opts.delta_windspeed    = 0.5
     if not hasattr(opts, 'output_to_knowldir'): opts.output_to_knowldir = True
-    if not hasattr(opts, 'shift_wind_map'):     opts.shift_wind_map     = False      # for development
-    if not hasattr(opts, 'dont_report_aep'):    opts.dont_report_aep    = False      # for development
+    if not hasattr(opts, 'shift_wind_map'):     opts.shift_wind_map     = False      # mostrly used for development
+    if not hasattr(opts, 'report_aep'):         opts.report_aep         = True       # mostrly used for development
     if not hasattr(opts, 'logfile') or not opts.logfile: opts.logfile   = None
     #
     return opts
@@ -150,7 +150,8 @@ def _get_weibulls(sheet):
         wbs.append(wb)
     return wbs
 
-def read_knowl_input(fnm):
+def read_knowl_input(knowl_dir):
+    fnm = glob.glob(knowl_dir+SEP+'knowl_v*input.xlsx')[0]
     logging.info(f'reading {fnm}')
     knowl = UT.Struct()
     sheet = pd.read_excel(fnm, sheet_name='WindResource')
@@ -160,7 +161,7 @@ def read_knowl_input(fnm):
     knowl.weiba_fnm = sheet.iloc[71,1]
     knowl.weibk_fnm = sheet.iloc[72,1]
     try:
-        knowl.wrg_file  = sheet.iloc[76,1]
+        knowl.wrg_file  = knowl_dir+SEP+sheet.iloc[76,1]
         if not type(knowl.wrg_file) is str: knowl.wrg_file = None
     except:
         knowl.wrg_file  = None
@@ -440,7 +441,7 @@ def get_input(knowl_dir, yml_file):
     opts = get_yaml(yml_file) if yml_file else UT.Struct()
     set_default_opts(opts)
     #
-    knowl = read_knowl_input(glob.glob(knowl_dir+SEP+'knowl_v*input.xlsx')[0])
+    knowl = read_knowl_input(knowl_dir)
     #
     # read inventory_file
     if not hasattr(opts, 'inv_file') or not opts.inv_file:
@@ -483,15 +484,12 @@ def main(wake_model, knowl_dir='.', yml_file=None):
         weib = knowl.weibulls[0]                               # for now, we just use the first one. see note2. TODO!
         site = UniformWeibullSite(weib.freqs, weib.As, weib.Ks, knowl.turb_intens)
     else:
-        wrg = WU.read_wrg(knowl.wrg_file)
+        wrg = WU.read_wrg(knowl.wrg_file, tke=knowl.turb_intens)
         if opts.shift_wind_map:                                # for testing/development only
-            #xm1, ym1 = wrg.x.mean(), wrg.y.mean()
-            #xm2, ym2 = case.xs.mean(), case.ys.mean()
-            #x = wrg.x + xm2 - xm1
-            #y = wrg.y + ym2 - ym1
-            #wrg = wrg.assign_coords(x=x, y=y, z=case.hub_heights[:1])
             wrg = wrg.assign_coords(z=case.hub_heights[:1])
-        site = py_wake.site.WaspGridSite(wrg)
+        wrg = wrg.rename(A='Weibull_A', k='Weibull_k', f='Sector_frequency', sec='wd', z='h', tke='TI')
+        wrg = wrg.assign_coords(wd=(wrg.wd-1)*30)
+        site = py_wake.site.XRSite(wrg)
     #
     # pick and initialize the chosen wake model
     if not wake_model: wake_model = opts.wake_model
@@ -514,45 +512,48 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     assert(np.all(np.equal(sim_res.x.values, case.xs)))
     assert(np.all(np.equal(sim_res.y.values, case.ys)))
     #
-    if opts.dont_report_aep:
-        return sim_res, case, knowl, opts, wtgs, site, wf_model
-    #
-    # coarsen it by averaging
-    n_sectors = len(weib.freqs)
-    width  = 360. / n_sectors
-    n_bins    = int(width / opts.delta_winddir)         # number of bins per sector
-    sim = sim_res.coarsen(wd=n_bins).mean()
-    #
-    # reporting AEP etc
-    if not hasattr(opts, 'output_fnm1') or not opts.output_fnm1:
-        fnm = wake_model + '.txt'
+    if opts.report_aep:
+        #
+        # coarsen it by averaging
+        n_sectors = len(weib.freqs)
+        width  = 360. / n_sectors
+        n_bins    = int(width / opts.delta_winddir)         # number of bins per sector
+        sim = sim_res.coarsen(wd=n_bins).mean()
+        #
+        # reporting AEP etc
+        if not hasattr(opts, 'output_fnm1') or not opts.output_fnm1:
+            fnm = wake_model + '.txt'
+        else:
+            fnm = opts.output_fnm1
+        if opts.output_to_knowldir:
+            fnm = knowl_dir + SEP + fnm
+        #
+        aeps = WU.calc_AEP(sim, wtgs, weib, park_nms=case.park_nms, verbose=True)
+        WU.create_output(aeps, case, fnm)
     else:
-        fnm = opts.output_fnm1
-    if opts.output_to_knowldir:
-        fnm = knowl_dir + SEP + fnm
-    #
-    aeps = WU.calc_AEP(sim, wtgs, weib, park_nms=case.park_nms, verbose=True)
-    WU.create_output(aeps, case, fnm)
+        aeps = None
+        sim = sim_res
     #
     # optional stuff
     if opts.plot_wakemap:
-        # plot flow map for the dominant wind direction / wind-speed
-        # grid=None defaults to HorizontalGrid(resolution=500, extend=0.2)
+        logging.info('Plotting wakemap')
         plt.figure()
-        ws_plot = int(weib.main_ws)
-        ws1, ws2 = np.floor(opts.legend_scaler*ws_plot), ws_plot+1
+        ws1, ws2 = np.floor(opts.legend_scaler*opts.plot_ws), opts.plot_ws+1
         levels = np.linspace(ws1, ws2, int((ws2-ws1)*10)+1)
-        flow_map = sim_res.flow_map(grid=None, wd=weib.main_dir, ws=ws_plot)
-        flow_map.plot_wake_map(levels=levels, plot_ixs=False)
-        plt.title(f'{opts.case_nm} :: {opts.wake_model} :: {ws_plot:d} m/s :: {weib.main_dir:.0f} deg')
+        grid =  py_wake.HorizontalGrid(resolution=1500, extend=0.1) # grid=None defaults to HorizontalGrid(resolution=500, extend=0.2)
+        flow_map = sim_res.flow_map(grid=grid, wd=opts.plot_wd, ws=opts.plot_ws)
+        flow_map.plot_wake_map(levels=levels)    # , plot_ixs=False)
+        plt.title(f'{opts.case_nm} :: {wake_model} :: {opts.plot_ws:d} m/s :: {opts.plot_wd:.0f} deg')
         plt.show()
     #
     if opts.plot_layout:
+        logging.info('Plotting layout')
         plt.figure()
         wtgs.plot(case.xs, case.ys)
         plt.show()
     #
     if opts.plot_wind:
+        logging.info('Plotting wind-distribution')
         plt.figure()
         site.plot_wd_distribution(n_wd=12, ws_bins=[0,5,10,15,20,25])
         plt.show()
