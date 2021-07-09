@@ -59,6 +59,9 @@ def knowl_small_case(noj_only=False):
     _knowl_cases('WestermostRough', noj_only)
 
 def pywake_dbc_test(testdir='/project/RCP/active/wind_resource_assessment/WindFlow/Testdata/DBC', yaml_file='1.yml'):
+    '''
+    a doggerbank test-case
+    '''
     cwd = os.getcwd()
     os.chdir(testdir)
     _, _, opts, _, _, _, _ =  run_pywake.main(yaml_file)
@@ -67,5 +70,29 @@ def pywake_dbc_test(testdir='/project/RCP/active/wind_resource_assessment/WindFl
     assert all(new==orig)
     logging.info(f' testing OK')
     os.chdir(cwd)
+
+def test_synt_scada(n=1000, ws_max=15., cleanup=True):
+    '''
+    create syntetic scada data, write to file, read from file,
+    plot heatmap, and exit
+    the heatmap should look like some exotic stairs.
+    - input
+      * n      : number of test-data entries
+      * ws_max : max wind-speed
+      * cleanup: remove file after use
+    '''
+    fnm = 'synt_scada.csv'
+    wd = np.linspace(0,(n-1)/2, n) % 360.
+    ws = ws_max*wd/360
+    data = pd.DataFrame(np.array([wd, ws]).T, columns=['WindDir', 'WindSpeed'])
+    data['Turbine']     = 'WT-1'
+    data['ActivePower'] = 1.
+    data['time']        = '2018-01-01 00:00:00+00:00'
+    data.to_csv(fnm, sep=',')
+    synt = WU.Scada(fnm)
+    synt.heatmap(cbar=True, cticks=True)
+    if cleanup:
+        os.unlink(fnm)
+    return synt
 
 

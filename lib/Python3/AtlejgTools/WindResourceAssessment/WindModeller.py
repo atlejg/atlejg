@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import AtlejgTools.WindResourceAssessment.Utils as WU
 from scipy.interpolate import interp1d
 
+
 SEP        = '='                    # key-value separator in WindModeller case-file (wm-file)
 TYP_CT     = 'ct'                   # thrust coefficient for turbine [-]
 TYP_PWR    = 'pwr'                  # power as reported by WindModeller [W]
@@ -413,14 +414,34 @@ def polarplot(res, ws, title='', wts=None, kwargs={'ls':'-','lw':3}, ylim=None, 
 
 class WindModellerCase(object):
 #
-    def __init__(self, name, read_results=True):
+    def __init__(self, name, read_results=True, doc_file='readme.txt', grid_dims=None):
+        '''
+        an object for input & results of a WindModeller case.
+        one case represents multiple simulations, typically multiple wind-speeds (ws)
+        and wind-directions (wd)
+        - input
+          * name        : name of the case, i.e. name of the WindModeller input file (typically a01.wm or just a01)
+          * read_results: boolean
+          * doc_file    : tries to find a description (one-liner) abut this case in this file
+          * grid_dims   : if wt's are in a regular grid, please provide it's dimensions here (nrows, ncols)
+                          and we will make it easy to access data by row or column.
+        - notes
+          * grid_dims only works if the wt's in the layout-file has been entered row by row, columnm
+            by column (columns cycling fastest)
+          * make sure to use the 'natural' row/column orientation when using grid_dims
+          * for now, only full grid's will work when using grid_dims
+        '''
+        #
         self.pm, self.fnm = read_params(name)
-        self.name   = self.pm['casenm']                    # convinent
+        #
+        # convinent stuff
+        self.name   = self.pm['casenm']
         self.layout = self.read_layout()
         self.wd     = self.pm['theta list']
         self.ws     = self.pm['speed list']
         self.wt     = self.layout.name.values
-        self.tdir   = self.pm['target directory']          # convinent
+        self.tdir   = self.pm['target directory']
+        self.descr  = self.description(doc_file)
         #
         # get simulation results
         if read_results:
@@ -429,6 +450,42 @@ class WindModellerCase(object):
             self.gross = self._calc_gross()
             self.wl = self.wakeloss(average=False)
             self.perf, self.duration = self._performance()
+            if not grid_dims is None:
+                self.is_grid = True
+                # we're gonna reshape existing DataArray's from 1-D wt, to 2-D (row, column)
+                nrows, ncols = grid_dims
+                dims = ['ws', 'row', 'col', 'wd']
+                coords = dict(ws=self.ws, row=range(1, nrows+1), col=range(1, ncols+1), wd=self.wd,
+                              x=(['row', 'col'], self.layout.x.values.reshape(nrows, ncols)),
+                              y=(['row', 'col'], self.layout.y.values.reshape(nrows, ncols)),
+                              nm=(['row', 'col'], self.wt.reshape(nrows, ncols))
+                             )
+                net = self.net.values.reshape(len(self.ws), nrows, ncols, len(self.wd))
+                gross = self.gross.values.reshape(len(self.ws), nrows, ncols, len(self.wd))
+                eff = self.eff.values.reshape(len(self.ws), nrows, ncols, len(self.wd))
+                wl = self.wl.values.reshape(len(self.ws), nrows, ncols, len(self.wd))
+                #
+                # assign to self
+                self.net = xr.DataArray(data=net, dims=dims, coords=coords)
+                self.gross = xr.DataArray(data=gross, dims=dims, coords=coords)
+                self.eff = xr.DataArray(data=eff, dims=dims, coords=coords)
+                self.wl = xr.DataArray(data=wl, dims=dims, coords=coords)
+            else:
+                self.is_grid = False
+#
+    def description(self, doc_file):
+        '''
+        tries to find info abut this case in a doc-file (typically readme.txt')
+        looks for <casenm>: bla bla
+        like this:      d00: based on a00. for doing Array Efficiency
+        '''
+        #
+        desc = UT.grep(f'{self.name}:', open(doc_file).readlines())
+        #
+        if desc:
+            return desc[0].strip()
+        else:
+            return ''
 #
     def get_curve(self, typ, label='', as_func=True):
         '''
@@ -489,6 +546,8 @@ class WindModellerCase(object):
         read WindModeller result-files into a DataArray with dimensions (ws, wt, wd)
         - input
           * rtype: result-type. only power (TYP_PWR) is implemented. TODO?
+        - notes
+          * order of dimensions (ws, wt, wd) is given by the file structure
         '''
         #
         # read all results into a list (one matrix for each velocity)
@@ -502,9 +561,7 @@ class WindModellerCase(object):
         #
         # create DataArray
         dims   = ["ws", "wt", "wd"]
-        coords = dict(ws=self.ws,
-                      wt=range(len(self.layout)),
-                      wd=self.wd,
+        coords = dict(ws=self.ws, wt=range(len(self.layout)), wd=self.wd,
                       x=(["wt"], self.layout.x.values),
                       y=(["wt"], self.layout.y.values),
                       nm=(["wt"], res.index),
@@ -728,13 +785,15 @@ class WindModellerCase(object):
         gross.attrs = self.net.attrs.copy()
         return gross
 #
-    def wakeloss(self, ws_list=None, wd_list=None, average=True):
+    def wakeloss(self, ws_list=None, wd_list=None, average=True, freq=1.):
         '''
         calculating wakeloss.
         - input
           * ws_list: selection of wind-speeds. None means all..
           * wd_list: selection of wind-dirs. None means all..
           * average: boolean => averaging over wd and ws
+          * freq   : frequencies of (wt, wd, ws) combinations. shape must be according to
+                     ws_list & wd_list
         - output
           * DataArray. unit is %
         '''
@@ -746,12 +805,67 @@ class WindModellerCase(object):
         if not wd_list is None:
             net   = net.sel(wd=wd_list)
             gross = gross.sel(wd=wd_list)
+        net   = net*freq
+        gross = gross*freq
         if average:
             net   = net.mean('ws').mean('wd')
             gross = gross.mean('ws').mean('wd')
         wl = (1 - net/gross) * 100
         wl.attrs = dict(rtype=TYP_WKL, description=self.name, unit=UNIT_PRCNT)
         return wl
+#
+    def show_turbines(self, ixs, show_nms= True, txtshift=(40,40)):
+        '''
+        useful for QC - it shows a scatterplot of the turbines of interest.
+        - input
+          * ixs     : list of indices of turbines to show.
+                      if turbines are in a grid, each index must be a point (row, col)
+          * show_nms: boolean. show names of turbins?
+          * txtshift: shift position of turbine name as needed
+        '''
+        if self.is_grid:
+            xs, ys, nms = [], [], []
+            for ix in ixs:
+                wt = self.net.sel(row=ix[0], col=ix[1])
+                xs.append(wt.x.values)
+                ys.append(wt.y.values)
+                nms.append(wt.nm.values)
+        else:
+            layout = self.layout.iloc[ixs]
+            xs = layout.x
+            ys = layout.y
+            nms = layout.name
+        plt.figure()
+        plt.scatter(xs, ys, s=50, color='k')
+        if show_nms:
+            for x,y,nm in zip(xs, ys, nms):
+                plt.text(x+txtshift[0], y+txtshift[0], nm)
+        plt.axis('equal')
+        plt.show()
+
+def get_cases(patterns, file_ext='.wm', grid_dims=None, sortit=True):
+    '''
+    useful for analysing multiple cases.
+    f.ex. [plot(c.wd, c.wl.mean('wt').mean('ws').values, color=UT.COLOURS_OLD[i], label=c.name) for i,c in enumerate(wm.get_cases('a1*'))]; legend()
+    - input
+      * patterns: unix-file-patterns for selecting cases. ala a1? or a1* or ['a01', 'a14']
+      * file_ext: file extension.
+    - returns
+      * list of WindModellerCase's (or single object if only one is found)
+    '''
+    if type(patterns) is str: patterns = [patterns]
+    cases = []
+    for pattern in patterns:
+        if not '.' in pattern: pattern += file_ext
+        fnms = UT.glob(pattern, sortit=sortit)
+        cases.extend([CM.get(fnm, grid_dims=grid_dims) for fnm in fnms])
+    #
+    if len(cases) == 1: 
+        return cases[0]
+    else:
+        return cases
+
+CM = UT.CacheManager(WindModellerCase)
 
 # TEST FUNCTIONS
 
@@ -760,3 +874,5 @@ def test_efficency(testcase):
     eff = wmc.efficency()
     assert np.all(eff.values == np.linspace(0.1, 1, 10))
 
+# ALIAS'es
+get = get_cases

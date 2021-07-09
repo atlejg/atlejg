@@ -422,26 +422,33 @@ def to_gross(net, pwr_f):
 
 class Scada(object):
 #
-    def __init__(self, fnm='', stype='camille', pwr_f=None):
+    def __init__(self, fnm='', mapper=None, pwr_f=None):
         '''
         read scada csv-file (from camille) into a DataFrame
         - input
-            fnm: file name (csv-file, could be gzip'ed)
-            stype: scada format type. for now only 'camille' is implemented
+          * fnm   : file name (csv-file, could be gzip'ed)
+          * mapper: this is about column names in cvs-file. so, if column names is not
+                    like camille's files, they must be renamed using this dict.
+                    the key column namese are:
+                    time, Turbine, WindSpeed, WindDir, ActivePower
+          * pwr_f : power function
         - notes
-            DataArray less useful for scada-data since wind-speeds and wind-directions are not regular
+          * Assumes regular time-stamping
+          * DataArray is not not an obvious choice for scada-data since wind-speeds and wind-directions are not regular
+          * however, wind-speed and wind-direction *is* mapped into integer values (ws and wd)
+          * use binning() to get DataArray (bin_it is now deprecated). binning() utilizes ws, wd, wt
         '''
-        if stype == 'camille':
-            if fnm:
-                self.raw = pd.read_csv(fnm, parse_dates=['time'], converters={'time':dateutil.parser.parse})
-                self.wt  = self.raw.Turbine.unique()
-                self.pwr_f = pwr_f
-                self.update()
-            else:
-                self.raw = pd.DataFrame([])
-            self.fnm = fnm
+        self.fnm = fnm
+        self.pwr_f = pwr_f
+        if self.fnm:
+            self.raw = pd.read_csv(fnm, parse_dates=['time'], converters={'time':dateutil.parser.parse})
+            if mapper: self.raw.rename(mapper, inplace=True)
+            self.wt  = self.raw.Turbine.unique()
+            self.update()
+            self.cnt = self.binning(count=True)
+            self.freq = self.cnt / self.cnt.sum()
         else:
-            raise Exception(f'SCADA type {stype} not implemented')
+            self.raw = pd.DataFrame([])
 #
     def select(self, wd_min=-1., wd_max=361., ws_min=-1, ws_max=9999, nms=[]):
         '''
@@ -504,13 +511,30 @@ class Scada(object):
         '''
         massage the data
         - notes:
-          * efficency (eff) is in %
-          * wloss is in %
+          * n1: efficency (eff) is in %
+          * n2: wloss is in %
+          * n3: it bins wd, ws into integer values so that ws is in [0, ws_max), wd is in [0, 360)
+          * n4: it bins wd, ws so that values in [2.5, 3.5) is mapped to 3 etc.
+          * n5: for wd, values in [359.5, 360) is mapped to 0
         '''
         r = self.raw
+        #
+        # losses etc.
         r['gross'] = self.pwr_f(r.WindSpeed) if self.pwr_f else r.ActivePower
-        r['eff']   = r.ActivePower / r.gross * 100
-        r['wloss'] = 100 - r.eff
+        r['eff']   = r.ActivePower / r.gross * 100       # see n1
+        r['wloss'] = 100 - r.eff                         # see n2
+        # 
+        # map WindSpeed and WindDir into integer values. useful for binning later
+        ws_min, ws_max  = int(r.WindSpeed.min()), int(r.WindSpeed.max()) + 1
+        r['ws'] = np.array(pd.cut(r.WindSpeed+0.501, np.arange(ws_min, ws_max+2), labels=range(ws_min, ws_max+1)), dtype=np.int64) # see n3 + n4
+        r['wd'] = np.array(pd.cut((r.WindDir+0.501)%360, np.arange(0, 361), labels=range(0, 360)), dtype=np.int64)                 # see n3 + n4 + n5
+        #
+        # useful to "index" turbines
+        wts = np.zeros(len(r), dtype=np.int64)
+        for wt_no, wt_nm in enumerate(sorted(r.Turbine.unique())):
+            ixs = (r.Turbine == wt_nm)
+            wts[ixs] = wt_no
+        r['wt'] = wts
 #
     def per_wt(self, wd_min=-1., wd_max=361., ws_min=-1., ws_max=9999., nms=[]):
         '''
@@ -531,18 +555,66 @@ class Scada(object):
             ret.append([wt, d])
         return ret
 #
-    def bin_it(self, wds=range(0,360), wss=range(0,20), dwd=3., dws=1):
+    def binning(self, varnm='', mode='', count=False):
         '''
-        binning the data. potentially useful... 
-        brute force, not very sophisticated.
-        seems to have performance issues...
+        bins data into DataArray - which could be really convinent
+        - input
+          * varnm : which variable (column)  to bin, typically ActivePower. not used when count is True
+          * mode  : 'sum' or 'mean'
+          * count : boolean. if True, just count number of data points for each (ws, wd, wt) coordinate
+        - returns
+          * DataArray object
+        '''
+        #
+        #
+        r = self.raw
+        grp = r.groupby(['ws', 'wd', 'wt'])
+        if count:
+            vals = grp['wd'].count()
+        else:
+            assert mode in ['sum', 'mean'], "mode *must* be 'sum' or 'mean'"
+            vals = grp[varnm].sum() if mode == 'sum' else grp[varnm].mean()
+        #
+        # create and fill the entire matrix
+        dtype = np.int64 if count else np.float64
+        m = np.zeros((int(r.ws.max())+1, int(r.wd.max())+1, r.wt.max()+1), dtype=dtype)
+        for key, val in zip(vals.index, vals):
+            m[key[0], key[1], key[2]] = val
+        #
+        # create DataArray
+        dims   = ["ws", "wd", "wt"]
+        coords = dict(ws=range(m.shape[0]),
+                      wd=range(m.shape[1]),
+                      wt=range(m.shape[2]),
+                      nm=(["wt"], self.wt),
+                     )
+        rtype = 'count' if count else varnm
+        attrs = dict(description=self.fnm, rtype=rtype)
+        bn = xr.DataArray(data=m, dims=dims, coords=coords, attrs=attrs)
+        return bn
+#
+    def bin_it(self, wds=range(0,360), wss=range(0,20), dwd=1., dws=1., count=False):
+        '''
+        DEPRECATED!! use binning() in stead
+        binning the data (ActivePower or counting). potentially useful... 
+        brute force, not very sophisticated,  seems to have performance issues...
+        - input:
+          * wds
+          * wss
+          * dwd
+          * dws
+          * count : boolean. if True, we will count number of occurences (useful for frequencies).
+                             if False, sum up ActivePower
         '''
         m = np.zeros((len(self.wt), len(wss), len(wds)))
         for k, wt in enumerate(self.wt):
             for j, ws in enumerate(wss):
                 for i, wd in enumerate(wds):
                     sel = self.select(wd-dwd/2, wd+dwd/2, ws-dws/2, ws+dws/2, [wt])
-                    m[k,j,i] = sel.ActivePower.mean()          # NaN if empty
+                    if count:
+                        m[k,j,i] = len(sel)
+                    else:
+                        m[k,j,i] = sel.ActivePower.mean()          # NaN if empty
         #
         # create DataArray
         dims   = ["wt", "ws", "wd"]
@@ -556,19 +628,6 @@ class Scada(object):
         logging.info(f'Result dimension: {dict(bn.sizes)}')
         self.binned = bn
         return bn
-#
-    def bin_it_old(self):
-        '''
-        binning the data.
-        gave up this one and made bin_it in stead...
-        '''
-        r = self.raw[['Turbine', 'WindDir', 'WindSpeed', 'ActivePower']]
-        r.columns = ['wt', 'WindDir', 'WindSpeed', 'net']
-        ws_max = ceil(r.ws.max())
-        r['wd'] = pd.cut(r.wd, range(0, 361), labels=range(0,360))
-        r['ws'] = pd.cut(r.ws, range(0, ws_max+1), labels=range(0, ws_max))
-        m = r.groupby(['wt', 'wd', 'ws']).mean()
-        return m
 #
     def polarplot(self, var, ws, dws=0.5, title='', nms=None, kwargs={'ls':'-','lw':3}, ylim=None, onefig=True, unit=''):
         '''
@@ -591,7 +650,7 @@ class Scada(object):
         for wt, res in self.per_wt(ws_min=ws-dws, ws_max=ws+dws, nms=nms):
             if not onefig: plt.figure(figsize=(7,7))
             res = res.sort_values('WindDir')
-            theta = -res.WindDir.values/180*np.pi + np.pi/2    # negative and shift 90deg to get it right (see note1)
+            theta = -res.WindDir.values/180*np.pi + np.pi/2        # negative and shift 90deg to get it right (see note1)
             plt.polar(theta, res[var].values, **kwargs, label=wt)
             plt.title(f"{title} ws = {ws}m/s") 
             plt.tight_layout()
@@ -600,7 +659,28 @@ class Scada(object):
             if unit:
                 yt = plt.yticks()[0]
                 plt.yticks(yt, [f"{y:.0f}{unit}" for y in yt])
-            plt.xticks(plt.xticks()[0], [])           # remove xticks (see note1)
+            plt.xticks(plt.xticks()[0], [])                        # remove xticks (see note1)
+        plt.show()
+#
+    def heatmap(self, wt=0, figsz=(10,8), cbar=False, cticks=False):
+        '''
+        plot a heat map of the wind for a given turbine.
+        - input:
+          * wt    : wind turbine index
+          * cbar  : boolean. show colorbar?
+          * cticks: boolean. show ticks for colorbar?
+        '''
+        cnt = np.array(self.cnt.sel(wt=wt), dtype=np.float64)      # need array for masking
+        cnt[cnt==0] = np.nan                                       # mask out zeros
+        #
+        fignum = plt.figure(figsize=figsz).number
+        plt.matshow(cnt, fignum=fignum, aspect='auto', origin='lower')
+        if cbar:
+            cticks = range(self.cnt.max().values+1) if cticks else []
+            plt.colorbar(ticks=cticks)
+        plt.xlabel('Wind direction [deg]')
+        plt.ylabel('Wind speed [m/s]')
+        plt.title(self.wt[wt])
         plt.show()
 
 def read_wrg(fnm, tke=0.05, full=True):
