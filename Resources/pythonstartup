@@ -14,6 +14,7 @@ else:
 
 from importlib import reload              # want reload as in ipython2
 from pylab import *
+import pandas as pd
 import AtlejgTools.FluentUtils as FL
 import AtlejgTools.Utils as UT
 #import AtlejgTools.RCP_project.Valve_characteristics as VC

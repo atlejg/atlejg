@@ -137,6 +137,9 @@ alias x11one "xrandr --fb 1920x1080"
 alias x11two "xrandr --fb 3840x1080"
 alias x11big1 "xrandr --fb 2560x1600"
 alias x11big2 "xrandr --fb 5120x1600"
+#
+# for receiving mail when using ts for queueing tasks
+setenv TS_MAILTO agy@equinor.com
 
 # PYTHON STUFF
 # 
