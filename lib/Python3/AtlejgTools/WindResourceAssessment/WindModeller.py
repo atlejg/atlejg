@@ -31,26 +31,35 @@ ARROW_SIZE = 200.
 UNIT_PRCNT = '%'
 UNIT_WATT  = 'W'
 UNIT_NONE  = '-'
+EQUATIONS  = ['U-Mom', 'V-Mom', 'W-Mom', 'P-Mass']
 
 logging.basicConfig(level=logging.INFO)
 
-def read_params(casenm, file_ext='.wm'):
+def read_params(name, file_ext='.wm'):
     '''
     reads a WindModeller case-file (typically a00.wm) into a dict.
     - input
-      * casenm: this is the basename of the file-name
+      * name: this is the file-name of the WindModeller input file
+              (or the basename of the file-name)
+    - returns
+      * pm : dictionary with all parameters
+      * fnm: the file name
     - notes
      * booleans are given as proper python booleans (True/False)
      * wind-directions are always given as a list in case['theta list'] as np.array
      * wind-speeds is np.array
-     * adds 'casenm' for identification. this is the basename of the file-name
+     * adds 'casenm' and 'filenm' for identification
     '''
     #
-    # make sure casenm is without extension and fnm is with
-    casenm = UT.basename(casenm)
-    fnm = casenm + file_ext
+    # make sure casenm is without extension and fnm is with extension
+    if name.endswith(file_ext):
+        fnm = name
+    else:
+        fnm = name + file_ext
+    casenm = UT.basename(name)
     if not os.path.exists(fnm):
         raise Exception(f'No such file: {fnm}')
+    print(casenm, fnm)
     #
     # read keys / values into paramter-dict
     pm = {}
@@ -69,6 +78,7 @@ def read_params(casenm, file_ext='.wm'):
     # make sure we have wind-directions on a standard format, i.e. a 'theta list' of floats
     mode = pm['wind direction option'].lower()
     if mode == 'list':
+        if not type(pm['theta list']) is list: pm['theta list'] = [pm['theta list']]
         pm['theta list'] = np.array([float(theta) for theta in pm['theta list']])
     elif mode == 'start end increment':
         pm['theta list'] = np.arange(float(pm['theta start']), float(pm['theta end'])+1, float(pm['theta increment']))
@@ -87,9 +97,69 @@ def read_params(casenm, file_ext='.wm'):
     if not type(pm['thrust coefficient files']) is list:
         pm['thrust coefficient files'] = [pm['thrust coefficient files']] 
     #
-    # add 'casenm' for identification
+    # add casenm and filename for identification
     if not 'casenm' in pm: pm['casenm'] = casenm
+    if not 'filenm' in pm: pm['filenm'] = fnm
     return pm, fnm
+
+def compare_params(casenm1, casenm2):
+    '''
+    compares two parameter-files.
+    useful since order of parameter files is not fixed, and winmodeller_gui
+    writes the file different than it was read.
+    '''
+    pm1, pm2 = read_params(casenm1)[0], read_params(casenm2)[0]
+    keys = np.unique(list(pm1.keys()) + list(pm2.keys()))
+    only1, only2, diff = list(), list(), list()
+    for key in keys:
+        if key == 'casenm': continue      # not interesting to compare case-names
+        if not key in pm2:
+            only1.append([key, pm1[key]])
+        elif not key in pm1:
+            only2.append([key, pm2[key]])
+        else:
+            equal = True
+            val1, val2 = pm1[key], pm2[key]
+            if type(val1) in (str, list, bool) and val1 != val2:    equal = False
+            if type(val1) is np.ndarray and not np.all(val1==val2): equal = False
+            if not equal:
+                diff.append([key, pm1[key], pm2[key]])
+    if not (only1 + only2 + diff):
+        print('They are identical!')
+        return
+    if only1:
+        print(f'\nOnly in {casenm1}:')
+        print(pd.DataFrame(only1, columns=['PARAMETER NAME', 'VALUE']))
+    if only2:
+        print(f'\nOnly in {casenm2}:')
+        print(pd.DataFrame(only2, columns=['PARAMETER NAME', 'VALUE']))
+    if diff:
+        print('\nParameters that differs:')
+        print(pd.DataFrame(diff, columns=['PARAMETER NAME', casenm1, casenm2]))
+
+def get_residuals(outfile, plot_it=True):
+    '''
+    TODO: put it in CFX/Utils.py or make it into a DataSet with indexing
+    '''
+    res = {}
+    for eq in EQUATIONS:
+        raw = UT.grep(f'^ \| {eq}', open(outfile).readlines())
+        ys = []
+        for line in raw:
+            if 'Physical Timescale' in line: continue
+            recs = line.split('|')
+            ys.append(float(recs[3]))   # skip last 2 entries which is something different
+        res[eq] = np.array(ys[:-2])
+    if plot_it:
+        plt.figure()
+        xs = range(1, len(res[eq])+1)
+        for eq in EQUATIONS:
+            plt.semilogy(xs, res[eq], label=eq)
+        plt.xlabel('Iteration')
+        plt.ylabel('Residuals')
+        plt.legend(loc='best')
+        plt.title(outfile)
+    return res
 
 def write_curve(typ, xs, ys, todir, fnm):
     '''
@@ -449,7 +519,7 @@ class WindModellerCase(object):
             self.eff = self.efficency()
             self.gross = self._calc_gross()
             self.wl = self.wakeloss(average=False)
-            self.perf, self.duration = self._performance()
+            self.perf, self.simtime = self._performance()
             if not grid_dims is None:
                 self.is_grid = True
                 # we're gonna reshape existing DataArray's from 1-D wt, to 2-D (row, column)
@@ -643,20 +713,19 @@ class WindModellerCase(object):
         '''
         get  performance-data for a given case (i.e. simulation time, residuals etc)
         - returns
-          * perf    : DataFrame with relevant data for each simulation. column duration is solving-time
-          * duration: duration for the whole case
+          * perf    : DataFrame with relevant data for each simulation. column 'simtime' is solving-time
+          * simtime : simtime for the whole case
         - notes
           * note1: imbalances are fractions
-          * note2: durations are in seconds
+          * note2: simtime's are in seconds
         '''
-        self._eqs = ['U-Mom', 'V-Mom', 'W-Mom', 'P-Mass']
-        tmpfile = '/tmp/grepped.txt'
+        grepfile = '/tmp/grepped.txt'
         #
-        # get simulation time (duration) for each simulation
-        cmd = f"grep 'CFD Solver wall clock' {self.tdir}/*.out > {tmpfile}"
+        # get simulation time (simtime) for each simulation
+        cmd = f"grep -H 'CFD Solver wall clock' {self.tdir}/*.out > {grepfile}"
         logging.info(cmd)
         os.system(cmd)
-        perf = pd.read_csv(tmpfile, sep=' ', usecols=[0,6], header=None, names=['nm', 'duration'], converters=dict(nm=UT.basename))
+        perf = pd.read_csv(grepfile, sep=' ', usecols=[0,6], header=None, names=['nm', 'simtime'], converters=dict(nm=UT.basename))
         vals = [x.split('_')[-3:-1] for x in perf.nm]
         vs = [int(x[0][-1]) for x in vals]
         thetas = [int(x[1]) for x in vals]
@@ -664,25 +733,25 @@ class WindModellerCase(object):
         perf['v']     = vs                      # potentially useful
         #
         # get imbalances for each simulation
-        cmd = f"grep -a7 'Normalised Imbalance Summary' {self.tdir}/*.out | grep"
-        for eq in self._eqs: cmd += f" -e '{eq}'"
-        cmd += f" > {tmpfile}"
+        cmd = f"grep -H -a7 'Normalised Imbalance Summary' {self.tdir}/*.out | grep"
+        for eq in EQUATIONS: cmd += f" -e '{eq}'"
+        cmd += f" > {grepfile}"
         logging.info(cmd)
         os.system(cmd)
-        df = pd.read_csv(tmpfile, sep='|', usecols=[0,1,3], header=None, converters={0:UT.basename, 1: lambda x: x.strip()})
-        nms = df[df[1]==self._eqs[0]][0].values
+        df = pd.read_csv(grepfile, sep='|', usecols=[0,1,3], header=None, converters={0:UT.basename, 1: lambda x: x.strip()})
+        nms = df[df[1]==EQUATIONS[0]][0].values
         assert np.all(perf.nm.values==nms)
-        for eq in self._eqs:
+        for eq in EQUATIONS:
             d = df[df[1]==eq]
             perf[eq] = d[3].values
         #
-        os.unlink(tmpfile)
+        os.unlink(grepfile)
         #
         # now get total runtime based on create-time of files
         fnm1 = f'{self.tdir}/meshspec.xml'
         fnm2 = UT.glob(f'{self.tdir}/*.res')[-1]   # last result-file from solver
-        duration = np.diff([os.path.getctime(fnm) for fnm in [fnm1, fnm2]])[0]
-        return perf, duration
+        simtime = np.diff([os.path.getctime(fnm) for fnm in [fnm1, fnm2]])[0]
+        return perf, simtime
 #
     def plot_performance(self, full=True, ms=4, ylim=None):
         '''
@@ -697,13 +766,13 @@ class WindModellerCase(object):
         plt.figure()
         for i, v in enumerate(self.ws):
             p = self.perf[self.perf.v==i+1]
-            plt.plot(p.theta.values, p.duration.values, 's', ms=ms, label=f'v = {v:.1f} m/s')
+            plt.plot(p.theta.values, p.simtime.values, 's', ms=ms, label=f'v = {v:.1f} m/s')
         plt.xlabel('Wind direction')
         plt.ylabel('Simulation runtime [s]')
         plt.title(f"Case {self.name}")
         plt.legend(loc='best')
         if full:
-            for eq in self._eqs:
+            for eq in EQUATIONS:
                 plt.figure()
                 for i, v in enumerate(self.ws):
                     p = self.perf[self.perf.v==i+1]
