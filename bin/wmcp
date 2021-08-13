@@ -1,0 +1,10 @@
+#! /bin/tcsh -f
+# usage: $0 <old> <new>
+# copies the wm-file (with updated target directory)
+
+set cwd = `pwd`
+set base = `basename -s .wm $2`
+
+sed "s+target directory.*+target directory = $cwd/$base+" $1 >! $2
+
+echo $2 copied from $1
