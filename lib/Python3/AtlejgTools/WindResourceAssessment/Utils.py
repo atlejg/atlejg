@@ -216,12 +216,14 @@ def calc_AEP_old(sim0, pwr_funcs, weibs, dwd=1., park_nms=[], verbose=False, ret
     if return_pwr: return aeps, pwrs
     else         : return aeps
 
-def _write_park_aep(net, gross, park, f):
+def _write_park_aep(net, gross, park, f, write_header):
     # formatting
     fms = {0:lambda x: f'Turbine site {x:.0f}', 1:INT, 2:INT, 3:INT, 4:REAL, 5:REAL, 6:str}
     #
-    f.write(f'      Xpos   Ypos   Height   GrAEP   NetAEP\n')
-    f.write(f' Site [m]    [m]    [m]      [GWh]   [GWh]\n')
+    if write_header:
+        f.write(f'      Xpos   Ypos   Height   GrAEP   NetAEP\n')
+        f.write(f' Site [m]    [m]    [m]      [GWh]   [GWh]')
+    f.write(f'\n')
     hub_heights = [park.wtg.hub_height]*park.size
     df = pd.DataFrame([park.ids, park.xs, park.ys, hub_heights, gross, net], dtype=np.float64).T  # needs to be float64
     df[6] = [park.wtg.name]*park.size
@@ -232,7 +234,7 @@ def create_output(aeps, case, fnm):
     '''
     create ouput ala Fuga (for knowl)
     only the 'For wake only' option is supported
-    note1: prefix 'n' is for net, 'g' is for gross
+    note1: n is for net, g/gr is for gross
     '''
     #
     header = f'''py_wake Annual Energy production estimates
@@ -248,7 +250,8 @@ zeta0   99999
     for i, wd in enumerate(wds):
         f.write(f'\nSector\t{i}\n')
         for park, (net, gr) in zip(case.park_list, aeps):
-            _write_park_aep(net.sel(wd=wd), gr.sel(wd=wd), park, f)
+            write_header = (park == case.park_list[0])
+            _write_park_aep(net.sel(wd=wd), gr.sel(wd=wd), park, f, write_header)
         # write a 'summary' for the total and each park
         ns, gs = [aep[0].sel(wd=wd).sum() for aep in aeps], [aep[1].sel(wd=wd).sum() for aep in aeps]
         f.write(f'\nAllProjects                      {sum(gs).values:.4f}   {sum(ns).values:.4f}\n')
@@ -257,8 +260,9 @@ zeta0   99999
     #
     # write all sectors
     f.write(f'\nAll sectors\n')
-    for j, (park, aep) in enumerate(zip(case.park_list, aeps)):
-        _write_park_aep(aep[0].sum(axis=1), aep[1].sum(axis=1), park, f)
+    for park, (net, gr) in zip(case.park_list, aeps):
+        write_header = (park == case.park_list[0])
+        _write_park_aep(net.sum(axis=1), gr.sum(axis=1), park, f, write_header)
     #
     # write a 'summary' for the total and each park
     ns, gs = [aep[0].sum(axis=1) for aep in aeps], [aep[1].sum(axis=1) for aep in aeps]
