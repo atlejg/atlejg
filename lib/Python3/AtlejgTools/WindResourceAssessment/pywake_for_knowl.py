@@ -71,6 +71,7 @@ NOTES
         the 'next level' is WaspGridSite, but this is made for complex onshore cases and
         seems a bit tricky.
         therefore, for version-1, we just stick to the first weibull given in the knowl_file
+        update: i have now implemented the use of a wrg-file
 
  - note3
     on fuga-model
@@ -84,6 +85,9 @@ NOTES
           wd: wind direction
           ws: wind speed
           wl: wake loss
+
+ - note5
+    about the different TurbOPark-versions, see mail from Knut Seim, 20/8-21
 
 '''
 
@@ -494,15 +498,21 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     # pick and initialize the chosen wake model
     if not wake_model: wake_model = opts.wake_model
     wake_model = wake_model.upper()
+    #
+    # for the various choices, see note5
     if wake_model == 'FUGA':
         assert wtgs.uniq_wtgs == 1                         # see note3
         wf_model = py_wake.Fuga(opts.lut_path, site, wtgs)
-    elif wake_model == 'TP' or 'TURBO' in wake_model:
-        wf_model = py_wake.TP(site, wtgs, k=opts.tp_A)
+    elif wake_model == 'TP':
+        wf_model = py_wake.TP(site, wtgs, k=opts.tp_A)     # 'standard' TurbOPark
+    elif wake_model == 'ETP':
+        wf_model = py_wake.ETP(site, wtgs, k=opts.tp_A)     # 'Equinor' TurbOPark
     elif wake_model == 'NOJ':
         wf_model = py_wake.NOJ(site, wtgs, k=opts.noj_k)
+    elif wake_model == 'NOJLOCAL':
+        wf_model = py_wake.NOJLocal(site, wtgs, a=[opt.noj_k, 0.004])
     else:
-        raise Exception('The Fuga, TP, or the NOJ wake models are the only options available.')
+        raise Exception('The Fuga, TP, ETP, NOJ, or the NOJLocal wake models are the only options available.')
     #
     # run simulations
     logging.info(f'run wake model {wake_model} for all combinations of wd and ws')
