@@ -16,7 +16,7 @@ NOTES
  - note2
     assumes only one Weibull-distribution
 
- - note2
+ - note3
     naming conventions follows typical pywake lingo:
         - wt: wind turbine
           wd: wind direction
@@ -40,12 +40,23 @@ N_SECTORS = 12
 EPS       = 1e-9               # small non-zero value
 
 def read_layout(fnm, sheetnm=None, n_wtgs=-1):
+    '''
+    supported:
+      *.csv  : must have columns x, y, nm
+      *.xlsx : must have columns x, y, nm
+      *.txt  : format: WindModeller layout
+    '''
     if fnm.endswith('.csv'):
         layout = pd.read_csv(fnm, sep=';')
-    else:
+    elif fnm.endswith('.xlsx'):
         layout = pd.read_excel(fnm, sheet_name=sheetnm, header=None, names=['x','y','nm'])
         layout['parknm'] = 'park'
         layout.nm = [str(val) for val in layout.nm]
+    elif fnm.endswith('.txt'):
+        layout = pd.read_csv(fnm, header=None, delim_whitespace=True, usecols=[0,1,2], names=['nm', 'x','y'])
+        layout['parknm'] = 'park'
+    else:
+        raise Exception(f'File-type of file {fnm} is not supported')
     if  n_wtgs > 0:
         layout = layout.iloc[:n_wtgs,:]
     return layout
@@ -117,6 +128,10 @@ def set_defaults(opts):
     if not hasattr(opts, 'outfile'):         opts.outfile         = 'pywake_results.csv'
     if not hasattr(opts, 'webviz_output'):   opts.webviz_output   = False
     if not hasattr(opts, 'webviz_file'):     opts.webviz_file     = ''
+    if not hasattr(opts, 'wtg_file'):        opts.wtg_file        = ''
+    if not hasattr(opts, 'pwr_file'):        opts.pwr_file        = ''
+    if not hasattr(opts, 'ct_file'):         opts.ct_file         = ''
+    if not hasattr(opts, 'hub_height'):      opts.hub_height      = -1.
 
 def get_weibull(fnm, A_scaler=1.):
     '''
@@ -134,26 +149,34 @@ def get_weibull(fnm, A_scaler=1.):
     weib.A *= A_scaler
     return weib
 
-def read_wtgs(wtg_file, gap=30.):
+def read_wtgs(opts):
     '''
     - input
-      * wtg_file: either a wtg-file or a generic Equinor WTG in xlsx-format, typically EQN-D250-15MW.xlsx
-      * gap     : minimum distance from blade-tip to sea-surface
+      * opts: either wtg_file or (pwr_file and ct_file) must be given. 
+          - wtg_file:            either a wtg-file or a generic Equinor WTG in xlsx-format, typically EQN-D250-15MW.xlsx
+          - pwr_file & ct_file:  WindModeller pwr & ct curves
     '''
-    if wtg_file.endswith('.wtg'):
-        return WindTurbines.from_WAsP_wtg(wtg_file)
-    elif wtg_file.endswith('.xlsx'):
-        data = pd.read_excel(wtg_file, sheet_name='PowerCurve', header=0)
-        scaler = 1000. if 'kW' in data.columns[1] else 1.
-        data.set_axis(['ws', 'pwr', 'ct'], axis=1, inplace=True)
-        nm = UT.basename(wtg_file)
-        diam = float(re.search('-D(\d*)-', wtg_file).groups()[0]) # extract it from EQN-D250-15MW.xlsx
-        height = diam/2 + gap
-        ct_func = interp1d(data.ws, data.ct,  bounds_error=False, fill_value=(EPS,EPS))
-        pwr_func = interp1d(data.ws, scaler*data.pwr,  bounds_error=False, fill_value=(EPS,EPS))
-        return WindTurbines(names=[nm], diameters=[diam], hub_heights=[height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit='W')
+    if opts.wtg_file:
+        if opts.wtg_file.endswith('.wtg'):
+            return WindTurbines.from_WAsP_wtg(opts.wtg_file)
+        elif opts.wtg_file.endswith('.xlsx'):
+            data = pd.read_excel(opts.wtg_file, sheet_name='PowerCurve', header=0)
+            scaler = 1000. if 'kW' in data.columns[1] else 1.
+            data.set_axis(['ws', 'pwr', 'ct'], axis=1, inplace=True)
+            nm = UT.basename(opts.wtg_file)
+            diam = float(re.search('-D(\d*)-', opts.wtg_file).groups()[0]) # extract it from EQN-D250-15MW.xlsx
+            ct_func = interp1d(data.ws, data.ct,  bounds_error=False, fill_value=(EPS,EPS))
+            pwr_func = interp1d(data.ws, scaler*data.pwr,  bounds_error=False, fill_value=(EPS,EPS))
+            return WindTurbines(names=[nm], diameters=[diam], hub_heights=[opts.hub_height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit='W')
+        else:
+            raise Exception(f'wtg-file {opts.wtg_file} not supported')
     else:
-        raise Exception(f'wtg-file {wtg_file} not supported')
+        pwr_func, _, attr = wm.read_curve(opts.pwr_file, True)
+        ct_func           = wm.read_curve(opts.ct_file, True)[0]
+        unit = re.search('\[(\w*)\]', un[-1]).group()[1:-1]
+        return WindTurbines(names=['wtg'], diameters=[opts.diam], hub_heights=[opts.hub_height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit=unit)
+
+
 
 
 def main(yaml_file):
@@ -200,7 +223,7 @@ def main(yaml_file):
     #
     # setup things
     layout = read_layout(opts.layout_file, opts.layout_sheet, opts.n_wtgs)
-    wtgs   = read_wtgs(opts.wtg_file)
+    wtgs   = read_wtgs(opts)
     weib   = get_weibull(opts.weibull_file)
     site   = UniformWeibullSite(weib.freq, weib.A, weib.K, opts.turb_intens)
     #

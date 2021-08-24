@@ -59,12 +59,14 @@ def read_params(name, file_ext='.wm'):
     casenm = UT.basename(name)
     if not os.path.exists(fnm):
         raise Exception(f'No such file: {fnm}')
-    print(casenm, fnm)
     #
     # read keys / values into paramter-dict
     pm = {}
     for line in open(fnm).readlines():
-        if not SEP in line: continue
+        line = line.strip()
+        if not line            : continue
+        if line.startswith('#'): continue
+        if not SEP in line     : continue
         key, val = line.split(SEP)
         key, val = key.strip(), val.strip()
         if ',' in val:
@@ -109,14 +111,14 @@ def compare_params(casenm1, casenm2):
     writes the file different than it was read.
     '''
     pm1, pm2 = read_params(casenm1)[0], read_params(casenm2)[0]
+    diff = []
     keys = np.unique(list(pm1.keys()) + list(pm2.keys()))
-    only1, only2, diff = list(), list(), list()
-    for key in keys:
-        if key == 'casenm': continue      # not interesting to compare case-names
+    for key in sorted(keys):
+        if key in ['casenm', 'filenm']: continue      # not interesting to compare case-names
         if not key in pm2:
-            only1.append([key, pm1[key]])
+            diff.append([key, pm1[key], ''])
         elif not key in pm1:
-            only2.append([key, pm2[key]])
+            diff.append([key, '', pm2[key]])
         else:
             equal = True
             val1, val2 = pm1[key], pm2[key]
@@ -124,17 +126,11 @@ def compare_params(casenm1, casenm2):
             if type(val1) is np.ndarray and not np.all(val1==val2): equal = False
             if not equal:
                 diff.append([key, pm1[key], pm2[key]])
-    if not (only1 + only2 + diff):
+    if not diff:
         print('They are identical!')
         return
-    if only1:
-        print(f'\nOnly in {casenm1}:')
-        print(pd.DataFrame(only1, columns=['PARAMETER NAME', 'VALUE']))
-    if only2:
-        print(f'\nOnly in {casenm2}:')
-        print(pd.DataFrame(only2, columns=['PARAMETER NAME', 'VALUE']))
-    if diff:
-        print('\nParameters that differs:')
+    else:
+        print('\nParameters that differ:')
         print(pd.DataFrame(diff, columns=['PARAMETER NAME', casenm1, casenm2]))
 
 def get_residuals(outfile, plot_it=True):
@@ -374,6 +370,7 @@ def scatterplot(res, per_wd=False, fmt='.1f', scaler=1., fontsz=13., ms=75, add_
 
 def cp(old, new, file_ext='.wm'):
     '''
+    DEPRECATED: use /private/agy/bin/wmcp in stead
     copy an existing WindModeller case-file to a new one
     and also update the 'target directory'
      - input
