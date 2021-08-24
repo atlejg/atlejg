@@ -1,6 +1,8 @@
 #! /bin/tcsh -f
 # usage: $0 <old> <new>
 # copies the wm-file (with updated target directory)
+# note: usind '+' in the sed-command (to avoid confusion around the '/' character),
+# but that means that if there is a '+' in cwd, it will probably fail...
 
 set cwd = `pwd`
 set base = `basename -s .wm $2`
