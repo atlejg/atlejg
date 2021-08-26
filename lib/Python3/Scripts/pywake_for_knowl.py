@@ -30,7 +30,7 @@ NOTES
 
         case_nm:                   # if empty, will use basename of *this* file
             Doggerbank
-        inv_file:                  # if empty, will use Inventory.xml
+        inv_file:                  # if empty, will use Inventory.xml (in knowl_dir)
 
         # model input / parameters
         #
@@ -61,6 +61,13 @@ NOTES
             !!bool    false
         legend_scaler:
             !!float   0.70         # lower limit of legend is nominal wind speed times this factor
+
+    SHORT VERSION:
+        inv_file:           !!str     Inventory.xml # if empty, will use Inventory.xml (in knowl_dir)
+        tp_A:               !!float   0.60          # Only used for TurboPark. 'A' parameter in dDw/dx = A*I(x)
+        noj_k:              !!float   0.04          # Only used for Jensen. Wake expansion parameter
+        delta_winddir:      !!float   1.0           # delta wind-dir for calculations
+        delta_windspeed:    !!float   0.50          # delta wind-vel for calculations
 
 
  - note2
@@ -99,7 +106,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import xarray as xr
-import os, sys, time
+import os, sys, time, pickle
 import glob, re, zipfile, logging, yaml
 from scipy.interpolate import interp1d
 import AtlejgTools.WindResourceAssessment.Utils as WU
@@ -110,6 +117,7 @@ INV_FILE  = 'Inventory.xml'
 WWH_FILE  = 'FugaAdapted.wwh'
 SEP       = os.path.sep
 EPS       = 1e-9               # small non-zero value
+PCK_FILE  = 'py_wake.pck'
 
 
 def set_default_opts(opts):
@@ -457,7 +465,22 @@ def get_input(knowl_dir, yml_file):
     assert(os.path.exists(opts.inv_file))
     return knowl, opts
 
-def main(wake_model, knowl_dir='.', yml_file=None):
+def _dump(res, fnm):
+    f = open(fnm, 'wb')
+    pickle.dump(res, f)
+    f.close()
+    logging.info(f'dumped results to {fnm}')
+
+def load(fnm=PCK_FILE):
+    '''
+    loading pickled results (from earlier simulation)
+    '''
+    f = open(fnm, 'rb')
+    res = pickle.load(f)
+    logging.info(f'loaded results from {fnm}')
+    return res
+
+def main(wake_model, knowl_dir='.', yml_file=None, pck_file=PCK_FILE):
     '''
     pick up knowl case description and run PyWake simulation.
     if wake_model is None, it *must* be given in the yml_file
@@ -465,6 +488,7 @@ def main(wake_model, knowl_dir='.', yml_file=None):
       * wake_model
       * knowl_dir
       * yml_file
+      * pck_file : pickle-dump all results to this file. set to '' if not
     - returns
       * aeps
       * sim
@@ -500,13 +524,13 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     wake_model = wake_model.upper()
     #
     # for the various choices, see note5
-    if wake_model == 'FUGA':
-        assert wtgs.uniq_wtgs == 1                         # see note3
+    if wake_model   == 'FUGA':
+        assert wtgs.uniq_wtgs == 1                           # see note3
         wf_model = py_wake.Fuga(opts.lut_path, site, wtgs)
     elif wake_model == 'TP':
-        wf_model = py_wake.TP(site, wtgs, k=opts.tp_A)     # 'standard' TurbOPark
+        wf_model = py_wake.TP(site, wtgs, k=opts.tp_A)       # 'standard' TurbOPark
     elif wake_model == 'ETP':
-        wf_model = py_wake.ETP(site, wtgs, k=opts.tp_A)     # 'Equinor' TurbOPark
+        wf_model = py_wake.ETP(site, wtgs, k=opts.tp_A)      # 'Equinor' TurbOPark
     elif wake_model == 'NOJ':
         wf_model = py_wake.NOJ(site, wtgs, k=opts.noj_k)
     elif wake_model == 'NOJLOCAL':
@@ -571,7 +595,10 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     toc = time.perf_counter()
     logging.info(f"Total runtime: {toc-tic:0.1f} seconds")
     #
-    return aeps, sim, case, knowl, opts, wtgs, site, wf_model
+    res =  aeps, sim, case, knowl, opts, wtgs, site, wf_model
+    if pck_file:
+        _dump(res, pck_file)
+    return res
 
 ################################## -- MAIN LOGIC -- ###########################
 

@@ -293,6 +293,7 @@ def read_output_file(fnm):
             f.writelines(sector)
             f.close()
             df = pd.read_csv(tmpfile, sep='\s+', header=None, usecols=range(2,9))
+            df.sort_values(2, inplace=True)    # sort on wt-names
             ns.append(df[7].values)
             gs.append(df[6].values)
             sector = []
@@ -313,23 +314,27 @@ def read_output_file(fnm):
     gross = xr.DataArray(data=gs, dims=dims, coords=coords, attrs=dict(description=f'Gross production'))
     return net, gross
 
-def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60):
+def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60, per_wd=False):
     '''
     reads two output files and compares them (by plotting)
     useful for comparing results from different sources.
     typical usage: compare_outputs('FugaOutput_1.txt', 'pywake1.txt', 'FUGA', 'TurboPark')
     ms: marker-size. set to None for default
+    per_wd: if True, you get one figure per wd. else just one plot for all sectors
     '''
     net1, gr1 = read_output_file(fnm1)
     net2, gr2 = read_output_file(fnm2)
     #
-    for wd in net1.wd.values:
+    wds = net1.wd.values
+    if not per_wd: wds = wds[-1:]
+    for wd in wds:
         n1, g1 = net1.sel(wd=wd), gr1.sel(wd=wd)
         wl1 = (g1-n1) / g1 *100
         n2, g2 = net2.sel(wd=wd), gr2.sel(wd=wd)
         wl2 = (g2-n2) / g2 *100
         min_val = min(wl1.min(), wl2.min())
         max_val = max(wl1.max(), wl2.max())
+        assert np.all(n1.wt.values == n2.wt.values), 'turbine names must match'
         #
         wd_txt = f'wd = {wd:.0f} deg' if wd >= 0 else 'wd = ALL'
         #
@@ -355,7 +360,7 @@ def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60):
         #
         wld = wl1 - wl2
         plt.subplot(133)
-        plt.scatter(wld.x.values, wld.y.values, c=wld.values, s=ms)
+        plt.scatter(wl1.x.values, wl1.y.values, c=wld.values, s=ms)  # note: use wl1-coords since they sometimes differ slightly
         plt.axis('equal')
         plt.colorbar()
         cb.set_label('Wake loss [%]')
