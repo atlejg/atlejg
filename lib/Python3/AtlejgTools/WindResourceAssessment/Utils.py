@@ -10,6 +10,7 @@ import py_wake
 
 REAL = lambda x: f'{x:.4f}'
 INT  = lambda x: f'{x:.0f}'
+EPS  = 1e-9               # small non-zero value
 
 
 def _binArray(data, axis, binstep, binsize, func=np.nanmean):
@@ -783,3 +784,7 @@ def write_wrg(fnm, x0,y0, x1,y1, h, wbf, wba, wbk, f_sc=10*100, a_sc=10, k_sc=10
     wrg.to_csv(f, sep=' ', header=False, index=False, float_format='%.0f', line_terminator='\n')
     f.close()
     logging.info(f'{fnm} was created')
+
+def interpolate_curve(ws, vals):
+    return interp1d(ws, vals,  bounds_error=False, fill_value=(EPS,EPS))
+

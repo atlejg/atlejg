@@ -18,7 +18,6 @@ import AtlejgTools.Utils as UT
 import py_wake 
 import matplotlib.pyplot as plt
 import AtlejgTools.WindResourceAssessment.Utils as WU
-from scipy.interpolate import interp1d
 
 
 SEP        = '='                    # key-value separator in WindModeller case-file (wm-file)
@@ -213,7 +212,7 @@ def read_curve(fnm, as_func):
         raise Exception(f"cannot find file {fnm}")
     curve = pd.read_csv(fnm, sep=',', header=None, skiprows=6)
     if as_func:
-        curve = interp1d(curve[0], curve[1])
+        curve = WU.interpolate_curve(curve[0], curve[1])
     lines = open(fnm).readlines()
     nm = lines[1].strip().replace(',','')
     units = [rec.strip() for rec in lines[5].split(',')]

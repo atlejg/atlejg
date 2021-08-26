@@ -35,9 +35,9 @@ import os, sys, time
 import re, logging
 from scipy.interpolate import interp1d
 import AtlejgTools.Utils as UT
+import AtlejgTools.WindResourceAssessment.Utils as WU
 
 N_SECTORS = 12
-EPS       = 1e-9               # small non-zero value
 
 def read_layout(fnm, sheetnm=None, n_wtgs=-1):
     '''
@@ -165,15 +165,15 @@ def read_wtgs(opts):
             data.set_axis(['ws', 'pwr', 'ct'], axis=1, inplace=True)
             nm = UT.basename(opts.wtg_file)
             diam = float(re.search('-D(\d*)-', opts.wtg_file).groups()[0]) # extract it from EQN-D250-15MW.xlsx
-            ct_func = interp1d(data.ws, data.ct,  bounds_error=False, fill_value=(EPS,EPS))
-            pwr_func = interp1d(data.ws, scaler*data.pwr,  bounds_error=False, fill_value=(EPS,EPS))
+            ct_func = WU.interpolate_curve(data.ws, data.ct)
+            pwr_func = WU.interpolate_curve(data.ws, scaler*data.pwr)
             return WindTurbines(names=[nm], diameters=[diam], hub_heights=[opts.hub_height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit='W')
         else:
             raise Exception(f'wtg-file {opts.wtg_file} not supported')
     else:
         pwr_func, _, attr = wm.read_curve(opts.pwr_file, True)
         ct_func           = wm.read_curve(opts.ct_file, True)[0]
-        unit = re.search('\[(\w*)\]', un[-1]).group()[1:-1]
+        unit = re.search('\[(\w*)\]', attr[-1]).group()[1:-1]
         return WindTurbines(names=['wtg'], diameters=[opts.diam], hub_heights=[opts.hub_height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit=unit)
 
 
