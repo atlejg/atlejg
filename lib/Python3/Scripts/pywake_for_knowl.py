@@ -605,6 +605,8 @@ def main(wake_model, knowl_dir='.', yml_file=None, pck_file=PCK_FILE):
 
 if __name__ == '__main__':
 
+    stop
+
     #
     # get necessary input
     parser = argparse.ArgumentParser()
