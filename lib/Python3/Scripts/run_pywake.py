@@ -260,7 +260,7 @@ def main(yaml_file):
 
 if __name__ == '__main__':
 
-    # run program
     yaml_file = sys.argv[1]
+
     sim, layout, opts, wtgs, weib, site, wake_model = main(yaml_file)
 

@@ -107,6 +107,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import xarray as xr
 import os, sys, time, pickle
+import multiprocessing as mp
 import glob, re, zipfile, logging, yaml
 from scipy.interpolate import interp1d
 import AtlejgTools.WindResourceAssessment.Utils as WU
@@ -599,6 +600,28 @@ def main(wake_model, knowl_dir='.', yml_file=None, pck_file=PCK_FILE):
     if pck_file:
         _dump(res, pck_file)
     return res
+
+def run_single(directory, wake_model, yaml_file):
+    cwd = os.getcwd()
+    if not os.path.exists(directory):
+        print('creating', directory)
+        os.mkdir(directory)
+    os.chdir(directory)
+    print(directory, wake_model, yaml_file)
+    main(wake_model, '..', yaml_file)
+    os.chdir(cwd)
+
+def run_multiple(csvfile, max_cpus=3):
+    cases = pd.read_csv(csvfile, delim_whitespace=True)
+    pool = mp.Pool(max_cpus)
+    #
+    for i, case in cases.iterrows():
+        print(case)
+        pool.apply_async(run_single, args=(case.directory, case.wake_model, case.yaml))
+    #
+    pool.close()
+    pool.join()
+    print('done')
 
 ################################## -- MAIN LOGIC -- ###########################
 
