@@ -535,7 +535,7 @@ def main(wake_model, knowl_dir='.', yml_file=None, pck_file=PCK_FILE):
     elif wake_model == 'NOJ':
         wf_model = py_wake.NOJ(site, wtgs, k=opts.noj_k)
     elif wake_model == 'NOJLOCAL':
-        wf_model = py_wake.NOJLocal(site, wtgs, a=[opt.noj_k, 0.004])
+        wf_model = py_wake.NOJLocal(site, wtgs)
     else:
         raise Exception('The Fuga, TP, ETP, NOJ, or the NOJLocal wake models are the only options available.')
     #
@@ -608,15 +608,29 @@ def run_single(directory, wake_model, yaml_file):
         os.mkdir(directory)
     os.chdir(directory)
     print(directory, wake_model, yaml_file)
-    main(wake_model, '..', yaml_file)
+    main(wake_model, knowl_dir='..', yml_file=yaml_file)
     os.chdir(cwd)
 
 def run_multiple(csvfile, max_cpus=3):
-    cases = pd.read_csv(csvfile, delim_whitespace=True)
+    '''
+    useful for running a set of simulations.
+    the csv-file should look like something like this:
+        directory                wake_model   yaml
+        #Pywake_INT                  TP        ../1.yaml
+        #Pywake_EXT                  TP        ../1.yaml
+        #Pywake_FUT                  TP        ../1.yaml
+        Pywake_INT                  NOJ       ../1.yaml
+        Pywake_EXT                  NOJ       ../1.yaml
+        Pywake_FUT                  NOJ       ../1.yaml
+        Pywake_INT                  NOJLOCAL  ../1.yaml
+        Pywake_EXT                  NOJLOCAL  ../1.yaml
+        Pywake_FUT                  NOJLOCAL  ../1.yaml
+    '''
+    cases = pd.read_csv(csvfile, delim_whitespace=True, comment='#')
     pool = mp.Pool(max_cpus)
+    results = []
     #
     for i, case in cases.iterrows():
-        print(case)
         pool.apply_async(run_single, args=(case.directory, case.wake_model, case.yaml))
     #
     pool.close()
@@ -627,8 +641,6 @@ def run_multiple(csvfile, max_cpus=3):
 
 
 if __name__ == '__main__':
-
-    stop
 
     #
     # get necessary input
