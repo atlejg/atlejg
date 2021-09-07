@@ -616,15 +616,15 @@ def run_multiple(csvfile, max_cpus=3):
     useful for running a set of simulations.
     the csv-file should look like something like this:
         directory                wake_model   yaml
-        #Pywake_INT                  TP        ../1.yaml
-        #Pywake_EXT                  TP        ../1.yaml
-        #Pywake_FUT                  TP        ../1.yaml
-        Pywake_INT                  NOJ       ../1.yaml
-        Pywake_EXT                  NOJ       ../1.yaml
-        Pywake_FUT                  NOJ       ../1.yaml
-        Pywake_INT                  NOJLOCAL  ../1.yaml
-        Pywake_EXT                  NOJLOCAL  ../1.yaml
-        Pywake_FUT                  NOJLOCAL  ../1.yaml
+        #DOW_int                  ETP       ../1.yaml
+        #DOW_ext                  ETP       ../1.yaml
+        #DOW_fut                  ETP       ../1.yaml
+        DOW_int                  NOJ       ../1.yaml
+        DOW_ext                  NOJ       ../1.yaml
+        DOW_fut                  NOJ       ../1.yaml
+        DOW_int                  NOJLOCAL  ../1.yaml
+        DOW_ext                  NOJLOCAL  ../1.yaml
+        DOW_fut                  NOJLOCAL  ../1.yaml
     '''
     cases = pd.read_csv(csvfile, delim_whitespace=True, comment='#')
     pool = mp.Pool(max_cpus)
@@ -646,7 +646,7 @@ if __name__ == '__main__':
     # get necessary input
     parser = argparse.ArgumentParser()
     parser.add_argument("-w", "--wake_model", default=None,
-                        help="wake-model: TP/*Turbo* or NOJ. TP/*Turbo* = TurboPark, NOJ = NO-Jensen")
+                        help="wake-model: Fuga, TP, ETP, NOJ, NOJLOCAL. (TP=TurboPark, ETP=Equinor-TP, NOJ=NO-Jensen)")
     parser.add_argument("-k", "--knowl_dir",  default='.',
                         help="where to find knowl-files (knowl_v*input.xlsx & Inventory.xml")
     parser.add_argument("-y", "--yml_file",   default=None,
