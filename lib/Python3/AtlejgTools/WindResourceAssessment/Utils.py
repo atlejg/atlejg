@@ -311,9 +311,11 @@ def read_output_file(fnm):
     coords = dict(wd=wds, wt=df[2].values, x=(["wt"], df[3].values), y=(["wt"], df[4].values))
     dims   = ["wd", "wt"]
     #
-    net   = xr.DataArray(data=ns, dims=dims, coords=coords, attrs=dict(description=f'Net production'))
-    gross = xr.DataArray(data=gs, dims=dims, coords=coords, attrs=dict(description=f'Gross production'))
-    return net, gross
+    #net   = xr.DataArray(data=ns, dims=dims, coords=coords, attrs=dict(description=f'Net production'))
+    #gross = xr.DataArray(data=gs, dims=dims, coords=coords, attrs=dict(description=f'Gross production'))
+    r = xr.Dataset({'net': (dims, ns), 'gross':(dims, gs)}, coords=coords)
+    r['wl'] = (r.gross-r.net)/r.gross
+    return r
 
 def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60, per_wd=False):
     '''
@@ -323,15 +325,15 @@ def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60, per_wd=False):
     ms: marker-size. set to None for default
     per_wd: if True, you get one figure per wd. else just one plot for all sectors
     '''
-    net1, gr1 = read_output_file(fnm1)
-    net2, gr2 = read_output_file(fnm2)
+    r1 = read_output_file(fnm1)
+    r2 = read_output_file(fnm2)
     #
-    wds = net1.wd.values
+    wds = r1.net.wd.values
     if not per_wd: wds = wds[-1:]
     for wd in wds:
-        n1, g1 = net1.sel(wd=wd), gr1.sel(wd=wd)
+        n1, g1 = r1.net.sel(wd=wd), r1.gross.sel(wd=wd)
         wl1 = (g1-n1) / g1 *100
-        n2, g2 = net2.sel(wd=wd), gr2.sel(wd=wd)
+        n2, g2 = r2.net.sel(wd=wd), r2.gross.sel(wd=wd)
         wl2 = (g2-n2) / g2 *100
         min_val = min(wl1.min(), wl2.min())
         max_val = max(wl1.max(), wl2.max())
@@ -368,7 +370,7 @@ def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60, per_wd=False):
         plt.title('Wake loss difference')
         plt.xticks([]), plt.yticks([])
         plt.tight_layout()
-    return net1, gr1, net2, gr2
+    return r1, r2
 
 def create_output_power(power, case, fnm=None):
     unit = power.Description.split('[')[1][:-1]
