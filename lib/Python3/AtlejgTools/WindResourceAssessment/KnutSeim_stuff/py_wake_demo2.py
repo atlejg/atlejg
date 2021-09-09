@@ -5,7 +5,7 @@
 this is a scriptified version of knut s. seim's notebook.
 '''
 
-import py_wake
+import py_wake, sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,8 +13,10 @@ import matplotlib.pyplot as plt
 
 import Dudgeon2
 
-wake_model = sys.argv[1]         # 'Fuga', 'TP', or 'NOJ'
-n_old      = int(sys.argv[2])    #  number of "old" WTGs
+#wake_model = sys.argv[1]         # 'Fuga', 'TP', or 'NOJ'
+#n_old      = int(sys.argv[2])    #  number of "old" WTGs
+wake_model = 'NOJ'
+n_old      = 1
 
 wt_x, wt_y = Dudgeon2.wt_x, Dudgeon2.wt_y
 types = np.zeros(len(wt_x)); types[n_old:] = 1

@@ -118,7 +118,6 @@ INV_FILE  = 'Inventory.xml'
 WWH_FILE  = 'FugaAdapted.wwh'
 SEP       = os.path.sep
 EPS       = 1e-9               # small non-zero value
-PCK_FILE  = 'py_wake.pck'
 
 
 def set_default_opts(opts):
@@ -472,7 +471,7 @@ def _dump(res, fnm):
     f.close()
     logging.info(f'dumped results to {fnm}')
 
-def load(fnm=PCK_FILE):
+def load(fnm):
     '''
     loading pickled results (from earlier simulation)
     '''
@@ -481,7 +480,17 @@ def load(fnm=PCK_FILE):
     logging.info(f'loaded results from {fnm}')
     return res
 
-def main(wake_model, knowl_dir='.', yml_file=None, pck_file=PCK_FILE):
+def plot_flowmap(sim_res, ws0, ws1, ws2, wd0, wake_model, case_nm, plot_wt):
+    logging.info('Plotting wakemap')
+    plt.figure()
+    levels = np.linspace(ws1, ws2, int((ws2-ws1)*10)+1)
+    grid =  py_wake.HorizontalGrid(resolution=1500, extend=0.1) # grid=None defaults to HorizontalGrid(resolution=500, extend=0.2)
+    flow_map = sim_res.flow_map(grid=grid, wd=wd0, ws=ws0)
+    flow_map.plot_wake_map(levels=levels, plot_windturbines=plot_wt)    # , plot_ixs=False)
+    plt.title(f'{case_nm} :: {wake_model} :: {ws0:.0f} m/s :: {wd0:.0f} deg')
+    plt.show()
+
+def main(wake_model, knowl_dir='.', yml_file=None):
     '''
     pick up knowl case description and run PyWake simulation.
     if wake_model is None, it *must* be given in the yml_file
@@ -489,7 +498,6 @@ def main(wake_model, knowl_dir='.', yml_file=None, pck_file=PCK_FILE):
       * wake_model
       * knowl_dir
       * yml_file
-      * pck_file : pickle-dump all results to this file. set to '' if not
     - returns
       * aeps
       * sim
@@ -571,15 +579,8 @@ def main(wake_model, knowl_dir='.', yml_file=None, pck_file=PCK_FILE):
     #
     # optional stuff
     if opts.plot_wakemap:
-        logging.info('Plotting wakemap')
-        plt.figure()
         ws1, ws2 = np.floor(opts.legend_scaler*opts.plot_ws), opts.plot_ws+1
-        levels = np.linspace(ws1, ws2, int((ws2-ws1)*10)+1)
-        grid =  py_wake.HorizontalGrid(resolution=1500, extend=0.1) # grid=None defaults to HorizontalGrid(resolution=500, extend=0.2)
-        flow_map = sim_res.flow_map(grid=grid, wd=opts.plot_wd, ws=opts.plot_ws)
-        flow_map.plot_wake_map(levels=levels)    # , plot_ixs=False)
-        plt.title(f'{opts.case_nm} :: {wake_model} :: {opts.plot_ws:d} m/s :: {opts.plot_wd:.0f} deg')
-        plt.show()
+        plot_flowmap(sim_res, opts.plot_ws, ws1, ws2, opts.plot_wd, wake_model, opts.case_nm, opts.plot_wt)
     #
     if opts.plot_layout:
         logging.info('Plotting layout')
@@ -596,9 +597,8 @@ def main(wake_model, knowl_dir='.', yml_file=None, pck_file=PCK_FILE):
     toc = time.perf_counter()
     logging.info(f"Total runtime: {toc-tic:0.1f} seconds")
     #
-    res =  aeps, sim, case, knowl, opts, wtgs, site, wf_model
-    if pck_file:
-        _dump(res, pck_file)
+    res =  sim_res, sim, aeps, case, knowl, opts, wtgs, site, wf_model
+    _dump(res, f'{wake_model}.pck')
     return res
 
 def run_single(directory, wake_model, yaml_file):
@@ -654,6 +654,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     #
     # run program
-    aeps, sim, case, knowl, opts, wtgs, site, wf_model = \
+    sim_res, sim, aeps, case, knowl, opts, wtgs, site, wf_model = \
         main(args.wake_model, knowl_dir=args.knowl_dir, yml_file=args.yml_file)
 

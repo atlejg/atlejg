@@ -1,6 +1,7 @@
 import numpy as np
 from py_wake.site._site import UniformWeibullSite
 from py_wake.wind_turbines import OneTypeWindTurbines, WindTurbines
+from py_wake.wind_turbines.power_ct_functions import PowerCtTabular
 
 # Turbine positions
 fnm='DOW_WTGpos.csv'
@@ -163,8 +164,9 @@ class TwoWTGs(WindTurbines):
         ct_funcs    = [self._ct_old, self._ct_new]
         power_funcs = [self._power_old, self._power_new]
         #
-        WindTurbines.__init__(self, names=names, diameters=diameters, hub_heights=hub_heights,
-                                     ct_funcs=ct_funcs, power_funcs=power_funcs, power_unit='kW')
+        pcf1 = PowerCtTabular(0.5*power_curve[:,0],power_curve[:,1],'kW',ct_curve[:,1])
+        pcf2 = PowerCtTabular(power_curve[:,0],power_curve[:,1],'kW',ct_curve[:,1])
+        WindTurbines.__init__(self, names=names, diameters=diameters, hub_heights=hub_heights, powerCtFunctions=[pcf1, pcf2])
 #
     def _ct_new(self, u):
         return np.interp(u, ct_curve[:, 0], ct_curve[:, 1])

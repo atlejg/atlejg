@@ -311,8 +311,6 @@ def read_output_file(fnm):
     coords = dict(wd=wds, wt=df[2].values, x=(["wt"], df[3].values), y=(["wt"], df[4].values))
     dims   = ["wd", "wt"]
     #
-    #net   = xr.DataArray(data=ns, dims=dims, coords=coords, attrs=dict(description=f'Net production'))
-    #gross = xr.DataArray(data=gs, dims=dims, coords=coords, attrs=dict(description=f'Gross production'))
     r = xr.Dataset({'net': (dims, ns), 'gross':(dims, gs)}, coords=coords)
     r['wl'] = (r.gross-r.net)/r.gross
     return r
