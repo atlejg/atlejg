@@ -26,11 +26,11 @@ if pywake is to be called from knowl, i suggest that we make a more useful way o
 NOTES
 
  - note1
-    the yml-input file in the __main__ part should look like this:
+    the yaml-input file in the __main__ part should look like this:
 
         case_nm:                   # if empty, will use basename of *this* file
             Doggerbank
-        inv_file:                  # if empty, will use Inventory.xml (in knowl_dir)
+        inventory_file:            # if empty, will use Inventory.xml
 
         # model input / parameters
         #
@@ -46,8 +46,6 @@ NOTES
             !!float   0.50         # delta wind-vel for calculations
 
         # output file-names
-        output_to_knowldir:
-            !!bool    true
         output_fnm1:               # the file needed when running 'Wake only' from knowl
             FugaOutput_1.txt
 
@@ -63,7 +61,8 @@ NOTES
             !!float   0.70         # lower limit of legend is nominal wind speed times this factor
 
     SHORT VERSION:
-        inv_file:           !!str     Inventory.xml # if empty, will use Inventory.xml (in knowl_dir)
+        inventory_file:     !!str     Inventory.xml
+        knowl_file:         !!str     knowl_v4.5_input.xlsx
         tp_A:               !!float   0.60          # Only used for TurboPark. 'A' parameter in dDw/dx = A*I(x)
         noj_k:              !!float   0.04          # Only used for Jensen. Wake expansion parameter
         delta_winddir:      !!float   1.0           # delta wind-dir for calculations
@@ -114,8 +113,7 @@ import AtlejgTools.WindResourceAssessment.Utils as WU
 import AtlejgTools.Utils as UT
 
 N_SECTORS = 12
-INV_FILE  = 'Inventory.xml'
-WWH_FILE  = 'FugaAdapted.wwh'
+WWH_FILE  = 'FugaAdapted.wwh'  # the zipped inventory file (for Fuga)
 SEP       = os.path.sep
 EPS       = 1e-9               # small non-zero value
 
@@ -135,10 +133,11 @@ def set_default_opts(opts):
     if not hasattr(opts, 'plot_wind'):          opts.plot_wind          =  False
     if not hasattr(opts, 'delta_winddir'):      opts.delta_winddir      = 1.
     if not hasattr(opts, 'delta_windspeed'):    opts.delta_windspeed    = 0.5
-    if not hasattr(opts, 'output_to_knowldir'): opts.output_to_knowldir = True
-    if not hasattr(opts, 'shift_wind_map'):     opts.shift_wind_map     = False      # mostrly used for development
-    if not hasattr(opts, 'report_aep'):         opts.report_aep         = True       # mostrly used for development
+    if not hasattr(opts, 'shift_wind_map'):     opts.shift_wind_map     = False      # mostly used for development
+    if not hasattr(opts, 'report_aep'):         opts.report_aep         = True       # mostly used for development
     if not hasattr(opts, 'logfile') or not opts.logfile: opts.logfile   = None
+    #
+    if not hasattr(opts, 'knowl_file'): opts.knowl_file = glob.glob('knowl_v*input.xlsx')[0]
     #
     return opts
 
@@ -162,11 +161,10 @@ def _get_weibulls(sheet):
         wbs.append(wb)
     return wbs
 
-def read_knowl_input(knowl_dir):
-    fnm = glob.glob(knowl_dir+SEP+'knowl_v*input.xlsx')[0]
-    logging.info(f'reading {fnm}')
+def read_knowl_file(knowl_file):
+    logging.info(f'reading {knowl_file}')
     knowl = UT.Struct()
-    sheet = pd.read_excel(fnm, sheet_name='WindResource')
+    sheet = pd.read_excel(knowl_file, sheet_name='WindResource')
     knowl.weibulls = _get_weibulls(sheet)
     # see knowl_v*.m for location of parameters (search for j0, j1, j2...)
     knowl.turb_intens = sheet.iloc[39,1]
@@ -276,7 +274,7 @@ def _get_windturbines(wtgs_raw):
     wtgs.uniq_wtgs = len(set(nms))
     return wtgs
 
-def read_inventory(fnm):
+def read_inventory(fnm, selected=[]):
     '''
     reads knowl-inventory (xml) file for setting up windfarm simulation using pywake.
     #
@@ -292,6 +290,13 @@ def read_inventory(fnm):
         - parks    : list of individual parks
         - wtgs     : an WindTurbines object for all WTG used
     '''
+    #
+    # making sure inventory_file is available
+    if not os.path.exists(fnm):
+        assert(os.path.exists(WWH_FILE))
+        _unzip(WWH_FILE, '.')
+    assert(os.path.exists(fnm))
+    #
     park_nms = []
     ids      = []
     locs     = []
@@ -344,10 +349,23 @@ def read_inventory(fnm):
     #
     ixs = (np.diff(ids) > 1).nonzero()[0] + 1    # indices indicating start of new park-area. .. 1035, 2001, ..
     #
-    # make a list of each park
+    wtgs_ = []  # used (selected) wtgs
+    locs_ = []  # used (selected) locs
+    nms_  = []  # used (selected) names
+    ids_  = []  # used (selected) ids
+    #
+    # each park is a slice of the lists collected
+    # => make a list of parks
     parks = []
     ii = 0
+    type_i = -1      # need to make sure type's are 0,0,0, ... ,1,1,1, ...
     for i, ix in enumerate(np.concatenate((ixs, [len(ids)]))):     # len(ids) to capture last slice
+        #
+        if selected and park_nms[i] not in selected:
+            ii = ix
+            continue
+        #
+        type_i += 1
         p = UT.Struct()
         p.locs  = locs[ii:ix]
         p.size  = len(p.locs)
@@ -355,20 +373,27 @@ def read_inventory(fnm):
         p.ys    = np.array([loc[1] for loc in p.locs])
         p.ids   = ids[ii:ix]
         p.wtg   = wtgs_raw[i]
-        p.types = i * np.ones(p.size, dtype=int)
+        p.types = type_i * np.ones(p.size, dtype=int)
         p.name  = park_nms[i]
         parks.append(p)
+        #
+        # make sure we use only the selected data below
+        wtgs_.append(p.wtg)
+        locs_.extend(p.locs)
+        nms_.append(p.name)
+        ids_.append(p.ids)
+        # housekeeping
         logging.info(f'Park: {p.name}')
         logging.info(f'WTG: {p.wtg.name}')
         ii = ix
     #
     # finally, collect all parks into one big case / park
     case = UT.Struct()
-    case.locs  = locs
-    case.size  = len(locs)
-    case.xs    = np.array([loc[0] for loc in locs])
-    case.ys    = np.array([loc[1] for loc in locs])
-    case.ids   = ids
+    case.locs  = locs_
+    case.size  = len(locs_)
+    case.xs    = np.array([loc[0] for loc in locs_])
+    case.ys    = np.array([loc[1] for loc in locs_])
+    case.ids   = ids_
     case.wtgs  = []
     case.parks = []
     case.names = []
@@ -383,14 +408,14 @@ def read_inventory(fnm):
     case.hub_heights = [wtg.hub_height for wtg in case.wtgs]
     case.types = np.array(types)
     #
-    wtgs = _get_windturbines(wtgs_raw)
-    #
     # some useful stuff
-    case.wtg_list = wtgs_raw
+    case.wtg_list  = wtgs_
     case.park_list = parks
-    case.n_parks = len(parks)
+    case.n_parks   = len(parks)
     case.pwr_funcs = [wtg.pwr_func for wtg in case.wtg_list]
-    case.park_nms = park_nms
+    case.park_nms  = nms_
+    #
+    wtgs = _get_windturbines(wtgs_)
     return case, wtgs
 
 def _read_header(fnm):
@@ -434,10 +459,10 @@ def get_site(weiba_fnm, weibk_fnm, mwb):
     wba = xr.DataArray(data=[a_map], dims=dims, coords=coords)
     stop
 
-def _unzip(wwh_file, knowl_dir):
+def _unzip(wwh_file, todir):
     logging.info(f'unzipping {wwh_file}')
     z = zipfile.ZipFile(wwh_file)
-    z.extractall(path=knowl_dir)
+    z.extractall(path=todir)
 
 def get_yaml(fnm):
     '''
@@ -449,21 +474,10 @@ def get_yaml(fnm):
         s.__dict__[k] = v
     return s
 
-def get_input(knowl_dir, yml_file):
-    opts = get_yaml(yml_file) if yml_file else UT.Struct()
+def get_opts(yaml_file):
+    opts = get_yaml(yaml_file) if yaml_file else UT.Struct()
     set_default_opts(opts)
-    #
-    knowl = read_knowl_input(knowl_dir)
-    #
-    # read inventory_file
-    if not hasattr(opts, 'inv_file') or not opts.inv_file:
-        opts.inv_file = knowl_dir + SEP + INV_FILE
-    if not os.path.exists(opts.inv_file):
-        wwh_file = knowl_dir + SEP + WWH_FILE
-        assert(os.path.exists(wwh_file))
-        _unzip(wwh_file, knowl_dir)
-    assert(os.path.exists(opts.inv_file))
-    return knowl, opts
+    return opts
 
 def _dump(res, fnm):
     f = open(fnm, 'wb')
@@ -490,14 +504,13 @@ def plot_flowmap(sim_res, ws0, ws1, ws2, wd0, wake_model, case_nm, plot_wt):
     plt.title(f'{case_nm} :: {wake_model} :: {ws0:.0f} m/s :: {wd0:.0f} deg')
     plt.show()
 
-def main(wake_model, knowl_dir='.', yml_file=None):
+def main(wake_model, yaml_file=None, selected=[]):
     '''
     pick up knowl case description and run PyWake simulation.
-    if wake_model is None, it *must* be given in the yml_file
+    if wake_model is None, it *must* be given in the yaml_file
     - input
       * wake_model
-      * knowl_dir
-      * yml_file
+      * yaml_file
     - returns
       * aeps
       * sim
@@ -509,9 +522,10 @@ def main(wake_model, knowl_dir='.', yml_file=None):
       * wf_model
     '''
     #
-    knowl, opts = get_input(knowl_dir, yml_file)
+    opts = get_opts(yaml_file)
     #
-    case, wtgs = read_inventory(opts.inv_file)
+    knowl = read_knowl_file(opts.knowl_file)
+    case, wtgs = read_inventory(opts.inventory_file, selected=selected)
     #
     logging.basicConfig(level=logging.INFO, filename=opts.logfile)
     tic = time.perf_counter()
@@ -568,8 +582,6 @@ def main(wake_model, knowl_dir='.', yml_file=None):
             fnm = wake_model + '.txt'
         else:
             fnm = opts.output_fnm1
-        if opts.output_to_knowldir:
-            fnm = knowl_dir + SEP + fnm
         #
         aeps = WU.calc_AEP(sim, wtgs, weib, park_nms=case.park_nms, verbose=True)
         WU.create_output(aeps, case, fnm)
@@ -601,15 +613,45 @@ def main(wake_model, knowl_dir='.', yml_file=None):
     _dump(res, f'{wake_model}.pck')
     return res
 
-def run_single(directory, wake_model, yaml_file):
+def run_single(directory, wake_model, yaml_file, selected=[]):
     cwd = os.getcwd()
     if not os.path.exists(directory):
         print('creating', directory)
         os.mkdir(directory)
     os.chdir(directory)
     print(directory, wake_model, yaml_file)
-    main(wake_model, knowl_dir='..', yml_file=yaml_file)
+    main(wake_model, yaml_file=yaml_file, selected=selected)
     os.chdir(cwd)
+
+def run_multiple2(csvfile, max_cpus=3):
+    '''
+    useful for running a set of simulations.
+    the csv-file should look like something like this (to be opened in excel!):
+        directory;parks;wake_model;yaml
+        TEST_int;DEP NW & DEP SE & DEP & SEP;ETP;../../2.yaml
+        TEST_ext;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll;ETP;../../2.yaml
+        TEST_fut;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll & R4;ETP;../../2.yaml
+        TEST_int;DEP NW & DEP SE & DEP & SEP;NOJ;../../2.yaml
+        TEST_ext;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll;NOJ;../../2.yaml
+        TEST_fut;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll & R4;NOJ;../../2.yaml
+        TEST_int;DEP NW & DEP SE & DEP & SEP;NOJLOCAL;../../2.yaml
+        TEST_ext;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll;NOJLOCAL;../../2.yaml
+        TEST_fut;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll & R4;NOJLOCAL;../../2.yaml
+    '''
+    cases = pd.read_csv(csvfile, sep=';', comment='#')
+    pool = mp.Pool(max_cpus)
+    results = []
+    #
+    for i, case in cases.iterrows():
+        if case.parks:
+            parks = [park.strip() for park in case.parks.split('&')]
+        else:
+            parks = []    # get all parks
+        pool.apply_async(run_single, args=(case.directory, case.wake_model, case.yaml, parks))
+    #
+    pool.close()
+    pool.join()
+    print('done')
 
 def run_multiple(csvfile, max_cpus=3):
     '''
@@ -637,23 +679,21 @@ def run_multiple(csvfile, max_cpus=3):
     pool.join()
     print('done')
 
-################################## -- MAIN LOGIC -- ###########################
 
+################################## -- MAIN LOGIC -- ###########################
 
 if __name__ == '__main__':
 
     #
     # get necessary input
     parser = argparse.ArgumentParser()
-    parser.add_argument("-w", "--wake_model", default=None,
-                        help="wake-model: Fuga, TP, ETP, NOJ, NOJLOCAL. (TP=TurboPark, ETP=Equinor-TP, NOJ=NO-Jensen)")
-    parser.add_argument("-k", "--knowl_dir",  default='.',
-                        help="where to find knowl-files (knowl_v*input.xlsx & Inventory.xml")
-    parser.add_argument("-y", "--yml_file",   default=None,
-                        help="name of yml-file of options for this program")
+    parser.add_argument("-w", "--wake_model", default='NOJ',
+                        help="wake-model: Fuga, TP, ETP, NOJ, NOJLOCAL. (TP=TurboPark, ETP=Equinor-TP, NOJ=NO-Jensen). Required")
+    parser.add_argument("-y", "--yaml_file",   default=None,
+                        help="name of yaml-file of options for this program. Optional")
     args = parser.parse_args()
     #
     # run program
     sim_res, sim, aeps, case, knowl, opts, wtgs, site, wf_model = \
-        main(args.wake_model, knowl_dir=args.knowl_dir, yml_file=args.yml_file)
+        main(args.wake_model, yaml_file=args.yaml_file)
 

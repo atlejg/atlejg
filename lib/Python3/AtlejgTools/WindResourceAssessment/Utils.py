@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import dateutil
 import py_wake
+import io
 
 REAL = lambda x: f'{x:.4f}'
 INT  = lambda x: f'{x:.0f}'
@@ -788,3 +789,43 @@ def write_wrg(fnm, x0,y0, x1,y1, h, wbf, wba, wbk, f_sc=10*100, a_sc=10, k_sc=10
 def interpolate_curve(ws, vals):
     return interp1d(ws, vals,  bounds_error=False, fill_value=(EPS,EPS))
 
+def report_to_excel_1(fnms, csvfile='wl_rep.csv', open_in_excel=True,
+                      excel_cmd=r'"C:\Program Files (x86)\Microsoft Office\root\Office16\excel.exe" '):
+    '''
+    writes data to csv-file.
+    to be used with knut's excel
+    - inputs
+      * fnms:    typically UT.glob(Phase?_*/*.txt) where files are output from create_output
+      * csvfile: the output file created by *this* function
+    - returns:
+      * the result DataFrame
+      * the full name of the csvfile
+    '''
+    #
+    csvfile = os.getcwd() + os.path.sep + csvfile
+    #
+    res = pd.DataFrame()
+    for fnm in fnms:
+        ll = open(fnm).readlines()
+        lines = []
+        for l in reversed(ll):
+            if 'AllProjects' in l:break
+            lines.append(l.strip())
+        lines.reverse()
+        lines = [line[:32].strip() + '#' + '#'.join(line[32:].split()) for line in lines]
+        res0 = pd.read_csv(io.StringIO('\n'.join(lines)), sep='#', header=None, names=['nm', 'gross','net'])
+        res0['wl'] = (res0.gross-res0.net)/res0.gross
+        res0['fnm'] = fnm
+        res0.drop('net', axis=1, inplace=True)
+        print(fnm)
+        res = res.append(res0)
+    #
+    res.to_csv(csvfile, sep=';', index=False)
+    print(csvfile, 'was created')
+    #
+    if open_in_excel:
+        cmd =  excel_cmd + csvfile
+        print(cmd)
+        os.system(cmd)
+    #
+    return res, csvfile
