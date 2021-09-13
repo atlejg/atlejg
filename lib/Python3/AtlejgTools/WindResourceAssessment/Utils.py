@@ -277,19 +277,21 @@ zeta0   99999
     f.close()
     logging.info(f'{fnm} was created')
 
-def read_output_file(fnm):
+def read_output_file(fnm, selected=[]):
     '''
     reads a typical output file (from create_output_aep or from Fuga) into an xarray.
     useful for comparing results.
+    - input
+      * selected: use this if you dont want all parks
     '''
     lines = open(fnm).readlines()
     tmpfile = 'tmpfile'
     ns = []
     gs = []
     sector = []
+    park_nms = []
     #
-    for line in lines:
-        #if 'All sectors' in line: break
+    for i, line in enumerate(lines):
         if 'AllProjects' in line:
             f = open(tmpfile, 'w')
             f.writelines(sector)
@@ -299,6 +301,16 @@ def read_output_file(fnm):
             ns.append(df[7].values)
             gs.append(df[6].values)
             sector = []
+            #
+            # collect park-names
+            if not park_nms:
+                park_no = 0
+                while True:
+                    park_no += 1
+                    park_nm = lines[i+park_no][:32].strip()
+                    if not park_nm: break
+                    park_nms.append(park_nm)
+            #
             continue
         if 'Turbine site' in line:
             sector.append(line)
@@ -314,6 +326,16 @@ def read_output_file(fnm):
     #
     r = xr.Dataset({'net': (dims, ns), 'gross':(dims, gs)}, coords=coords)
     r['wl'] = (r.gross-r.net)/r.gross
+    #
+    if selected:
+        wts = []
+        for park_nm in selected:
+            park_no = ((np.array(park_nms) == park_nm).nonzero()[0][0] + 1) * 1000 # park 1 has wt in [1001, 1999] etc.
+            ixs = np.logical_and(r.wt.values>park_no, r.wt.values<park_no+1000)
+            wts.extend(list(r.wt.values[ixs]))
+        r = r.loc[dict(wt=wts)]
+    #
+    logging.debug(f'park_nms: {park_nms}')
     return r
 
 def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60, per_wd=False):

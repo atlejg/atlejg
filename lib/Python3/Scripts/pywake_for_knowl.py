@@ -28,46 +28,30 @@ NOTES
  - note1
     the yaml-input file in the __main__ part should look like this:
 
-        case_nm:                   # if empty, will use basename of *this* file
-            Doggerbank
+        case_nm: Doggerbank        # if empty, will use basename of *this* file
         inventory_file:            # if empty, will use Inventory.xml
 
         # model input / parameters
         #
-        lut_path:                  # path to look-up tables (Fuga only)
-            ../FugaLUTs/Z0=0.00012000Zi=00790Zeta0=2.00E-7
-        tp_A:
-            !!float   0.60         # Only used for TurboPark. 'A' parameter in dDw/dx = A*I(x)
-        noj_k:
-            !!float   0.04         # Only used for Jensen. Wake expansion parameter
-        delta_winddir:
-            !!float   1.0          # delta wind-dir for calculations
-        delta_windspeed:
-            !!float   0.50         # delta wind-vel for calculations
+        lut_path:        !!str    ../FugaLUTs/Z0=0.00012000Zi=00790Zeta0=2.00E-7    # path to look-up tables (Fuga only)
+        tp_A:            !!float  0.60                # Only used for TurboPark. 'A' parameter in dDw/dx = A*I(x)
+        noj_k:           !!float  0.04                # Only used for Jensen. Wake expansion parameter
+        delta_winddir:   !!float  1.0                 # delta wind-dir for calculations
+        delta_windspeed: !!float  0.50                # delta wind-vel for calculations
 
         # output file-names
-        output_fnm1:               # the file needed when running 'Wake only' from knowl
-            FugaOutput_1.txt
+        output_fnm1:     !!str    FugaOutput_1.txt    # the file needed when running 'Wake only' from knowl
 
         # options
         #
-        plot_wakemap:
-            !!bool    false
-        plot_layout:
-            !!bool    false
-        plot_wind:
-            !!bool    false
-        legend_scaler:
-            !!float   0.70         # lower limit of legend is nominal wind speed times this factor
+        plot_wakemap:    !!bool   false
+        plot_layout:     !!bool   false
+        plot_wind:       !!bool   false
+        legend_scaler:   !!float  0.70                # lower limit of legend is nominal wind speed times this factor
 
     SHORT VERSION:
-        inventory_file:     !!str     Inventory.xml
-        knowl_file:         !!str     knowl_v4.5_input.xlsx
-        tp_A:               !!float   0.60          # Only used for TurboPark. 'A' parameter in dDw/dx = A*I(x)
-        noj_k:              !!float   0.04          # Only used for Jensen. Wake expansion parameter
-        delta_winddir:      !!float   1.0           # delta wind-dir for calculations
-        delta_windspeed:    !!float   0.50          # delta wind-vel for calculations
-
+        inventory_file:  !!str     Inventory.xml
+        knowl_file:      !!str     knowl_v4.5_input.xlsx
 
  - note2
     on weibull:
@@ -494,10 +478,10 @@ def load(fnm):
     logging.info(f'loaded results from {fnm}')
     return res
 
-def plot_flowmap(sim_res, ws0, ws1, ws2, wd0, wake_model, case_nm, plot_wt):
+def plot_flowmap(sim_res, ws0, ws_min, ws_max, wd0, wake_model, case_nm, plot_wt):
     logging.info('Plotting wakemap')
     plt.figure()
-    levels = np.linspace(ws1, ws2, int((ws2-ws1)*10)+1)
+    levels = np.linspace(ws_min, ws_max, int((ws_max-ws_min)*10)+1)
     grid =  py_wake.HorizontalGrid(resolution=1500, extend=0.1) # grid=None defaults to HorizontalGrid(resolution=500, extend=0.2)
     flow_map = sim_res.flow_map(grid=grid, wd=wd0, ws=ws0)
     flow_map.plot_wake_map(levels=levels, plot_windturbines=plot_wt)    # , plot_ixs=False)
@@ -509,9 +493,13 @@ def main(wake_model, yaml_file=None, selected=[]):
     pick up knowl case description and run PyWake simulation.
     if wake_model is None, it *must* be given in the yaml_file
     - input
-      * wake_model
-      * yaml_file
+      * wake_model: NOJ, NOJLOCAL, ETP ...
+      * yaml_file:  see note1
+      * selected:   Which parks to use. Default is [], which gives all. This is useful since it means
+                    only one Inventory.xml is needed (covering all parks in the knowl-project)
     - returns
+      * sim_res
+      * sim
       * aeps
       * sim
       * case
@@ -591,8 +579,8 @@ def main(wake_model, yaml_file=None, selected=[]):
     #
     # optional stuff
     if opts.plot_wakemap:
-        ws1, ws2 = np.floor(opts.legend_scaler*opts.plot_ws), opts.plot_ws+1
-        plot_flowmap(sim_res, opts.plot_ws, ws1, ws2, opts.plot_wd, wake_model, opts.case_nm, opts.plot_wt)
+        ws_min, ws_max = np.floor(opts.legend_scaler*opts.plot_ws), opts.plot_ws+1
+        plot_flowmap(sim_res, opts.plot_ws, ws_min, ws_max, opts.plot_wd, wake_model, opts.case_nm, opts.plot_wt)
     #
     if opts.plot_layout:
         logging.info('Plotting layout')
