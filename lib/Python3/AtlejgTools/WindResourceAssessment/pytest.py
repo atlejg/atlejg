@@ -1,5 +1,5 @@
-import AtlejgTools.WindResourceAssessment.pywake_for_knowl as pywake_for_knowl
-import AtlejgTools.WindResourceAssessment.run_pywake as run_pywake
+import Scripts.pywake_for_knowl as pywake_for_knowl
+import Scripts.run_pywake as run_pywake
 import AtlejgTools.WindResourceAssessment.Utils as WU
 import AtlejgTools.Utils as UT
 import os, logging

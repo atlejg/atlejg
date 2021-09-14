@@ -46,9 +46,11 @@ limit coredumpsize 1
 set pushdtohome
 set pushdsilent
 set history = 500
-if ( (! $?ENVONLY) && $?prompt ) then
-set prompt='%c2> '
-endif
+
+# don't change the prompt since it removes the venv-label
+#if ( (! $?ENVONLY) && $?prompt ) then
+#set prompt='%c2> '
+#endif
 
 ### MY ENVIRONMENT VARIABLES
 #
@@ -146,13 +148,15 @@ setenv TS_MAILTO agy@equinor.com
 # to make ipython and ecl.ecl work for python3, i need to get ecl.ecl somewhere (since it is still not in komodo..).
 # this is reflected in ~/Tools/atlejg/Resources/pythonstartup
 #
-setenv PYTHON_VERSION 3.6.4
-source /prog/sdpsoft/env.csh --silent                                # writes python version to stdout if not --silent. annoying
-setenv PATH "${PATH}:/prog/sdpsoft/python${PYTHON_SHORT}/bin/"       # gives python3, pip3 etc
-setenv PYTHONPATH "$ATLEJG/lib/Python3:$HOME/Tools/lib/Python3"            # my stuff
+#setenv PYTHONPATH "$ATLEJG/lib/Python3:$HOME/Tools/lib/Python3"            # my stuff
+#setenv PYTHON_VERSION 3.6.4
+#setenv PYTHON_SHORT 3.6
+#source /prog/sdpsoft/env.csh --silent                                # writes python version to stdout if not --silent. annoying
+#setenv PATH "${PATH}:/prog/sdpsoft/python${PYTHON_SHORT}/bin/"       # gives python3, pip3 etc
 #setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip/Python3"                # vegard kippe stuff
 #setenv PYTHONPATH "${PYTHONPATH}:/project/res/lib/python2.7/site-packages"    # for resscript.header etc.
 #setenv PYTHONPATH "${PYTHONPATH}:/private/agy/Tools/subscript-internal/src/subscript_internal/"
+#alias python python3
 
 # vim stuff
 #

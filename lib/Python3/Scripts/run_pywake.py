@@ -36,6 +36,7 @@ import re, logging
 from scipy.interpolate import interp1d
 import AtlejgTools.Utils as UT
 import AtlejgTools.WindResourceAssessment.Utils as WU
+import AtlejgTools.WindResourceAssessment.WindModeller as wm
 
 N_SECTORS = 12
 
