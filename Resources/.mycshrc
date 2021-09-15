@@ -8,20 +8,19 @@ onintr -
 # Check if this is an interactive session
 if (! ${?prompt}) goto end    # could i do exit instead of goto ??
 
-
-# 
-setenv ATLEJG $HOME/Tools/atlejg
-setenv ACTIVE 
-setenv TMP $ACTIVE/TMP
-setenv RC $ACTIVE/Atle_Resources
-
+#
 if (-d /project/RCP/active/fluent/) then
-   setenv ACTIVE /project/RCP/active/fluent/
-   setenv RC $ACTIVE/Atle_Resources
+   setenv ACTIVE /project/RCP/active
+   setenv RC $ACTIVE/fluent/Atle_Resources
+    setenv TMP $ACTIVE/fluent/TMP
 else
    setenv ACTIVE $HOME
    setenv RC $HOME/Tools
+   setenv TMP /tmp
 endif
+ 
+setenv ATLEJG $HOME/Tools/atlejg
+
 
 
 # ---------------------- based on /etc/csh.cshrc for Cygwin
@@ -128,7 +127,7 @@ alias free 'free -m' # report in Mb
 alias du_ 'find . -type d -exec du -s {} \; | sort -n'
 alias do 'do -vc'                      # i want do to be verbose - and use tcsh
 alias fnm 'readlink -f'                # print full path of the file
-alias eclipse '++ $ACTIVE/../reservoir_simulations/agy; pwd; echo "see ~/Misc/cmds for typical eclipse related commands"'
+alias eclipse '++ $ACTIVE/reservoir_simulations/agy; pwd; echo "see ~/Misc/cmds for typical eclipse related commands"'
 # this couuld be something to check/consider
 # source /prog/ecl/script/eclrun.cshrc
 alias octave /prog/rdtoolbox/octave/octave
