@@ -30,11 +30,14 @@ source $LoginPath/DEFAULT.$ext
 #========================================================
 #
 
-source /prog/res/komodo/stable-py3/enable.csh   # komodo as of june 2018 (Joakim Hove - Yammer 15/6-18)
+#source /prog/res/komodo/stable-py3/enable.csh   # komodo as of june 2018 (Joakim Hove - Yammer 15/6-18). replaced by WRA36b below
 #source /project/res/komodo/testing/enable.csh   # hot from the press..
+source /project/RCP/active/venv/agy/WRA36b/bin/activate.csh    # based on /prog/res/komodo/2021.08-py36/enable.csh
 
 # Then add *my* stuff. Keep fingers crossed..
 source $HOME/.mycshrc
+
+
 
 # OLD STUFF
 #source /project/res/SDP_cshrc                  # "geriljavirksomhet under radaren..." Per Arne Slotte. should still be active according to Hove 15/6-18

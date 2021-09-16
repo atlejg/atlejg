@@ -8,6 +8,7 @@ if 'win' in sys.platform:
    import matplotlib
    matplotlib.interactive(1)
 else:
+   pass
    #sys.path.insert(1, '/private/agy/Tools/atlejg/lib/Python3')                        # in PYTHONPATH
    #sys.path.append('/project/res/ecalc/master/lib/python3.7/site-packages')            # mostly for ecl.ecl
    #sys.path.append('/private/agy/Tools/subscript/src/subscript')

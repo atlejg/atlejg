@@ -46,10 +46,10 @@ set pushdtohome
 set pushdsilent
 set history = 500
 
-# don't change the prompt since it removes the venv-label
-#if ( (! $?ENVONLY) && $?prompt ) then
-#set prompt='%c2> '
-#endif
+if ( (! $?ENVONLY) && $?prompt ) then
+set prompt=`echo "$prompt" | awk '{print $1}'`    # cleaning: [WRA36a] [agy@tr-linrgsn003 agy] => [WRA36a]
+set prompt="${prompt} %c2> "
+endif
 
 ### MY ENVIRONMENT VARIABLES
 #
@@ -70,8 +70,8 @@ setenv PATH "${PATH}:/project/res/x86_64_RH_6/bin"          # this is where icd_
 setenv ECLHOME /prog/ecl/grid
 setenv PATH "${PATH}:/prog/ecl/grid/macros"
 #setenv PATH "${PATH}:/project/res/resscript/"              # statoil res-sim scripts. ref. thorbjorn skille. should be included by SDP_cshrc
-setenv PATH "${PATH}:$RC/lib/Python/vkip/Python3/scripts"                           # vegard kippe stuff
-setenv PATH "${PATH}:/private/agy/.local/bin"               # this is where 'pip install <package> --user' puts stuff
+#setenv PATH "${PATH}:$RC/lib/Python/vkip/Python3/scripts"                           # vegard kippe stuff
+#setenv PATH "${PATH}:/private/agy/.local/bin"               # this is where 'pip install <package> --user' puts stuff
 
 
 #
@@ -144,18 +144,9 @@ setenv TS_MAILTO agy@equinor.com
 
 # PYTHON STUFF
 # 
-# to make ipython and ecl.ecl work for python3, i need to get ecl.ecl somewhere (since it is still not in komodo..).
-# this is reflected in ~/Tools/atlejg/Resources/pythonstartup
-#
-#setenv PYTHONPATH "$ATLEJG/lib/Python3:$HOME/Tools/lib/Python3"            # my stuff
-#setenv PYTHON_VERSION 3.6.4
-#setenv PYTHON_SHORT 3.6
-#source /prog/sdpsoft/env.csh --silent                                # writes python version to stdout if not --silent. annoying
-#setenv PATH "${PATH}:/prog/sdpsoft/python${PYTHON_SHORT}/bin/"       # gives python3, pip3 etc
-#setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip/Python3"                # vegard kippe stuff
-#setenv PYTHONPATH "${PYTHONPATH}:/project/res/lib/python2.7/site-packages"    # for resscript.header etc.
-#setenv PYTHONPATH "${PYTHONPATH}:/private/agy/Tools/subscript-internal/src/subscript_internal/"
-#alias python python3
+
+setenv PYTHONPATH "$ATLEJG/lib/Python3"                                     # my stuff
+alias pylab 'ipython --pylab --logfile=ipython_log.py -i $HOME/Tools/atlejg/Resources/pythonstartup'
 
 # vim stuff
 #
@@ -295,5 +286,17 @@ set nobeep filec fignore=(.o \~ .BAK)
 #alias anslic_admin /prog/Fluent/ansys_inc_V16.2/ansys_inc/shared_files/licensing/lic_admin/anslic_admin # this is the tool to check fluent licenses
 #alias workbench 'unsetenv FLUENT_ARCH; /prog/Fluent/ansys_inc/v150/Framework/bin/Linux64/runwb2 ' # workbench starts fluent on its own, dont use environment variables
 
+# to make ipython and ecl.ecl work for python3, i need to get ecl.ecl somewhere (since it is still not in komodo..).
+# this is reflected in ~/Tools/atlejg/Resources/pythonstartup
+#setenv PYTHONPATH "$ATLEJG/lib/Python3:$HOME/Tools/lib/Python3"            # my stuff
+#setenv PYTHON_VERSION 3.6.4
+#setenv PYTHON_SHORT 3.6
+#source /prog/sdpsoft/env.csh --silent                                # writes python version to stdout if not --silent. annoying
+#setenv PATH "${PATH}:/prog/sdpsoft/python${PYTHON_SHORT}/bin/"       # gives python3, pip3 etc
+#setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip/Python3"                # vegard kippe stuff
+#setenv PYTHONPATH "${PYTHONPATH}:/project/res/lib/python2.7/site-packages"    # for resscript.header etc.
+#setenv PYTHONPATH "${PYTHONPATH}:/private/agy/Tools/subscript-internal/src/subscript_internal/"
+#alias python python3
+#
 # goto-label...
 end:
