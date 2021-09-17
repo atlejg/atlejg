@@ -611,7 +611,7 @@ def run_single(directory, wake_model, yaml_file, selected=[]):
     main(wake_model, yaml_file=yaml_file, selected=selected)
     os.chdir(cwd)
 
-def run_multiple2(csvfile, max_cpus=3):
+def run_multiple(csvfile, max_cpus=3):
     '''
     useful for running a set of simulations.
     the csv-file should look like something like this (to be opened in excel!):
@@ -641,7 +641,7 @@ def run_multiple2(csvfile, max_cpus=3):
     pool.join()
     print('done')
 
-def run_multiple(csvfile, max_cpus=3):
+def run_multiple_old(csvfile, max_cpus=3):
     '''
     useful for running a set of simulations.
     the csv-file should look like something like this:
