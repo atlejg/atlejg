@@ -2,12 +2,16 @@ import Scripts.pywake_for_knowl as pywake_for_knowl
 import Scripts.run_pywake as run_pywake
 import AtlejgTools.WindResourceAssessment.Utils as WU
 import AtlejgTools.Utils as UT
-import os, logging
+import os, logging, sys
 import numpy as np
 import pandas as pd
 
 ACCURACY = 1.1e-4
-KNOWLDIR  = r'D:\OneDrive - Equinor\ACTIVE\Wind\knowl\Testdata'
+
+if 'linux' in sys.platform.lower():
+    KNOWLDIR  = r'/project/RCP/active/wind_resource_assessment/agy/Knowl/Testdata'
+else:
+    KNOWLDIR  = r'D:\OneDrive - Equinor\ACTIVE\Wind\knowl\Testdata'
 
 logging.basicConfig(level=logging.INFO)
 
@@ -28,26 +32,26 @@ def _knowl_cases(pattern, noj_only, accur=ACCURACY):
     #
     for case_dir in case_dirs:
         logging.info('')
-        logging.info(f'----- case_dir : {case_dir} ----- ')
+        logging.info(f'------ case_dir : {case_dir} ------')
         os.chdir(case_dir)
         #
-        logging.info(' NOJ')
-        pywake_for_knowl.main('NOJ')
-        net1, gr1 = WU.read_output_file('NOJ.txt')
-        net2, gr2 = WU.read_output_file('FugaOutput_1.txt')
+        logging.info('------ NOJ ------')
+        pywake_for_knowl.main('NOJ', dump_results=False)
+        r1 = WU.read_output_file('NOJ.txt')           # existing file
+        r2 = WU.read_output_file('FugaOutput_1.txt')  # created now
         #
-        assert _ae(net1, net2, accur)
-        assert _ae(gr1, gr2, accur)
+        assert _ae(r1.net, r2.net, accur)
+        assert _ae(r1.gross, r2.gross, accur)
         #
         if not noj_only:
             #
-            logging.info(' TurbOPark')
-            pywake_for_knowl.main('TurbOPark')
-            net1, gr1 = WU.read_output_file('TP.txt')
-            net2, gr2 = WU.read_output_file('FugaOutput_1.txt')
+            logging.info(' ------ TurbOPark ------')
+            pywake_for_knowl.main('ETP', dump_results=False)
+            r1 = WU.read_output_file('ETP.txt')            # existing file
+            r2 = WU.read_output_file('FugaOutput_1.txt')  # created now
             #
-            assert _ae(net1, net2, accur)
-            assert _ae(gr1, gr2, accur)
+            assert _ae(r1.net, r2.net, accur)
+            assert _ae(r1.gross, r2.gross, accur)
         os.chdir(KNOWLDIR)
     os.chdir(cwd)
     logging.info(f' testing OK')
@@ -64,7 +68,7 @@ def pywake_dbc_test(testdir='/project/RCP/active/wind_resource_assessment/WindFl
     '''
     cwd = os.getcwd()
     os.chdir(testdir)
-    _, _, opts, _, _, _, _ =  run_pywake.main(yaml_file)
+    _, _, opts, _, _, _, _ =  run_pywake.main(yaml_file, dump_results=False)
     orig = pd.read_csv('orig.csv')
     new  = pd.read_csv(opts.outfile)
     assert all(new==orig)

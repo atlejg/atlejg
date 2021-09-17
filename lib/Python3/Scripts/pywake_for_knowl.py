@@ -488,7 +488,7 @@ def plot_flowmap(sim_res, ws0, ws_min, ws_max, wd0, wake_model, case_nm, plot_wt
     plt.title(f'{case_nm} :: {wake_model} :: {ws0:.0f} m/s :: {wd0:.0f} deg')
     plt.show()
 
-def main(wake_model, yaml_file=None, selected=[]):
+def main(wake_model, yaml_file=None, selected=[], dump_results=True):
     '''
     pick up knowl case description and run PyWake simulation.
     if wake_model is None, it *must* be given in the yaml_file
@@ -598,7 +598,7 @@ def main(wake_model, yaml_file=None, selected=[]):
     logging.info(f"Total runtime: {toc-tic:0.1f} seconds")
     #
     res =  sim_res, sim, aeps, case, knowl, opts, wtgs, site, wf_model
-    _dump(res, f'{wake_model}.pck')
+    if dump_results: _dump(res, f'{wake_model}.pck')
     return res
 
 def run_single(directory, wake_model, yaml_file, selected=[]):
