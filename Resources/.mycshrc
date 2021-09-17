@@ -191,7 +191,7 @@ alias completor "python3 /private/agy/Tools/subscript/src/subscript/completor/ma
 
 # useful directories
 setenv TT /project/RCP/active/reservoir_simulations/agy/Peregrino/Shoebox/Simul/Version12
-setenv PY $HOME/Tools/lib/Python/AtlejgTools/
+setenv PY $ATLEJG/lib/Python3/AtlejgTools/
 
 # dont want redirected output to overwrite files - unless told to (using >!)
 set noclobber
