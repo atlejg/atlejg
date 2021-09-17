@@ -8,20 +8,19 @@ onintr -
 # Check if this is an interactive session
 if (! ${?prompt}) goto end    # could i do exit instead of goto ??
 
-
-# 
-setenv ATLEJG $HOME/Tools/atlejg
-setenv ACTIVE 
-setenv TMP $ACTIVE/TMP
-setenv RC $ACTIVE/Atle_Resources
-
+#
 if (-d /project/RCP/active/fluent/) then
-   setenv ACTIVE /project/RCP/active/fluent/
-   setenv RC $ACTIVE/Atle_Resources
+   setenv ACTIVE /project/RCP/active
+   setenv RC $ACTIVE/fluent/Atle_Resources
+    setenv TMP $ACTIVE/fluent/TMP
 else
    setenv ACTIVE $HOME
    setenv RC $HOME/Tools
+   setenv TMP /tmp
 endif
+ 
+setenv ATLEJG $HOME/Tools/atlejg
+
 
 
 # ---------------------- based on /etc/csh.cshrc for Cygwin
@@ -46,8 +45,10 @@ limit coredumpsize 1
 set pushdtohome
 set pushdsilent
 set history = 500
+
 if ( (! $?ENVONLY) && $?prompt ) then
-set prompt='%c2> '
+set prompt=`echo "$prompt" | awk '{print $1}'`    # cleaning: [WRA36a] [agy@tr-linrgsn003 agy] => [WRA36a]
+set prompt="${prompt} %c2> "
 endif
 
 ### MY ENVIRONMENT VARIABLES
@@ -69,8 +70,8 @@ setenv PATH "${PATH}:/project/res/x86_64_RH_6/bin"          # this is where icd_
 setenv ECLHOME /prog/ecl/grid
 setenv PATH "${PATH}:/prog/ecl/grid/macros"
 #setenv PATH "${PATH}:/project/res/resscript/"              # statoil res-sim scripts. ref. thorbjorn skille. should be included by SDP_cshrc
-setenv PATH "${PATH}:$RC/lib/Python/vkip/Python3/scripts"                           # vegard kippe stuff
-setenv PATH "${PATH}:/private/agy/.local/bin"               # this is where 'pip install <package> --user' puts stuff
+#setenv PATH "${PATH}:$RC/lib/Python/vkip/Python3/scripts"                           # vegard kippe stuff
+#setenv PATH "${PATH}:/private/agy/.local/bin"               # this is where 'pip install <package> --user' puts stuff
 
 
 #
@@ -126,7 +127,7 @@ alias free 'free -m' # report in Mb
 alias du_ 'find . -type d -exec du -s {} \; | sort -n'
 alias do 'do -vc'                      # i want do to be verbose - and use tcsh
 alias fnm 'readlink -f'                # print full path of the file
-alias eclipse '++ $ACTIVE/../reservoir_simulations/agy; pwd; echo "see ~/Misc/cmds for typical eclipse related commands"'
+alias eclipse '++ $ACTIVE/reservoir_simulations/agy; pwd; echo "see ~/Misc/cmds for typical eclipse related commands"'
 # this couuld be something to check/consider
 # source /prog/ecl/script/eclrun.cshrc
 alias octave /prog/rdtoolbox/octave/octave
@@ -143,16 +144,9 @@ setenv TS_MAILTO agy@equinor.com
 
 # PYTHON STUFF
 # 
-# to make ipython and ecl.ecl work for python3, i need to get ecl.ecl somewhere (since it is still not in komodo..).
-# this is reflected in ~/Tools/atlejg/Resources/pythonstartup
-#
-setenv PYTHON_VERSION 3.6.4
-source /prog/sdpsoft/env.csh --silent                                # writes python version to stdout if not --silent. annoying
-setenv PATH "${PATH}:/prog/sdpsoft/python${PYTHON_SHORT}/bin/"       # gives python3, pip3 etc
-setenv PYTHONPATH "$ATLEJG/lib/Python3:$HOME/Tools/lib/Python3"            # my stuff
-#setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip/Python3"                # vegard kippe stuff
-#setenv PYTHONPATH "${PYTHONPATH}:/project/res/lib/python2.7/site-packages"    # for resscript.header etc.
-#setenv PYTHONPATH "${PYTHONPATH}:/private/agy/Tools/subscript-internal/src/subscript_internal/"
+
+setenv PYTHONPATH "$ATLEJG/lib/Python3"                                     # my stuff
+alias pylab 'ipython --pylab --logfile=ipython_log.py -i $HOME/Tools/atlejg/Resources/pythonstartup'
 
 # vim stuff
 #
@@ -197,7 +191,7 @@ alias completor "python3 /private/agy/Tools/subscript/src/subscript/completor/ma
 
 # useful directories
 setenv TT /project/RCP/active/reservoir_simulations/agy/Peregrino/Shoebox/Simul/Version12
-setenv PY $HOME/Tools/lib/Python/AtlejgTools/
+setenv PY $ATLEJG/lib/Python3/AtlejgTools/
 
 # dont want redirected output to overwrite files - unless told to (using >!)
 set noclobber
@@ -292,5 +286,17 @@ set nobeep filec fignore=(.o \~ .BAK)
 #alias anslic_admin /prog/Fluent/ansys_inc_V16.2/ansys_inc/shared_files/licensing/lic_admin/anslic_admin # this is the tool to check fluent licenses
 #alias workbench 'unsetenv FLUENT_ARCH; /prog/Fluent/ansys_inc/v150/Framework/bin/Linux64/runwb2 ' # workbench starts fluent on its own, dont use environment variables
 
+# to make ipython and ecl.ecl work for python3, i need to get ecl.ecl somewhere (since it is still not in komodo..).
+# this is reflected in ~/Tools/atlejg/Resources/pythonstartup
+#setenv PYTHONPATH "$ATLEJG/lib/Python3:$HOME/Tools/lib/Python3"            # my stuff
+#setenv PYTHON_VERSION 3.6.4
+#setenv PYTHON_SHORT 3.6
+#source /prog/sdpsoft/env.csh --silent                                # writes python version to stdout if not --silent. annoying
+#setenv PATH "${PATH}:/prog/sdpsoft/python${PYTHON_SHORT}/bin/"       # gives python3, pip3 etc
+#setenv PYTHONPATH "${PYTHONPATH}:$RC/lib/Python/vkip/Python3"                # vegard kippe stuff
+#setenv PYTHONPATH "${PYTHONPATH}:/project/res/lib/python2.7/site-packages"    # for resscript.header etc.
+#setenv PYTHONPATH "${PYTHONPATH}:/private/agy/Tools/subscript-internal/src/subscript_internal/"
+#alias python python3
+#
 # goto-label...
 end:

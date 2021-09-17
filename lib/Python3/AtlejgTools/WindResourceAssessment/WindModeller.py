@@ -22,14 +22,18 @@ import AtlejgTools.WindResourceAssessment.Utils as WU
 
 SEP        = '='                    # key-value separator in WindModeller case-file (wm-file)
 TYP_CT     = 'ct'                   # thrust coefficient for turbine [-]
-TYP_PWR    = 'pwr'                  # power as reported by WindModeller [W]
+TYP_PWR    = 'power'                # power as reported by WindModeller [W]
 TYP_VEL    = 'normvel'              # normalised velocities. use velocity from 'speed list' for scaling
 TYP_WKL    = 'wkl'                  # wake-loss
 TYP_EFF    = 'eff'                  # turbine efficency (= 100% - wakeloss%) as reported by WindModeller [-]
+TYP_SPEED  = 'ws'
+TYP_DIR    = 'wd'
 ARROW_SIZE = 200.
 UNIT_PRCNT = '%'
 UNIT_WATT  = 'W'
 UNIT_NONE  = '-'
+UNIT_SPEED = 'm/s'
+UNIT_DIR   = 'deg'
 EQUATIONS  = ['U-Mom', 'V-Mom', 'W-Mom', 'P-Mass']
 
 logging.basicConfig(level=logging.INFO)
@@ -199,10 +203,10 @@ def convert_wtg_file(fnm, todir='.'):
 
 def read_curve(fnm, as_func):
     '''
-    reads a WindModeller-format input-curve into a DataFrame or an interp1d-function
+    reads a WindModeller-format input-curve into a DataFrame or an interpolation-function
       - input:
         * fnm: file name
-        * as_func: boolean. get interp1d-function or the raw data as a DataFrame
+        * as_func: boolean. get interpolation-function or the raw data as a DataFrame
     - returns
       * curve (function or DataFrame)
       * name of the curve
@@ -242,10 +246,8 @@ def calc_wakelosses(net, gross=None, wd_avr=True, ws_avr=True):
     '''
     calculating wakelosses without using the 'Offshore Array Efficiency and Effective TI' method.
     - input
-      * net   : result from WindModeller case for wake-simulations.
-                typically from _read_results, must be DataArray
-      * gross : result from WindModeller case for nowake-simulations.
-                typically from _read_results, must be DataArray
+      * net   : result from WindModeller (DataArray)
+      * gross : result from WindModeller (DataArray)
                 if gross is None, net is compared to the max power from all turbines for given wd.
       * wd_avr: calculate per wind-direction (wd) or aggregate using mean
       * ws_avr: calculate per wind-speed (ws) or aggregate using mean
@@ -283,7 +285,10 @@ def descr(res, meta=True, get_list=False, sep=' '):
         if 'rtype' in res.attrs:
             txt_meta += f" {res.attrs['rtype']}"
     #
-    txt_wt = f"#wt: {res.sizes['wt']}"
+    if 'wt' in res.dims:
+        txt_wt = f"#wt: {res.sizes['wt']}"
+    else:
+        txt_wt = f"#wt: {res.sizes['col']*res.sizes['row']}"
     #
     txt_wd = ''
     if 'wd' in res.coords:
@@ -309,20 +314,20 @@ def descr(res, meta=True, get_list=False, sep=' '):
     else:
         return sep.join(txts)
 
-def scatterplot(res, per_wd=False, fmt='.1f', scaler=1., fontsz=13., ms=75, add_arrow=False, nm_only=False, tight=True):
+def scatterplot(res, per_wd=False, as_text=True, fmt='.1f', scaler=1., fontsz=13., ms=75, add_arrow=False, tight=True):
     '''
     plots a scatter-plot with values per wt.
     if result (res) has multiple ws'es, they will be averaged
     - input
-      * res   : simulation results as DataArray
-      * per_wd: if True, it will average all directions. else, make one plot per wind-dir
-      * fmt   : format of numbers to be displayed
-      * scaler: scaling (by multiplying). typically for converting W to MW etc.
-      * fontsz: size of text
-      * ms    : marker size for wt's
-      * add_arrow: draw an arrow showing wind-direction. only for per_wd
-      * nm_only: boolean. show name of turbine only (not a number)
-      * tight : boolean. do tight_layout?
+      * res    : simulation results as DataArray
+      * per_wd : if False, it will average all directions. else, make one plot per wind-dir
+      * as_text: boolean. write text (True) or use colours (False)
+      * fmt    : format of numbers to be displayed (only for as_text)
+      * scaler : scaling (by multiplying). typically for converting W to MW etc. (only for as_text)
+      * fontsz : size of text (only for as_text)
+      * ms     : marker size for wt's (only for as_text)
+      * add_ar row: draw an arrow showing wind-direction. (only for per_wd)
+      * tight  : boolean. do tight_layout?
     '''
     #
     figsz = (7,7)
@@ -343,20 +348,23 @@ def scatterplot(res, per_wd=False, fmt='.1f', scaler=1., fontsz=13., ms=75, add_
         if 'ws' in res2.dims: res2 = res2.mean('ws', keep_attrs=True)   # could have been done already
         #
         plt.figure(figsize=figsz)
-        plt.scatter(res2.x, res2.y, s=ms, c='k')
-        for j, val  in enumerate(res2.values):
-            if nm_only:
-                txt = res.nm.values[j]
-            else:
+        # just in case it is grid'ed
+        xs = res2.x.values.ravel()
+        ys = res2.y.values.ravel()
+        vals = res2.values.ravel()
+        c = 'k' if as_text else vals
+        plt.scatter(xs, ys, s=ms, c=c)
+        if as_text:
+            for j, val  in enumerate(vals):
                 txt = f'{val*scaler:{fmt}}'
-            plt.text(res2.x[j]+30, res2.y[j], txt, fontsize=fontsz)
+                plt.annotate(txt, (xs[j], ys[j]), fontsize=fontsz)
         #
         if per_wd:
             txt_ws = descr(res, get_list=True)[3]
             plt.title(f"{descr(res2)} wd: {wd} {txt_ws}")
             if add_arrow:
-                x = 1.2*ARROW_SIZE + res2.x.max()
-                y = res2.y.max()-ARROW_SIZE
+                x = 1.2*ARROW_SIZE + xs.max()
+                y = ys.max() - ARROW_SIZE
                 dx, dy = WU.winddir_components(wd)
                 plt.arrow(x, y, ARROW_SIZE*dx, ARROW_SIZE*dy, head_width=ARROW_SIZE/5)
                 plt.xlim(right=x+2.5*ARROW_SIZE)
@@ -365,6 +373,7 @@ def scatterplot(res, per_wd=False, fmt='.1f', scaler=1., fontsz=13., ms=75, add_
         plt.xticks([])
         plt.yticks([])
         plt.axis('equal')
+        if not as_text: plt.colorbar()
         if tight: plt.tight_layout()
 
 def cp(old, new, file_ext='.wm'):
@@ -496,6 +505,9 @@ class WindModellerCase(object):
             by column (columns cycling fastest)
           * make sure to use the 'natural' row/column orientation when using grid_dims
           * for now, only full grid's will work when using grid_dims
+          * will use the requested wd's and ws'es for indexing.
+          * the actual wd and ws for each turbine is found in wda and wsa, respecitvely,
+            whereas the index'ed values are found in wdi and wsi, respecitvely
         '''
         #
         self.pm, self.fnm = read_params(name)
@@ -507,39 +519,95 @@ class WindModellerCase(object):
         self.ws     = self.pm['speed list']
         self.wt     = self.layout.name.values
         self.tdir   = self.pm['target directory']
-        self.descr  = self.description(doc_file)
+        self.descr  = self._description(doc_file)
+        self.array_eff = self.pm['wind data transposition option'].lower() == 'offshore array efficiency and effective ti'
         #
         # get simulation results
         if read_results:
-            self.net = self._read_results(rtype=TYP_PWR)   # read simulated power per wt, wd, ws.
-            self.eff = self.efficency()
-            self.gross = self._calc_gross()
-            self.wl = self.wakeloss(average=False)
-            self.perf, self.simtime = self._performance()
+            #
+            # get simulated data per ws, wt, wd.
+            self.net   = self._read_results(rtype='power')   
+            self.wsan  = self._read_results(rtype='normvel')      # actual normalized velocity
+            self.wsu   = self._read_results(rtype='uustream')     # upstream velocity
+            self.wda   = self._read_results(rtype='LocalDir')     # actual wind direction
+            self.wdu   = self._read_results(rtype='UpAngle')      # upwind wind direction
+            self.ti    = self._read_results(rtype='TI')           # turbulent intensity
+            self.shr   = self._read_results(rtype='ShearExpFac')  # shear
+            if self.array_eff:
+                self.eff   = self._efficiency()
+                self.gross = self._calc_gross()
+            else:
+                self.eff   = self.net * 0
+                self.gross = self.net * 0
+            self.wl    = self.wakeloss(average=False)
             if not grid_dims is None:
-                self.is_grid = True
+                self.is_gridded = True
                 # we're gonna reshape existing DataArray's from 1-D wt, to 2-D (row, column)
-                nrows, ncols = grid_dims
+                #
+                nrows, ncols, nws, nwd = *grid_dims, len(self.ws), len(self.wd)
+                #
+                net   = self.net.values.reshape(nws, nrows, ncols, nwd)
+                gross = self.gross.values.reshape(nws, nrows, ncols, nwd)
+                wsan  = self.wsan.values.reshape(nws, nrows, ncols, nwd)
+                wsu   = self.wsu.values.reshape(nws, nrows, ncols, nwd)
+                wda   = self.wda.values.reshape(nws, nrows, ncols, nwd)
+                wdu   = self.wdu.values.reshape(nws, nrows, ncols, nwd)
+                ti    = self.ti.values.reshape(nws, nrows, ncols, nwd)
+                shr   = self.shr.values.reshape(nws, nrows, ncols, nwd)
+                eff   = self.eff.values.reshape(nws, nrows, ncols, nwd)
+                wl    = self.wl.values.reshape(nws, nrows, ncols, nwd)
+                #
+                # convert back to DataArray's
                 dims = ['ws', 'row', 'col', 'wd']
                 coords = dict(ws=self.ws, row=range(1, nrows+1), col=range(1, ncols+1), wd=self.wd,
                               x=(['row', 'col'], self.layout.x.values.reshape(nrows, ncols)),
                               y=(['row', 'col'], self.layout.y.values.reshape(nrows, ncols)),
                               nm=(['row', 'col'], self.wt.reshape(nrows, ncols))
                              )
-                net = self.net.values.reshape(len(self.ws), nrows, ncols, len(self.wd))
-                gross = self.gross.values.reshape(len(self.ws), nrows, ncols, len(self.wd))
-                eff = self.eff.values.reshape(len(self.ws), nrows, ncols, len(self.wd))
-                wl = self.wl.values.reshape(len(self.ws), nrows, ncols, len(self.wd))
-                #
-                # assign to self
-                self.net = xr.DataArray(data=net, dims=dims, coords=coords)
-                self.gross = xr.DataArray(data=gross, dims=dims, coords=coords)
-                self.eff = xr.DataArray(data=eff, dims=dims, coords=coords)
-                self.wl = xr.DataArray(data=wl, dims=dims, coords=coords)
+                self.net   = xr.DataArray(data=net, dims=dims, coords=coords, attrs=self.net.attrs)
+                self.gross = xr.DataArray(data=gross, dims=dims, coords=coords, attrs=self.gross.attrs)
+                self.wsan  = xr.DataArray(data=wsan, dims=dims, coords=coords, attrs=self.wsan.attrs)
+                self.wsu   = xr.DataArray(data=wsu, dims=dims, coords=coords, attrs=self.wsu.attrs)
+                self.wda   = xr.DataArray(data=wda, dims=dims, coords=coords, attrs=self.wda.attrs)
+                self.wdu   = xr.DataArray(data=wdu, dims=dims, coords=coords, attrs=self.wdu.attrs)
+                self.ti    = xr.DataArray(data=ti, dims=dims, coords=coords, attrs=self.ti.attrs)
+                self.shr   = xr.DataArray(data=shr, dims=dims, coords=coords, attrs=self.shr.attrs)
+                self.eff   = xr.DataArray(data=eff, dims=dims, coords=coords, attrs=self.eff.attrs)
+                self.wl    = xr.DataArray(data=wl, dims=dims, coords=coords, attrs=self.wl.attrs)
+                self.wti = []
+                for row in self.net.row.values:
+                    for col in self.net.col.values:
+                        self.wti.append([row, col])
             else:
-                self.is_grid = False
+                self.is_gridded = False
+                self.wti = self.net.wt.values
+            #
+            self.perf, self.simtime = self._performance()
+            #
+            # for convinence
+            #
+            self.dims = self.net.dims
+            self.coords = self.net.coords
+            #
+            #  useful to have indexed wd's and ws's
+            self.wsi, self.wdi = self.wsu * 0., self.wsu * 0.  # just an init
+            for v in self.ws:
+               self.wsi.loc[dict(ws=v)] = v
+            for d in self.wd:
+               self.wdi.loc[dict(wd=d)] = d
+            #
+            #  and now we can calculate the absolute actual velocities
+            self.wsa = self.wsan * self.wsi
+            #
+            # make sure all DataArray has useful attributes
+            attrs = dict(description=self.name, rtype='wsi', unit=UNIT_SPEED)
+            self.wsi.attrs = attrs
+            attrs = dict(description=self.name, rtype='wdi', unit=UNIT_DIR)
+            self.wdi.attrs = attrs
+            attrs = dict(description=self.name, rtype='REWS', unit=UNIT_SPEED)
+            self.wsa.attrs = attrs
 #
-    def description(self, doc_file):
+    def _description(self, doc_file):
         '''
         tries to find info abut this case in a doc-file (typically readme.txt')
         looks for <casenm>: bla bla
@@ -560,7 +628,7 @@ class WindModellerCase(object):
         - input
           * typ: TYP_PWR or TYP_CT
           * label : name of power-curve. if not given, the first curve will be returned
-          * as_func: boolean. get interp1d-function or the raw data as a DataFrame
+          * as_func: boolean. get interpolation-function or the raw data as a DataFrame
         - returns
           * pwr (function or DataFrame)
         '''
@@ -585,11 +653,13 @@ class WindModellerCase(object):
         '''
         reads wt-positions from a this case
         - returns
-          * pandas DataFrame of wt-positions
+          * pandas DataFrame of wt-positions (and potentially other info)
         '''
-        names = ['name', 'x', 'y', 'h', 'diam', 'ct_nm', 'pwr_nm']
         fnm = self.pm['WT location file']
-        layout = pd.read_csv(fnm, sep=' ', skiprows=0, skipinitialspace=True, names=names, index_col='name')
+        layout = pd.read_csv(fnm, delim_whitespace=True, header=None)
+        cols = ['name', 'x', 'y', 'h', 'diam', 'ct_nm', 'pwr_nm', 'active', 'yaw']
+        layout.columns = cols[:layout.shape[1]]
+        layout.set_index('name', inplace=True)
         layout['name'] = layout.index    # for clarity
         return layout
 #
@@ -597,23 +667,22 @@ class WindModellerCase(object):
         mode = 'wakes' if self.pm['wake model'] else 'no_wakes'
         pattern = f'{self.tdir}/{mode}/'
         logging.info(' pattern= '+pattern)
-        if rtype == TYP_PWR:
-            pattern += 'WT_hub_power_'
-        else:
-            raise Exception(f'have not implemented result-type {rtype}')
-        #
-        pattern += f'speed*.csv'
+        pattern += 'WT_hub_' + rtype + '_speed*.csv'
         fnms = UT.glob(pattern)
+        if not fnms:
+            raise Exception(f'No results found! This is not excpected')
         fnms.sort(key=lambda x: int(x.split('speed')[1].split('.')[0]))  # sort on speed-index 1,2,3...
         return fnms
 #
-    def _read_results(self, rtype=TYP_PWR):
+    def _read_results(self, rtype):
         '''
         read WindModeller result-files into a DataArray with dimensions (ws, wt, wd)
         - input
-          * rtype: result-type. only power (TYP_PWR) is implemented. TODO?
+          * rtype: result-type. this is pointing to the written files found in the
+                   wakes (or nowakes) directory.
+                   eg. 'power' reads WT_hub_power_speed*.csv, 'normvel' reads WT_hub_normvelu_speed*.csv etc.
         - notes
-          * order of dimensions (ws, wt, wd) is given by the file structure
+          * n1: order of dimensions (ws, wt, wd) is given by the file structure
         '''
         #
         # read all results into a list (one matrix for each velocity)
@@ -746,7 +815,7 @@ class WindModellerCase(object):
         # now get total runtime based on create-time of files
         fnm1 = f'{self.tdir}/meshspec.xml'
         fnm2 = UT.glob(f'{self.tdir}/*.res')[-1]   # last result-file from solver
-        simtime = np.diff([os.path.getctime(fnm) for fnm in [fnm1, fnm2]])[0]
+        simtime = round(np.diff([os.path.getctime(fnm) for fnm in [fnm1, fnm2]])[0])
         return perf, simtime
 #
     def plot_performance(self, full=True, ms=4, ylim=None):
@@ -779,19 +848,19 @@ class WindModellerCase(object):
                 plt.legend(loc='best')
                 if ylim: plt.ylim(*ylim)
 #
-    def efficency(self):
+    def _efficiency(self):
         '''
         for a WindModeller-run of type
           'wind data transposition option' = 'Offshore Array Efficiency and Effective TI'
         an efficiency matrix for each turbine is written to file.
-        this routine reads this file into a DataArray for ease of access
+        this routine reads this file into a Dataset for ease of access
         - returns
-          * DataArray. unit is %
+          * DataArray eff (efficency in %)
         - notes
           * in the csv-file, it reports wd's and ws's that are slightly off the requested values.
-            here, these values are replaced by the requested values (found in the case-file)
+            the index is based on the inlet velocity and inlet direction as requested in the case-file
         '''
-        if not self.pm['wind data transposition option'] == 'Offshore Array Efficiency and Effective TI':
+        if not self.array_eff:
             raise Exception("'wind data transposition option' must be 'Offshore Array Efficiency and Effective TI'")
         fnm = f'{self.tdir}/array_eff_TI/results/TurbineEfficiency.csv'
         logging.info(f'reading {fnm}')
@@ -799,7 +868,9 @@ class WindModellerCase(object):
         csvfile = open(fnm)
         m3 = []                                     # 3-dim matrix for all data
         nms = []
-        vals = np.zeros((len(self.layout), len(self.ws), len(self.wd)))
+        eff = np.zeros((len(self.ws), len(self.layout), len(self.wd)))
+        #
+        # indexing is a bit strange here, but need to respect order given by n1
         k = -1
         for line in csvfile:
             line = line.strip()
@@ -816,30 +887,31 @@ class WindModellerCase(object):
             # 'default': read data into matrix
             i += 1
             rec = [float(x) for x in line.split(',')]
-            vals[k,j,i] = rec[-1]
+            eff[j,k,i] = rec[2]
             if (i+1) % len(self.wd) == 0:
                 i = -1
                 j += 1
         csvfile.close()
         #
-        # build a DataArray
-        dims   = ['wt', 'ws', 'wd']
+        # build a Dataset
+        dims   = ['ws', 'wt', 'wd']
         coords = dict(
-                   wt=range(len(nms)),
                    ws=self.ws,
+                   wt=range(len(nms)),
                    wd=self.wd,
                    x =(['wt'], self.layout.x.values),
                    y =(['wt'], self.layout.y.values),
                    nm=(['wt'], nms)
                  )
+        #
         attrs = dict(description=self.name, rtype=TYP_EFF, unit=UNIT_PRCNT)
-        eff = xr.DataArray(data=vals, dims=dims, coords=coords, attrs=attrs)
-        logging.info(f'Result dimension: {dict(eff.sizes)}')
+        eff_  = xr.DataArray(data=eff, dims=dims, coords=coords, attrs=attrs)
+        #
+        logging.info(f'Result dimension: {dict(eff_.sizes)}')
         #
         #  make sure data is consistent
         assert np.all(self.wt == nms)
-        #
-        return eff
+        return eff_
 #
     def _calc_gross(self):
         '''
@@ -879,16 +951,18 @@ class WindModellerCase(object):
         wl.attrs = dict(rtype=TYP_WKL, description=self.name, unit=UNIT_PRCNT)
         return wl
 #
-    def show_turbines(self, ixs, show_nms= True, txtshift=(40,40)):
+    def show_turbines(self, ixs=None, show_nms= True, txtshift=(40,40)):
         '''
         useful for QC - it shows a scatterplot of the turbines of interest.
         - input
           * ixs     : list of indices of turbines to show.
+                      if None, it will show all
                       if turbines are in a grid, each index must be a point (row, col)
           * show_nms: boolean. show names of turbins?
           * txtshift: shift position of turbine name as needed
         '''
-        if self.is_grid:
+        if not ixs: ixs = self.wti
+        if self.is_gridded:
             xs, ys, nms = [], [], []
             for ix in ixs:
                 wt = self.net.sel(row=ix[0], col=ix[1])

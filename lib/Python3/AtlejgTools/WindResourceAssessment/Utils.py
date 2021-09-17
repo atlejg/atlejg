@@ -698,6 +698,7 @@ class Scada(object):
     def heatmap(self, wt=0, figsz=(10,8), cbar=False, cticks=False):
         '''
         plot a heat map of the wind for a given turbine.
+        the 'heat' is the number of occurences for the given (wd, ws)
         - input:
           * wt    : wind turbine index
           * cbar  : boolean. show colorbar?
