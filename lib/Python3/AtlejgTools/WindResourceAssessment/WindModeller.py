@@ -18,6 +18,7 @@ import AtlejgTools.Utils as UT
 import py_wake 
 import matplotlib.pyplot as plt
 import AtlejgTools.WindResourceAssessment.Utils as WU
+import pickle
 
 
 SEP        = '='                    # key-value separator in WindModeller case-file (wm-file)
@@ -34,7 +35,7 @@ UNIT_WATT  = 'W'
 UNIT_NONE  = '-'
 UNIT_SPEED = 'm/s'
 UNIT_DIR   = 'deg'
-EQUATIONS  = ['U-Mom', 'V-Mom', 'W-Mom', 'P-Mass']
+EQUATIONS  = ['U-Mom', 'V-Mom', 'W-Mom', 'P-Mass', 'K-TurbKE', 'E-Diss.K']   # will fail for non-K-eps cases...
 
 logging.basicConfig(level=logging.INFO)
 
@@ -107,13 +108,18 @@ def read_params(name, file_ext='.wm'):
     if not 'filenm' in pm: pm['filenm'] = fnm
     return pm, fnm
 
-def compare_params(casenm1, casenm2):
+def compare_params(case1, case2, printit=True, read_from_file=True):
     '''
-    compares two parameter-files.
+    compares two parameter-sets (usually from file)
     useful since order of parameter files is not fixed, and winmodeller_gui
     writes the file different than it was read.
     '''
-    pm1, pm2 = read_params(casenm1)[0], read_params(casenm2)[0]
+    if read_from_file:
+        pm1, pm2 = read_params(case1)[0], read_params(case2)[0]
+        nm1, nm2 = case1, case2
+    else:
+        pm1, pm2 = case1, case2
+        nm1, nm2 = case1['casenm'], case2['casenm']
     diff = []
     keys = np.unique(list(pm1.keys()) + list(pm2.keys()))
     for key in sorted(keys):
@@ -129,12 +135,14 @@ def compare_params(casenm1, casenm2):
             if type(val1) is np.ndarray and not np.all(val1==val2): equal = False
             if not equal:
                 diff.append([key, pm1[key], pm2[key]])
-    if not diff:
-        print('They are identical!')
-        return
-    else:
-        print('\nParameters that differ:')
-        print(pd.DataFrame(diff, columns=['PARAMETER NAME', casenm1, casenm2]))
+    if printit:
+        if not diff:
+            print('They are identical!')
+        else:
+            print('\nParameters that differ:')
+            print(pd.DataFrame(diff, columns=['PARAMETER NAME', nm1, nm2]))
+    return diff
+
 
 def get_residuals(outfile, plot_it=True):
     '''
@@ -506,56 +514,77 @@ class WindModellerCase(object):
           * make sure to use the 'natural' row/column orientation when using grid_dims
           * for now, only full grid's will work when using grid_dims
           * will use the requested wd's and ws'es for indexing.
-          * the actual wd and ws for each turbine is found in wda and wsa, respecitvely,
-            whereas the index'ed values are found in wdi and wsi, respecitvely
+          * the actual wd and ws for each turbine (hub) is found in wdh and wsh, respecitvely,
+            whereas the requested values are found in wdr and wsr, respecitvely.
+            wdh and wsh are volume averaged values for the actuator disc.
         '''
         #
         self.pm, self.fnm = read_params(name)
         #
         # convinent stuff
-        self.name   = self.pm['casenm']
-        self.layout = self.read_layout()
-        self.wd     = self.pm['theta list']
-        self.ws     = self.pm['speed list']
-        self.wt     = self.layout.name.values
-        self.tdir   = self.pm['target directory']
-        self.descr  = self._description(doc_file)
-        self.array_eff = self.pm['wind data transposition option'].lower() == 'offshore array efficiency and effective ti'
+        self.name         = self.pm['casenm']
+        self.layout       = self.read_layout()
+        self.wd           = self.pm['theta list']
+        self.ws           = self.pm['speed list']
+        self.wt           = self.layout.name.values
+        self.tdir         = self.pm['target directory']
+        self.descr        = self._description(doc_file)
+        self.array_eff    = self.pm['wind data transposition option'].lower() == \
+                            'offshore array efficiency and effective ti'
+        self.quantitative = self.pm['quantitative postprocessing']
         #
         # get simulation results
         if read_results:
+            assert self.quantitative or self.array_eff            # array_eff implies quantitative
             #
             # get simulated data per ws, wt, wd.
             self.net   = self._read_results(rtype='power')   
-            self.wsan  = self._read_results(rtype='normvel')      # actual normalized velocity
+            self.wshn  = self._read_results(rtype='normvel')      # normalized velocity @ hub (averaged)
             self.wsu   = self._read_results(rtype='uustream')     # upstream velocity
-            self.wda   = self._read_results(rtype='LocalDir')     # actual wind direction
+            self.wdh   = self._read_results(rtype='LocalDir')     # wind direction @ hub
             self.wdu   = self._read_results(rtype='UpAngle')      # upwind wind direction
             self.ti    = self._read_results(rtype='TI')           # turbulent intensity
             self.shr   = self._read_results(rtype='ShearExpFac')  # shear
+            #
+            #  useful to have requested wd's and ws's (from parameter-file)
+            self.wsr, self.wdr = self.wsu * 0., self.wsu * 0.     # init
+            for v in self.ws:
+               self.wsr.loc[dict(ws=v)] = v
+            for d in self.wd:
+               self.wdr.loc[dict(wd=d)] = d
+            #
             if self.array_eff:
                 self.eff   = self._efficiency()
                 self.gross = self._calc_gross()
             else:
-                self.eff   = self.net * 0
-                self.gross = self.net * 0
+                logging.warn('Array efficiency not activated. Using max upstream ' +
+                             'velocity for calculating gross production and efficiency')
+                self.gross = self.net * 0                          # init
+                wsu_max = self.wsu.max().values 
+                for wti, (_, row) in enumerate(self.layout.iterrows()):
+                    self.gross.loc[dict(wt=wti)] = row.pwr_func(wsu_max)
+                self.eff = self.net / self.gross * 100
+            #
             self.wl    = self.wakeloss(average=False)
+            #
             if not grid_dims is None:
-                self.is_gridded = True
+                self.gridded_layout = True
                 # we're gonna reshape existing DataArray's from 1-D wt, to 2-D (row, column)
                 #
                 nrows, ncols, nws, nwd = *grid_dims, len(self.ws), len(self.wd)
                 #
                 net   = self.net.values.reshape(nws, nrows, ncols, nwd)
                 gross = self.gross.values.reshape(nws, nrows, ncols, nwd)
-                wsan  = self.wsan.values.reshape(nws, nrows, ncols, nwd)
+                wshn  = self.wshn.values.reshape(nws, nrows, ncols, nwd)
                 wsu   = self.wsu.values.reshape(nws, nrows, ncols, nwd)
-                wda   = self.wda.values.reshape(nws, nrows, ncols, nwd)
+                wdh   = self.wdh.values.reshape(nws, nrows, ncols, nwd)
                 wdu   = self.wdu.values.reshape(nws, nrows, ncols, nwd)
                 ti    = self.ti.values.reshape(nws, nrows, ncols, nwd)
                 shr   = self.shr.values.reshape(nws, nrows, ncols, nwd)
                 eff   = self.eff.values.reshape(nws, nrows, ncols, nwd)
                 wl    = self.wl.values.reshape(nws, nrows, ncols, nwd)
+                wsr   = self.wsr.values.reshape(nws, nrows, ncols, nwd)
+                wdr   = self.wdr.values.reshape(nws, nrows, ncols, nwd)
                 #
                 # convert back to DataArray's
                 dims = ['ws', 'row', 'col', 'wd']
@@ -566,20 +595,22 @@ class WindModellerCase(object):
                              )
                 self.net   = xr.DataArray(data=net, dims=dims, coords=coords, attrs=self.net.attrs)
                 self.gross = xr.DataArray(data=gross, dims=dims, coords=coords, attrs=self.gross.attrs)
-                self.wsan  = xr.DataArray(data=wsan, dims=dims, coords=coords, attrs=self.wsan.attrs)
+                self.wshn  = xr.DataArray(data=wshn, dims=dims, coords=coords, attrs=self.wshn.attrs)
                 self.wsu   = xr.DataArray(data=wsu, dims=dims, coords=coords, attrs=self.wsu.attrs)
-                self.wda   = xr.DataArray(data=wda, dims=dims, coords=coords, attrs=self.wda.attrs)
+                self.wdh   = xr.DataArray(data=wdh, dims=dims, coords=coords, attrs=self.wdh.attrs)
                 self.wdu   = xr.DataArray(data=wdu, dims=dims, coords=coords, attrs=self.wdu.attrs)
                 self.ti    = xr.DataArray(data=ti, dims=dims, coords=coords, attrs=self.ti.attrs)
                 self.shr   = xr.DataArray(data=shr, dims=dims, coords=coords, attrs=self.shr.attrs)
                 self.eff   = xr.DataArray(data=eff, dims=dims, coords=coords, attrs=self.eff.attrs)
                 self.wl    = xr.DataArray(data=wl, dims=dims, coords=coords, attrs=self.wl.attrs)
+                self.wsr   = xr.DataArray(data=wsr, dims=dims, coords=coords, attrs=self.wsr.attrs)
+                self.wdr   = xr.DataArray(data=wdr, dims=dims, coords=coords, attrs=self.wdr.attrs)
                 self.wti = []
                 for row in self.net.row.values:
                     for col in self.net.col.values:
                         self.wti.append([row, col])
             else:
-                self.is_gridded = False
+                self.gridded_layout = False
                 self.wti = self.net.wt.values
             #
             self.perf, self.simtime = self._performance()
@@ -589,23 +620,18 @@ class WindModellerCase(object):
             self.dims = self.net.dims
             self.coords = self.net.coords
             #
-            #  useful to have indexed wd's and ws's
-            self.wsi, self.wdi = self.wsu * 0., self.wsu * 0.  # just an init
-            for v in self.ws:
-               self.wsi.loc[dict(ws=v)] = v
-            for d in self.wd:
-               self.wdi.loc[dict(wd=d)] = d
-            #
-            #  and now we can calculate the absolute actual velocities
-            self.wsa = self.wsan * self.wsi
+            #  and now we can calculate the velocities @ hub
+            self.wsh = self.wshn * self.wsr
             #
             # make sure all DataArray has useful attributes
-            attrs = dict(description=self.name, rtype='wsi', unit=UNIT_SPEED)
-            self.wsi.attrs = attrs
-            attrs = dict(description=self.name, rtype='wdi', unit=UNIT_DIR)
-            self.wdi.attrs = attrs
+            attrs = dict(description=self.name, rtype='wsr', unit=UNIT_SPEED)
+            self.wsr.attrs = attrs
+            attrs = dict(description=self.name, rtype='wdr', unit=UNIT_DIR)
+            self.wdr.attrs = attrs
             attrs = dict(description=self.name, rtype='REWS', unit=UNIT_SPEED)
-            self.wsa.attrs = attrs
+            self.wsh.attrs = attrs
+            attrs = dict(description=self.name, rtype=TYP_EFF, unit=UNIT_PRCNT)
+            self.eff.attrs = attrs
 #
     def _description(self, doc_file):
         '''
@@ -659,8 +685,10 @@ class WindModellerCase(object):
         layout = pd.read_csv(fnm, delim_whitespace=True, header=None)
         cols = ['name', 'x', 'y', 'h', 'diam', 'ct_nm', 'pwr_nm', 'active', 'yaw']
         layout.columns = cols[:layout.shape[1]]
-        layout.set_index('name', inplace=True)
-        layout['name'] = layout.index    # for clarity
+        if 'ct_nm' in layout.columns:
+            layout['ct_func'] = [self.get_curve(TYP_CT, nm)[0] for nm in layout.ct_nm]
+        if 'pwr_nm' in layout.columns:
+            layout['pwr_func'] = [self.get_curve(TYP_PWR, nm)[0] for nm in layout.pwr_nm]
         return layout
 #
     def _get_resultsfiles(self, rtype):
@@ -781,7 +809,7 @@ class WindModellerCase(object):
           * perf    : DataFrame with relevant data for each simulation. column 'simtime' is solving-time
           * simtime : simtime for the whole case
         - notes
-          * note1: imbalances are fractions
+          * note1: residuals are fractions
           * note2: simtime's are in seconds
         '''
         grepfile = '/tmp/grepped.txt'
@@ -797,13 +825,15 @@ class WindModellerCase(object):
         perf['theta'] = thetas                  # potentially useful
         perf['v']     = vs                      # potentially useful
         #
-        # get imbalances for each simulation
-        cmd = f"grep -H -a7 'Normalised Imbalance Summary' {self.tdir}/*.out | grep"
+        # get last residuals for each simulation
+        #cmd = f"grep -H -a7 'Normalised Imbalance Summary' {self.tdir}/*.out | grep"
+        cmd = f"grep -H -B11 'CFD Solver finished' {self.tdir}/*.out | grep"
         for eq in EQUATIONS: cmd += f" -e '{eq}'"
         cmd += f" > {grepfile}"
         logging.info(cmd)
         os.system(cmd)
-        df = pd.read_csv(grepfile, sep='|', usecols=[0,1,3], header=None, converters={0:UT.basename, 1: lambda x: x.strip()})
+        df = pd.read_csv(grepfile, sep='|', usecols=[0,1,3],
+                         header=None, converters={0:UT.basename, 1: lambda x: x.strip()})
         nms = df[df[1]==EQUATIONS[0]][0].values
         assert np.all(perf.nm.values==nms)
         for eq in EQUATIONS:
@@ -813,20 +843,21 @@ class WindModellerCase(object):
         os.unlink(grepfile)
         #
         # now get total runtime based on create-time of files
-        fnm1 = f'{self.tdir}/meshspec.xml'
-        fnm2 = UT.glob(f'{self.tdir}/*.res')[-1]   # last result-file from solver
-        simtime = round(np.diff([os.path.getctime(fnm) for fnm in [fnm1, fnm2]])[0])
+        t1 = os.path.getmtime(f'{self.tdir}/meshspec.xml')
+        t_res = [os.path.getmtime(resfile) for resfile in UT.glob(f'{self.tdir}/*.res')]
+        simtime = round(max(t_res) - t1)
+        #
         return perf, simtime
 #
     def plot_performance(self, full=True, ms=4, ylim=None):
         '''
         plot performance (per simulation).
         - input
-          * full  : also plot imbalances? (momentum, mass-bal)
+          * full  : also plot residuals? (momentum, mass-bal)
           * ms    : marker size
-          * ylim  : ylim for imbalances (like [-40, 40]). see note1
+          * ylim  : ylim for residuals
         - notes
-          * note1: plots imbalances in % (data is in fractions)
+          * note1: plots residuals as fractions
         '''
         plt.figure()
         for i, v in enumerate(self.ws):
@@ -841,9 +872,9 @@ class WindModellerCase(object):
                 plt.figure()
                 for i, v in enumerate(self.ws):
                     p = self.perf[self.perf.v==i+1]
-                    plt.plot(p.theta.values, p[eq].values*100, 's', ms=ms, label=f'v = {v:.1f} m/s')
+                    plt.plot(p.theta.values, p[eq].values, 's', ms=ms, label=f'v = {v:.1f} m/s')
                 plt.xlabel('Wind direction')
-                plt.ylabel(f'{eq} imbalance [%]')
+                plt.ylabel(f'{eq} Residuals [-]')
                 plt.title(f"Case {self.name}")
                 plt.legend(loc='best')
                 if ylim: plt.ylim(*ylim)
@@ -853,7 +884,7 @@ class WindModellerCase(object):
         for a WindModeller-run of type
           'wind data transposition option' = 'Offshore Array Efficiency and Effective TI'
         an efficiency matrix for each turbine is written to file.
-        this routine reads this file into a Dataset for ease of access
+        this routine reads this file into a DataArray for ease of access
         - returns
           * DataArray eff (efficency in %)
         - notes
@@ -893,7 +924,7 @@ class WindModellerCase(object):
                 j += 1
         csvfile.close()
         #
-        # build a Dataset
+        # build a DataArray
         dims   = ['ws', 'wt', 'wd']
         coords = dict(
                    ws=self.ws,
@@ -962,7 +993,7 @@ class WindModellerCase(object):
           * txtshift: shift position of turbine name as needed
         '''
         if not ixs: ixs = self.wti
-        if self.is_gridded:
+        if self.gridded_layout:
             xs, ys, nms = [], [], []
             for ix in ixs:
                 wt = self.net.sel(row=ix[0], col=ix[1])
@@ -981,6 +1012,34 @@ class WindModellerCase(object):
                 plt.text(x+txtshift[0], y+txtshift[0], nm)
         plt.axis('equal')
         plt.show()
+#
+    def dump(self, prefix='', use_pickle=False):
+        '''
+        could be useful to be able to dump data to file.
+        for test-functions, like test_hornsrev_case below, it is not adviced to use pickle,
+        since the WindModellerCase is likely to change over time.
+        '''
+        if use_pickle:
+            pass
+        else:
+            #
+            # parameters are dict - so we use pickle
+            f = open(f'{prefix}{self.name}_pm.pck', 'wb')
+            pickle.dump(self.pm, f)
+            f.close()
+            logging.info(f"Writing params to file {f.name}")
+            #
+            # layout is DataFrame - write to csv
+            fnm = f'{prefix}{self.name}_layout.csv'
+            self.layout.to_csv(fnm, index=False)
+            logging.info(f"Writing layout to file {fnm}")
+            # DataArray's are written to cdf-files
+            varnms = ['net', 'gross', 'eff', 'wl', 'wshn', 'wsu', 'wdh', 'wdu', 'wsr', 'wdr', 'wsh', 'ti', 'shr']
+            for var in varnms:
+                data = self.__dict__[var]
+                fnm = f'{prefix}{self.name}_{var}.cdf'
+                data.to_netcdf(fnm)
+                logging.info(f"Writing '{var}' to file {fnm}")
 
 def get_cases(patterns, file_ext='.wm', grid_dims=None, sortit=True):
     '''
@@ -999,6 +1058,8 @@ def get_cases(patterns, file_ext='.wm', grid_dims=None, sortit=True):
         fnms = UT.glob(pattern, sortit=sortit)
         cases.extend([CM.get(fnm, grid_dims=grid_dims) for fnm in fnms])
     #
+    if len(cases) == 0: 
+        raise Exception('No cases matches the pattern(s) ' +' '.join(patterns))
     if len(cases) == 1: 
         return cases[0]
     else:
@@ -1012,6 +1073,51 @@ def test_efficency(testcase):
     wmc = WindModellerCase(testcase)
     eff = wmc.efficency()
     assert np.all(eff.values == np.linspace(0.1, 1, 10))
+
+def test_hornsrev_case(casenm='a01', testdir='/project/RCP/active/wind_resource_assessment/agy/Resources/Testdata/WindModeller/HornsRev'):
+    '''
+    useful test-function for making sure the code is safe and sound.
+    compares (somewhat) validated data to what *this* code now gives.
+    we used dump() above to generate the test-data.
+    the defaults here is a pretty big case - 80 turbines, 3 wind-speeds, 63 wind-directions
+    '''
+    cwd = os.getcwd()
+    os.chdir(testdir)
+    #
+    print(f'Testing case {casenm} @ {testdir}')
+    #
+    wm = WindModellerCase(casenm, grid_dims=(8,10))
+    print(f'Testcase has dimensions:\n', wm.coords)
+    #
+    # - parameters are a bit tricky since file names are absolute
+    pm0 = pickle.load(open(f'Orig_Results/{wm.name}_pm.pck', 'rb'))
+    file_keys = ['WT location file', 'power files', 'target directory', 'thrust coefficient files', 'wind data files'] 
+    diff = compare_params(pm0, wm.pm, read_from_file=False, printit=False) # should only have the file_keys
+    assert np.all(file_keys == [line[0] for line in diff])
+    print('Parameters OK')
+    #
+    # - layout
+    layout0 = pd.read_csv(f'Orig_Results/{wm.name}_layout.csv')
+    layout0.drop(['ct_func','pwr_func'], axis=1, inplace=True)
+    layout = wm.layout.drop(['ct_func','pwr_func'], axis=1)
+    assert np.all(layout0 == layout)
+    print('Layout OK')
+    #
+    # - simulation data
+    varnms = ['net', 'gross', 'eff', 'wl', 'wshn', 'wsu', 'wdh', 'wdu', 'wsr', 'wdr', 'wsh', 'ti', 'shr']
+    #
+    for var in varnms:
+        fnm = f'Orig_Results/{wm.name}_{var}.cdf'
+        data0 = xr.load_dataarray(fnm)
+        data = wm.__dict__[var]
+        assert np.allclose(data0.values, data.values)
+        print(f'{var} OK')
+    #
+    # done
+    print('\nALL TESTS OK')
+    os.chdir(cwd)
+
+
 
 # ALIAS'es
 get = get_cases

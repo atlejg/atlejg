@@ -767,10 +767,10 @@ def read_wrg(fnm, tke=0.05, full=True):
     one  = xr.DataArray(data=1., dims=dims, coords=coords)
     #
     data = {
-           'A':         wb_A,
-           'k':         wb_k,
-           'f':         wb_f/100.,                  # % to [1]
-           'tke':       tke*one
+           'A':   wb_A,
+           'k':   wb_k,
+           'f':   wb_f/100.,                          # from % to fraction
+           'tke': tke*one
            }
     #
     if full:
