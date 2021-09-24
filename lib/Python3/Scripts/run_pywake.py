@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
 '''
+
 this is a demo to show that pywake could be used for the WindFlow project (David H)
 
-
-there are still a few things to be worked out:
-    - it seems weibull-parameters change from location to location. why?
-      (i dont pick up this, i only use one set of weilbull-paramters)
 
 NOTES
 
@@ -176,9 +173,6 @@ def read_wtgs(opts):
         ct_func           = wm.read_curve(opts.ct_file, True)[0]
         unit = re.search('\[(\w*)\]', attr[-1]).group()[1:-1]
         return WindTurbines(names=['wtg'], diameters=[opts.diam], hub_heights=[opts.hub_height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit=unit)
-
-
-
 
 def main(yaml_file):
     '''
