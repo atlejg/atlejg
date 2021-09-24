@@ -60,7 +60,8 @@ NOTES
         we have so far used UniformWeibullSite, which obviously does not support this.
         the 'next level' is WaspGridSite, but this is made for complex onshore cases and
         seems a bit tricky.
-        therefore, for version-1, we just stick to the first weibull given in the knowl_file
+        therefore, for version-1, we just stick to one weibull given in the knowl_file. 
+        this is given by opts.weibull_index (which starts on 1).
         update: i have now implemented the use of a wrg-file
 
  - note3
@@ -117,6 +118,7 @@ def set_default_opts(opts):
     if not hasattr(opts, 'plot_wind'):          opts.plot_wind          =  False
     if not hasattr(opts, 'delta_winddir'):      opts.delta_winddir      = 1.
     if not hasattr(opts, 'delta_windspeed'):    opts.delta_windspeed    = 0.5
+    if not hasattr(opts, 'weibull_index'):      opts.weibull_index      = 1
     if not hasattr(opts, 'shift_wind_map'):     opts.shift_wind_map     = False      # mostly used for development
     if not hasattr(opts, 'report_aep'):         opts.report_aep         = True       # mostly used for development
     if not hasattr(opts, 'logfile') or not opts.logfile: opts.logfile   = None
@@ -520,7 +522,7 @@ def main(wake_model, yaml_file=None, selected=[], dump_results=True):
     #
     # setup things
     if not knowl.wrg_file:
-        weib = knowl.weibulls[0]                               # for now, we just use the first one. see note2. TODO!
+        weib = knowl.weibulls[opts.weibull_index-1]            # we just use one. see note2. TODO!
         site = UniformWeibullSite(weib.freqs, weib.As, weib.Ks, knowl.turb_intens)
     else:
         wrg = WU.read_wrg(knowl.wrg_file, tke=knowl.turb_intens)
@@ -546,8 +548,15 @@ def main(wake_model, yaml_file=None, selected=[], dump_results=True):
         wf_model = py_wake.NOJ(site, wtgs, k=opts.noj_k)
     elif wake_model == 'NOJLOCAL':
         wf_model = py_wake.NOJLocal(site, wtgs)
+    elif wake_model == 'ZGAUSS':
+        wf_model = py_wake.deficit_models.gaussian.ZongGaussian(
+                        site,
+                        wtgs,
+                        superpositionModel=py_wake.superposition_models.WeightedSum(),
+                        turbulenceModel=py_wake.turbulence_models.crespo.CrespoHernandez()
+                    )
     else:
-        raise Exception('The Fuga, TP, ETP, NOJ, or the NOJLocal wake models are the only options available.')
+        raise Exception('The Fuga, TP, ETP, ZGAUSS, NOJ, or the NOJLocal wake models are the only options available.')
     #
     # run simulations
     logging.info(f'run wake model {wake_model} for all combinations of wd and ws')
@@ -611,31 +620,43 @@ def run_single(directory, wake_model, yaml_file, selected=[]):
     main(wake_model, yaml_file=yaml_file, selected=selected)
     os.chdir(cwd)
 
+def read_casefile(csvfile, sep='&', comment='#'):
+    '''
+    see docs for run_multiple
+    '''
+    cases = pd.read_csv(csvfile, sep=';', comment='#')
+    parklist = []
+    for i, case in cases.iterrows():
+        if case.parks is np.NaN:
+            parks = []    # get all parks
+        else:
+            parks = [park.strip() for park in case.parks.split('&')]
+        parklist.append(parks)
+    cases.parks = parklist
+    #
+    return cases
+
 def run_multiple(csvfile, max_cpus=3):
     '''
     useful for running a set of simulations.
     the csv-file should look like something like this (to be opened in excel!):
         directory;parks;wake_model;yaml
-        TEST_int;DEP NW & DEP SE & DEP & SEP;ETP;../../2.yaml
-        TEST_ext;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll;ETP;../../2.yaml
-        TEST_fut;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll & R4;ETP;../../2.yaml
-        TEST_int;DEP NW & DEP SE & DEP & SEP;NOJ;../../2.yaml
-        TEST_ext;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll;NOJ;../../2.yaml
-        TEST_fut;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll & R4;NOJ;../../2.yaml
-        TEST_int;DEP NW & DEP SE & DEP & SEP;NOJLOCAL;../../2.yaml
-        TEST_ext;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll;NOJLOCAL;../../2.yaml
-        TEST_fut;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll & R4;NOJLOCAL;../../2.yaml
+        UKE_int;DEP NW & DEP SE & DEP & SEP;ETP;../../2.yaml
+        UKE_ext;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll;ETP;../../2.yaml
+        UKE_fut;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll & R4;ETP;../../2.yaml
+        UKE_int;DEP NW & DEP SE & DEP & SEP;NOJ;../../2.yaml
+        UKE_ext;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll;NOJ;../../2.yaml
+        UKE_fut;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll & R4;NOJ;../../2.yaml
+        UKE_int;DEP NW & DEP SE & DEP & SEP;NOJLOCAL;../../2.yaml
+        UKE_ext;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll;NOJLOCAL;../../2.yaml
+        UKE_fut;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll & R4;NOJLOCAL;../../2.yaml
     '''
-    cases = pd.read_csv(csvfile, sep=';', comment='#')
+    cases = read_casefile(csvfile)
     pool = mp.Pool(max_cpus)
     results = []
     #
     for i, case in cases.iterrows():
-        if case.parks:
-            parks = [park.strip() for park in case.parks.split('&')]
-        else:
-            parks = []    # get all parks
-        pool.apply_async(run_single, args=(case.directory, case.wake_model, case.yaml, parks))
+        pool.apply_async(run_single, args=(case.directory, case.wake_model, case.yaml, case.parks))
     #
     pool.close()
     pool.join()
