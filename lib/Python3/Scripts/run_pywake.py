@@ -20,6 +20,9 @@ NOTES
           ws: wind speed
           wl: wake loss
 
+ - note4
+   must have an old version of xlrd: pip install xlrd==1.2.0
+
 '''
 
 import py_wake

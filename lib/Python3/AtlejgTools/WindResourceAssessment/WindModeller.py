@@ -36,6 +36,7 @@ UNIT_NONE  = '-'
 UNIT_SPEED = 'm/s'
 UNIT_DIR   = 'deg'
 EQUATIONS  = ['U-Mom', 'V-Mom', 'W-Mom', 'P-Mass', 'K-TurbKE', 'E-Diss.K']   # will fail for non-K-eps cases...
+TESTDIR    = '/project/RCP/active/wind_resource_assessment/agy/Resources/Testdata/WindModeller'
 
 logging.basicConfig(level=logging.INFO)
 
@@ -322,7 +323,7 @@ def descr(res, meta=True, get_list=False, sep=' '):
     else:
         return sep.join(txts)
 
-def scatterplot(res, per_wd=False, as_text=True, fmt='.1f', scaler=1., fontsz=13., ms=75, add_arrow=False, tight=True):
+def scatterplot(res, per_wd=False, as_text=False, fmt='.1f', scaler=1., fontsz=13., ms=75, add_arrow=False, tight=True, title=None):
     '''
     plots a scatter-plot with values per wt.
     if result (res) has multiple ws'es, they will be averaged
@@ -377,12 +378,16 @@ def scatterplot(res, per_wd=False, as_text=True, fmt='.1f', scaler=1., fontsz=13
                 plt.arrow(x, y, ARROW_SIZE*dx, ARROW_SIZE*dy, head_width=ARROW_SIZE/5)
                 plt.xlim(right=x+2.5*ARROW_SIZE)
         else:
-            plt.title(descr(res))
+            if title:
+                plt.title(title)
+            else:
+                plt.title(descr(res))
         plt.xticks([])
         plt.yticks([])
         plt.axis('equal')
         if not as_text: plt.colorbar()
         if tight: plt.tight_layout()
+        plt.show()
 
 def cp(old, new, file_ext='.wm'):
     '''
@@ -509,6 +514,13 @@ class WindModellerCase(object):
           * grid_dims   : if wt's are in a regular grid, please provide it's dimensions here (nrows, ncols)
                           and we will make it easy to access data by row or column.
         - notes
+          * must have 'quantitative postprocessing' OR 'array efficiency' active to be able to
+            read results (i.e. if read_results is True)
+          * if 'array efficiency' is active, it will read the reported efficiencies and use this
+            to calculate gross production.
+            else, it will use upstream velocities to calculate gross production.
+            in this case, it will also scale gross production  to make sure
+            at least one turbine has 100% efficiency
           * grid_dims only works if the wt's in the layout-file has been entered row by row, columnm
             by column (columns cycling fastest)
           * make sure to use the 'natural' row/column orientation when using grid_dims
@@ -517,6 +529,7 @@ class WindModellerCase(object):
           * the actual wd and ws for each turbine (hub) is found in wdh and wsh, respecitvely,
             whereas the requested values are found in wdr and wsr, respecitvely.
             wdh and wsh are volume averaged values for the actuator disc.
+          * 
         '''
         #
         self.pm, self.fnm = read_params(name)
@@ -558,11 +571,14 @@ class WindModellerCase(object):
                 self.gross = self._calc_gross()
             else:
                 logging.warn('Array efficiency not activated. Using max upstream ' +
-                             'velocity for calculating gross production and efficiency')
+                             'velocity for calculating gross production & efficiency, ' +
+                             'and scaling gross so that efficency = 100% for (at least) one turbine')
                 self.gross = self.net * 0                          # init
                 wsu_max = self.wsu.max().values 
                 for wti, (_, row) in enumerate(self.layout.iterrows()):
                     self.gross.loc[dict(wt=wti)] = row.pwr_func(wsu_max)
+                net_max, gross_max = self.net.max(), self.gross.max() 
+                self.gross *= net_max/gross_max
                 self.eff = self.net / self.gross * 100
             #
             self.wl    = self.wakeloss(average=False)
@@ -680,15 +696,26 @@ class WindModellerCase(object):
         reads wt-positions from a this case
         - returns
           * pandas DataFrame of wt-positions (and potentially other info)
+        - notes
+          * assumes file-format: the separator is any number of white-spaces,
+            or a comma (which is what i have seen that WindModeller accepts)
+          * will set default values for h, diam, pwr, ct, active and yaw if not found
+            in the file
+          * default values for ct_nm & pwr_nm is '' which gives the first curve
+            (see get_curve())
         '''
         fnm = self.pm['WT location file']
-        layout = pd.read_csv(fnm, delim_whitespace=True, header=None)
-        cols = ['name', 'x', 'y', 'h', 'diam', 'ct_nm', 'pwr_nm', 'active', 'yaw']
-        layout.columns = cols[:layout.shape[1]]
-        if 'ct_nm' in layout.columns:
-            layout['ct_func'] = [self.get_curve(TYP_CT, nm)[0] for nm in layout.ct_nm]
-        if 'pwr_nm' in layout.columns:
-            layout['pwr_func'] = [self.get_curve(TYP_PWR, nm)[0] for nm in layout.pwr_nm]
+        layout = pd.read_csv(fnm, sep=' +|,', header=None, engine='python')
+        ncols = layout.shape[1]
+        if ncols < 4: layout['h']      = self.pm['reference height']
+        if ncols < 5: layout['diam']   = self.pm['rotor diameter']
+        if ncols < 6: layout['ct_nm']  = ''
+        if ncols < 7: layout['pwr_nm'] = ''
+        if ncols < 8: layout['active'] = 1
+        if ncols < 9: layout['yaw']    = 0.
+        layout.columns = ['name', 'x', 'y', 'h', 'diam', 'ct_nm', 'pwr_nm', 'active', 'yaw']
+        layout['ct_func']  = [self.get_curve(TYP_CT, nm)[0]  for nm in layout.ct_nm]
+        layout['pwr_func'] = [self.get_curve(TYP_PWR, nm)[0] for nm in layout.pwr_nm]
         return layout
 #
     def _get_resultsfiles(self, rtype):
@@ -1074,7 +1101,7 @@ def test_efficency(testcase):
     eff = wmc.efficency()
     assert np.all(eff.values == np.linspace(0.1, 1, 10))
 
-def test_hornsrev_case(casenm='a01', testdir='/project/RCP/active/wind_resource_assessment/agy/Resources/Testdata/WindModeller/HornsRev'):
+def test_hornsrev_case(casenm='a01', testdir=TESTDIR+'/HornsRev'):
     '''
     useful test-function for making sure the code is safe and sound.
     compares (somewhat) validated data to what *this* code now gives.
