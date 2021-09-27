@@ -96,6 +96,7 @@ import glob, re, zipfile, logging, yaml
 from scipy.interpolate import interp1d
 import AtlejgTools.WindResourceAssessment.Utils as WU
 import AtlejgTools.Utils as UT
+import AtlejgTools.Scrips.run_pywake as run_pywake
 
 N_SECTORS = 12
 WWH_FILE  = 'FugaAdapted.wwh'  # the zipped inventory file (for Fuga)
@@ -490,6 +491,7 @@ def plot_flowmap(sim_res, ws0, ws_min, ws_max, wd0, wake_model, case_nm, plot_wt
     plt.title(f'{case_nm} :: {wake_model} :: {ws0:.0f} m/s :: {wd0:.0f} deg')
     plt.show()
 
+
 def main(wake_model, yaml_file=None, selected=[], dump_results=True):
     '''
     pick up knowl case description and run PyWake simulation.
@@ -535,28 +537,7 @@ def main(wake_model, yaml_file=None, selected=[], dump_results=True):
     # pick and initialize the chosen wake model
     if not wake_model: wake_model = opts.wake_model
     wake_model = wake_model.upper()
-    #
-    # for the various choices, see note5
-    if wake_model   == 'FUGA':
-        assert wtgs.uniq_wtgs == 1                           # see note3
-        wf_model = py_wake.Fuga(opts.lut_path, site, wtgs)
-    elif wake_model == 'TP':
-        wf_model = py_wake.TP(site, wtgs, k=opts.tp_A)       # 'standard' TurbOPark
-    elif wake_model == 'ETP':
-        wf_model = py_wake.ETP(site, wtgs, k=opts.tp_A)      # 'Equinor' TurbOPark
-    elif wake_model == 'NOJ':
-        wf_model = py_wake.NOJ(site, wtgs, k=opts.noj_k)
-    elif wake_model == 'NOJLOCAL':
-        wf_model = py_wake.NOJLocal(site, wtgs)
-    elif wake_model == 'ZGAUSS':
-        wf_model = py_wake.deficit_models.gaussian.ZongGaussian(
-                        site,
-                        wtgs,
-                        superpositionModel=py_wake.superposition_models.WeightedSum(),
-                        turbulenceModel=py_wake.turbulence_models.crespo.CrespoHernandez()
-                    )
-    else:
-        raise Exception('The Fuga, TP, ETP, ZGAUSS, NOJ, or the NOJLocal wake models are the only options available.')
+    wf_model = run_pywake.deficit_model(wake_model, opts, site, wtgs)
     #
     # run simulations
     logging.info(f'run wake model {wake_model} for all combinations of wd and ws')

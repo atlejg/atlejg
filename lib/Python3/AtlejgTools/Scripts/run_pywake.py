@@ -177,6 +177,33 @@ def read_wtgs(opts):
         unit = re.search('\[(\w*)\]', attr[-1]).group()[1:-1]
         return WindTurbines(names=['wtg'], diameters=[opts.diam], hub_heights=[opts.hub_height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit=unit)
 
+def deficit_model(wake_model, opts, site, wtgs):
+    '''
+    for the various choices, see note5
+    '''
+    wake_model = wake_model.upper()
+    if wake_model   == 'FUGA':
+        assert wtgs.uniq_wtgs == 1                           # see note3
+        wf_model = py_wake.Fuga(opts.lut_path, site, wtgs)
+    elif wake_model == 'TP':
+        wf_model = py_wake.TP(site, wtgs, k=opts.tp_A)       # 'standard' TurbOPark
+    elif wake_model == 'ETP':
+        wf_model = py_wake.ETP(site, wtgs, k=opts.tp_A)      # 'Equinor' TurbOPark
+    elif wake_model == 'NOJ':
+        wf_model = py_wake.NOJ(site, wtgs, k=opts.noj_k)
+    elif wake_model == 'NOJLOCAL':
+        wf_model = py_wake.NOJLocal(site, wtgs)
+    elif wake_model == 'ZGAUSS':
+        wf_model = py_wake.deficit_models.gaussian.ZongGaussian(
+                        site,
+                        wtgs,
+                        superpositionModel=py_wake.superposition_models.WeightedSum(),
+                        turbulenceModel=py_wake.turbulence_models.crespo.CrespoHernandez()
+                    )
+    else:
+        raise Exception('The Fuga, TP, ETP, ZGAUSS, NOJ, or the NOJLocal wake models are the only options available.')
+    return wf_model
+
 def main(yaml_file):
     '''
     - input
