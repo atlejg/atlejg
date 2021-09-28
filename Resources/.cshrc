@@ -30,9 +30,21 @@ source $LoginPath/DEFAULT.$ext
 #========================================================
 #
 
-#source /prog/res/komodo/stable-py3/enable.csh   # komodo as of june 2018 (Joakim Hove - Yammer 15/6-18). replaced by WRA36b below
-#source /project/res/komodo/testing/enable.csh   # hot from the press..
-source /project/RCP/active/venv/agy/WRA36b/bin/activate.csh    # based on /prog/res/komodo/2021.08-py36/enable.csh
+# notes:
+# n1: komodo as of june 2018 (Joakim Hove - Yammer 15/6-18).
+#     i read this could be replaced by WRA36b below, but it turns out
+#     that when using ssh i miss some important elements in PATH
+#     (like the ones needed for ert etc.)
+# n2: as of sep 2021, i started using virtual environmens (venv).
+#     i chose to put them in a public place so other may use them.
+#     i also don't use the --system-site-packages option for the
+#     WRA36b. it should also include on /prog/res/komodo/2021.08-py36/enable.csh,
+#     but see n1
+
+source /prog/res/komodo/stable-py3/enable.csh                  # n1
+#source /project/res/komodo/testing/enable.csh                  # hot from the press..
+
+source /project/RCP/active/venv/agy/WRA36b/bin/activate.csh    # n2
 
 # Then add *my* stuff. Keep fingers crossed..
 source $HOME/.mycshrc
