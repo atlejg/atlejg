@@ -96,7 +96,7 @@ import glob, re, zipfile, logging, yaml
 from scipy.interpolate import interp1d
 import AtlejgTools.WindResourceAssessment.Utils as WU
 import AtlejgTools.Utils as UT
-import AtlejgTools.Scrips.run_pywake as run_pywake
+import AtlejgTools.Scripts.run_pywake as run_pywake
 
 N_SECTORS = 12
 WWH_FILE  = 'FugaAdapted.wwh'  # the zipped inventory file (for Fuga)

@@ -233,7 +233,7 @@ def main(yaml_file):
             webviz_output:      !!bool     true
             webviz_file:        !!str      share/results/volumes/webviz.csv
     - returns
-      * sim, layout, opts, wtgs, weib, site, wake_model
+      * sim, layout, opts, wtgs, weib, site, wf_model
     - notes
       * many attributes of the yaml-file has a default value; see set_defaults()
     '''
@@ -253,18 +253,12 @@ def main(yaml_file):
     site   = UniformWeibullSite(weib.freq, weib.A, weib.K, opts.turb_intens)
     #
     # initialize the chosen wake model
-    wake_model = opts.wake_model.upper()
-    if opts.wake_model.upper() == 'TP' or 'TURBO' in opts.wake_model.upper():
-        wake_model = py_wake.TP(site, wtgs, k=opts.tp_A)
-    elif opts.wake_model.upper()== 'NOJ':
-        wake_model = py_wake.NOJ(site, wtgs, k=opts.noj_k)
-    else:
-        raise Exception('TurboPark or the NOJ wake models are the only options available.')
+    wf_model = deficit_model(opts.wake_model, opts, site, wtgs)
     #
     # run wake model for all combinations of wd and ws
     wd = np.arange(0, 360, opts.delta_winddir)
     ws = np.arange(np.floor(opts.ws_min), np.ceil(opts.ws_max), opts.delta_windspeed)
-    sim = wake_model(layout.x.values, layout.y.values, wd=wd, ws=ws)
+    sim = wf_model(layout.x.values, layout.y.values, wd=wd, ws=ws)
     #
     # calculate and report
     net   = sim.aep(with_wake_loss=True)
@@ -278,7 +272,7 @@ def main(yaml_file):
     toc = time.perf_counter()
     logging.info(f"Total runtime: {toc-tic:0.1f} seconds")
     #
-    return sim, layout, opts, wtgs, weib, site, wake_model
+    return sim, layout, opts, wtgs, weib, site, wf_model
 
 ################################## -- MAIN LOGIC -- ###########################
 
@@ -287,5 +281,5 @@ if __name__ == '__main__':
 
     yaml_file = sys.argv[1]
 
-    sim, layout, opts, wtgs, weib, site, wake_model = main(yaml_file)
+    sim, layout, opts, wtgs, weib, site, wf_model = main(yaml_file)
 
