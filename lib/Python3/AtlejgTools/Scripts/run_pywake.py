@@ -35,8 +35,8 @@ import os, sys, time
 import re, logging
 from scipy.interpolate import interp1d
 import AtlejgTools.Utils as UT
-import AtlejgTools.WindResourceAssessment.Utils as WU
-import AtlejgTools.WindResourceAssessment.WindModeller as wm
+import AtlejgTools.WindYieldAssessment.Utils as WU
+import AtlejgTools.WindYieldAssessment.WindModeller as wm
 
 N_SECTORS = 12
 

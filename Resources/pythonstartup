@@ -20,8 +20,8 @@ import AtlejgTools.FluentUtils as FL
 import AtlejgTools.Utils as UT
 #import AtlejgTools.RCP_project.Valve_characteristics as VC
 import AtlejgTools.SimulationTools.UnitConversion      as U
-import AtlejgTools.WindResourceAssessment.Utils        as WU
-import AtlejgTools.WindResourceAssessment.WindModeller as WM
+import AtlejgTools.WindYieldAssessment.Utils        as WU
+import AtlejgTools.WindYieldAssessment.WindModeller as WM
 
 if 'win' not in sys.platform:
    #import AtlejgTools.EclipseTools.Utils as ECL

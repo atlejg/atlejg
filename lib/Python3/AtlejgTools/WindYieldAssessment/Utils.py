@@ -60,7 +60,7 @@ def calc_power(sim, wtgs, weib, park_nms=[]):
     calculates weibull-averaged net and gross power for each sector.
     # 
     loosely based on scriptified version of knut s. seim's notebook:
-    /cygdrive/c/Appl/atlejg/lib/Python3/AtlejgTools/WindResourceAssessment/KnutSeim_stuff/py_wake_demo2.py
+    /cygdrive/c/Appl/atlejg/lib/Python3/AtlejgTools/WindYieldAssessment/KnutSeim_stuff/py_wake_demo2.py
     #
     notes: 
         n1: assumes one WTG-type for each park
@@ -104,7 +104,7 @@ def calc_AEP(sim, wtgs, weib, park_nms=[], verbose=False):
     calculates weibull-averaged net and gross AEP for each sector.
     # 
     loosely based on scriptified version of knut s. seim's notebook:
-    /cygdrive/c/Appl/atlejg/lib/Python3/AtlejgTools/WindResourceAssessment/KnutSeim_stuff/py_wake_demo2.py
+    /cygdrive/c/Appl/atlejg/lib/Python3/AtlejgTools/WindYieldAssessment/KnutSeim_stuff/py_wake_demo2.py
     #
     notes: 
         n1: assumes one WTG-type for each park
@@ -149,7 +149,7 @@ def calc_AEP_old(sim0, pwr_funcs, weibs, dwd=1., park_nms=[], verbose=False, ret
     calculates averaged AEP for each sector.
     # 
     based on scriptifie version of knut s. seim's notebook:
-    /cygdrive/c/Appl/atlejg/lib/Python3/AtlejgTools/WindResourceAssessment/KnutSeim_stuff/py_wake_demo2.py
+    /cygdrive/c/Appl/atlejg/lib/Python3/AtlejgTools/WindYieldAssessment/KnutSeim_stuff/py_wake_demo2.py
     #
     notes: 
         n1: assumes one WTG-type & weibull for each park

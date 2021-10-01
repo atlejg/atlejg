@@ -17,7 +17,7 @@ import xarray as xr
 import AtlejgTools.Utils as UT
 import py_wake 
 import matplotlib.pyplot as plt
-import AtlejgTools.WindResourceAssessment.Utils as WU
+import AtlejgTools.WindYieldAssessment.Utils as WU
 import pickle
 
 

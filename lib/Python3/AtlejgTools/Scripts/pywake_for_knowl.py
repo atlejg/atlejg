@@ -94,7 +94,7 @@ import os, sys, time, pickle
 import multiprocessing as mp
 import glob, re, zipfile, logging, yaml
 from scipy.interpolate import interp1d
-import AtlejgTools.WindResourceAssessment.Utils as WU
+import AtlejgTools.WindYieldAssessment.Utils as WU
 import AtlejgTools.Utils as UT
 import AtlejgTools.Scripts.run_pywake as run_pywake
 
