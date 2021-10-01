@@ -36,7 +36,7 @@ UNIT_NONE  = '-'
 UNIT_SPEED = 'm/s'
 UNIT_DIR   = 'deg'
 EQUATIONS  = ['U-Mom', 'V-Mom', 'W-Mom', 'P-Mass', 'K-TurbKE', 'E-Diss.K']   # will fail for non-K-eps cases...
-TESTDIR    = '/project/RCP/active/wind_resource_assessment/agy/Resources/Testdata/WindModeller'
+TESTDIR    = '/project/RCP/active/wind_yield_assessment/agy/Resources/Testdata/WindModeller'
 
 logging.basicConfig(level=logging.INFO)
 

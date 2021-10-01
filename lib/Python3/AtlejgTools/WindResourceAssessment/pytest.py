@@ -9,7 +9,7 @@ import pandas as pd
 ACCURACY = 1.1e-4
 
 if 'linux' in sys.platform.lower():
-    KNOWLDIR  = r'/project/RCP/active/wind_resource_assessment/agy/Knowl/Testdata'
+    KNOWLDIR  = r'/project/RCP/active/wind_yield_assessment/agy/Knowl/Testdata'
 else:
     KNOWLDIR  = r'D:\OneDrive - Equinor\ACTIVE\Wind\knowl\Testdata'
 
@@ -62,13 +62,13 @@ def knowl_large_cases(noj_only=False):
 def knowl_small_case(noj_only=False):
     _knowl_cases('WestermostRough', noj_only)
 
-def pywake_dbc_test(testdir='/project/RCP/active/wind_resource_assessment/WindFlow/Testdata/DBC', yaml_file='1.yml'):
+def pywake_dbc_test(testdir='/project/RCP/active/wind_yield_assessment/agy/WindWorks/Testdata/DBC', yaml_file='1.yml'):
     '''
     a doggerbank test-case
     '''
     cwd = os.getcwd()
     os.chdir(testdir)
-    _, _, opts, _, _, _, _ =  run_pywake.main(yaml_file, dump_results=False)
+    _, _, opts, _, _, _, _ =  run_pywake.main(yaml_file)
     orig = pd.read_csv('orig.csv')
     new  = pd.read_csv(opts.outfile)
     assert all(new==orig)

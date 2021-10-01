@@ -150,32 +150,40 @@ def get_weibull(fnm, A_scaler=1.):
     weib.A *= A_scaler
     return weib
 
-def read_wtgs(opts):
+def read_wtgs(opts, gap=26.):
     '''
     - input
       * opts: either wtg_file or (pwr_file and ct_file) must be given. 
           - wtg_file:            either a wtg-file or a generic Equinor WTG in xlsx-format, typically EQN-D250-15MW.xlsx
           - pwr_file & ct_file:  WindModeller pwr & ct curves
+      * gap: if opts.hub_height is not set (i.e. < 0), hub_height = diam/2 + gap (not for wtg_file)
     '''
     if opts.wtg_file:
         if opts.wtg_file.endswith('.wtg'):
             return WindTurbines.from_WAsP_wtg(opts.wtg_file)
         elif opts.wtg_file.endswith('.xlsx'):
             data = pd.read_excel(opts.wtg_file, sheet_name='PowerCurve', header=0)
+            props = pd.read_excel(opts.wtg_file, sheet_name='Properties', header=None)
+            props = dict(zip(props[0].values, props[1].values))     # make a dict out of it
             scaler = 1000. if 'kW' in data.columns[1] else 1.
             data.set_axis(['ws', 'pwr', 'ct'], axis=1, inplace=True)
             nm = UT.basename(opts.wtg_file)
-            diam = float(re.search('-D(\d*)-', opts.wtg_file).groups()[0]) # extract it from EQN-D250-15MW.xlsx
+            diam = props['Rotor Diameter']
+            hub_height = diam/2. + props['Air Gap']
             ct_func = WU.interpolate_curve(data.ws, data.ct)
             pwr_func = WU.interpolate_curve(data.ws, scaler*data.pwr)
-            return WindTurbines(names=[nm], diameters=[diam], hub_heights=[opts.hub_height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit='W')
+            return WindTurbines(names=[nm], diameters=[diam], hub_heights=[hub_height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit='W')
         else:
             raise Exception(f'wtg-file {opts.wtg_file} not supported')
     else:
         pwr_func, _, attr = wm.read_curve(opts.pwr_file, True)
         ct_func           = wm.read_curve(opts.ct_file, True)[0]
         unit = re.search('\[(\w*)\]', attr[-1]).group()[1:-1]
-        return WindTurbines(names=['wtg'], diameters=[opts.diam], hub_heights=[opts.hub_height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit=unit)
+        if opts.hub_height > 0:
+            hub_height = opts.hub_height
+        else:
+            hub_height = opts.diam/2. + gap
+        return WindTurbines(names=['wtg'], diameters=[opts.diam], hub_heights=[hub_height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit=unit)
 
 def deficit_model(wake_model, opts, site, wtgs):
     '''
@@ -185,7 +193,7 @@ def deficit_model(wake_model, opts, site, wtgs):
     if wake_model   == 'FUGA':
         assert wtgs.uniq_wtgs == 1                           # see note3
         wf_model = py_wake.Fuga(opts.lut_path, site, wtgs)
-    elif wake_model == 'TP':
+    elif wake_model in ['TP', 'TURBOPARK']:
         wf_model = py_wake.TP(site, wtgs, k=opts.tp_A)       # 'standard' TurbOPark
     elif wake_model == 'ETP':
         wf_model = py_wake.ETP(site, wtgs, k=opts.tp_A)      # 'Equinor' TurbOPark
@@ -201,7 +209,7 @@ def deficit_model(wake_model, opts, site, wtgs):
                         turbulenceModel=py_wake.turbulence_models.crespo.CrespoHernandez()
                     )
     else:
-        raise Exception('The Fuga, TP, ETP, ZGAUSS, NOJ, or the NOJLocal wake models are the only options available.')
+        raise Exception('Only Fuga, TP/TurbOPark, ETP (Equinor TP), ZGauss, NOJ, NOJLocal wake models are available.')
     return wf_model
 
 def main(yaml_file):
