@@ -180,6 +180,9 @@ setenv PATH "${PATH}:/project/RCP/active/Ansys/windmodeller-150120/utilities/lib
 setenv PERLLIB "${PERLLIB}:${SCRIPT_DIR}"
 setenv PERL5LIB "${PERL5LIB}:${SCRIPT_DIR}"
 
+# WindWork stuff
+alias windworks /project/RCP/active/wind_yield_assessment/agy/WindWorks/Tools/windworks
+
 # GAMBIT stuff
 # Wed Jan 13 12:03:05 MET 2016
 # gambit will only work on selected disks... for now, i use /tmp. remember copying afterwards!!
