@@ -178,7 +178,7 @@ setenv SCRIPT_DIR /project/RCP/active/Ansys/windmodeller-150120/utilities/script
 setenv PATH "${PATH}:${SCRIPT_DIR}"
 setenv PATH "${PATH}:/project/RCP/active/Ansys/windmodeller-150120/utilities/lib/linux-amd64"
 setenv PERLLIB "${PERLLIB}:${SCRIPT_DIR}"
-setenv PERL5LIB "${PERL5LIB}:${SCRIPT_DIR}"
+setenv PERL5LIB $PERLLIB
 
 # WindWork stuff
 alias windworks /project/RCP/active/wind_yield_assessment/agy/WindWorks/Tools/windworks
