@@ -814,7 +814,7 @@ def interpolate_curve(ws, vals):
 
 def report_to_excel_1(fnms, csvfile='wl_rep.csv', open_in_excel=True,
                       excel_cmd=r'"C:\Program Files (x86)\Microsoft Office\root\Office16\excel.exe" ',
-                      selected=[]):
+                      selected=[], sep=';'):
     '''
     writes data to csv-file.
     to be used with knut's excel
@@ -846,7 +846,7 @@ def report_to_excel_1(fnms, csvfile='wl_rep.csv', open_in_excel=True,
     #
     if selected:
         res = res[res.nm.isin(selected)]
-    res.to_csv(csvfile, sep=';', index=False)
+    res.to_csv(csvfile, sep=sep, index=False)
     print(csvfile, 'was created')
     #
     if open_in_excel:
