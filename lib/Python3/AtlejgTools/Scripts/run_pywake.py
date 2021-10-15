@@ -166,7 +166,7 @@ def write_results(case, opts, wtgs, net, gross, suffix='.csv'):
     #
     logging.info(f'writing results to : {fnm}')
 
-def set_defaults(opts):
+def set_defaults(opts, mode):
     if not hasattr(opts, 'A_scaler'):          opts.A_scaler          = 1.
     if not hasattr(opts, 'case_nm'):           opts.case_nm           = 'pywake'
     if not hasattr(opts, 'wake_model'):        opts.wake_model        = 'ETP'
@@ -185,6 +185,11 @@ def set_defaults(opts):
     if not hasattr(opts, 'csv_sep'):           opts.csv_sep           = ';'
     if not hasattr(opts, 'dump_results'):      opts.dump_results      = True
     if not hasattr(opts, 'resultfile_prefix'): opts.resultfile_prefix = 'pywake_results'
+    if mode == 'knowl':
+        if not hasattr(opts, 'inventory_file'): opts.inventory_file = 'Inventory.xml'
+        if not hasattr(opts, 'weibull_index'):  opts.weibull_index  = 1
+        if not hasattr(opts, 'knowl_file'):
+            opts.knowl_file = glob.glob('knowl_v*input.xlsx')[0]
 
 def get_weibull(fnm, A_scaler=1., is_percent=True):
     '''
@@ -241,9 +246,10 @@ def write_AEP(case, sim, wtgs, weib, delta_winddir, outfile):
     WU.create_output(aeps, case, outfile)
     return simc, aeps
 
-def main(mode, yaml_file):
+def main(mode, yaml_file, wake_model):
     '''
     - input
+      * mode : 'default' or 'knowl'
       * yaml_file like this:
             case_nm:            !!str      Arkona
             #
@@ -271,6 +277,8 @@ def main(mode, yaml_file):
             webviz_output:      !!bool     false
             webviz_file:        !!str      none
             csv_sep:            !!str      ;
+      * wake_model: 'ETP' etc (see note4) or None.
+        if None, it will use value from opts (yaml-file)
     - returns
       * sim, simc, aeps, case, opts, wtgs, site, wf_model, weib
         simc is a coarsened version of sim
@@ -282,9 +290,13 @@ def main(mode, yaml_file):
     tic = time.perf_counter()
     logging.basicConfig(level=logging.INFO)
     #
-    opts = UT.get_yaml(yaml_file)
-    set_defaults(opts)
-    logging.info(f"Reading input file: {yaml_file}")
+    if yaml_file:
+        logging.info(f"Reading input file: {yaml_file}")
+        opts = UT.get_yaml(yaml_file)
+    else:
+        opts = UT.Struct()
+    set_defaults(opts, mode)
+    if wake_model: opts.wake_model = wake_model
     #
     # setup things
     if mode == 'knowl':
@@ -331,11 +343,12 @@ def main(mode, yaml_file):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(dest='yaml_file', help='yaml-file describing the case')
+    parser.add_argument('--yaml', '-y', help='yaml-file describing the case', default=None)
+    parser.add_argument('--wakemodel', '-w', help='overwrites input in yaml-file', default=None) # useful for knowl
     parser.add_argument('--knowl', '-k', action='store_true', help='input from Knowl?')
     args = parser.parse_args()
 
     mode = 'knowl' if args.knowl else 'default'
 
-    res = main(mode, args.yaml_file)
+    res = main(mode, args.yaml, args.wakemodel)
 
