@@ -103,6 +103,11 @@ WWH_FILE  = 'FugaAdapted.wwh'  # the zipped inventory file (for Fuga)
 SEP       = os.path.sep
 EPS       = 1e-9               # small non-zero value
 
+# for test-functions
+if 'linux' in sys.platform.lower():
+    KNOWLDIR  = r'/project/RCP/active/wind_yield_assessment/agy/Knowl/Testdata'
+else:
+    KNOWLDIR  = r'D:\OneDrive - Equinor\ACTIVE\Wind\knowl\Testdata'
 
 def set_default_opts(opts):
     '''
@@ -273,7 +278,7 @@ def read_inventory(fnm, selected=[]):
     #
     output:
         - case     : all parks collected into one object.
-                     includes lists of individual WTG's and parks as read from the inventory (wtg_list and park_list)
+                     includes lists of individual WTG's and parks as read from the inventory (_wtg_list and park_list)
         - parks    : list of individual parks
         - wtgs     : an WindTurbines object for all WTG used
     '''
@@ -376,31 +381,30 @@ def read_inventory(fnm, selected=[]):
     #
     # finally, collect all parks into one big case / park
     case = UT.Struct()
-    case.locs  = locs_
-    case.size  = len(locs_)
-    case.xs    = np.array([loc[0] for loc in locs_])
-    case.ys    = np.array([loc[1] for loc in locs_])
-    case.ids   = ids_
-    case.wtgs  = []
-    case.parks = []
-    case.names = []
-    case.weibs = weibs
+    case.size   = len(locs_)
+    case.xs     = np.array([loc[0] for loc in locs_])
+    case.ys     = np.array([loc[1] for loc in locs_])
+    case.ids    = ids_
+    # case._* : useful stuff (for debug)
+    case._wtg_list  = wtgs_
+    case._pwr_funcs = [wtg.pwr_func for wtg in case._wtg_list]
+    case._locs      = locs_
+    case._weibs     = weibs
+    case._wtgs      = []
+    case._parks     = []
+    case._names     = []
     types = []
     for p in parks:
         types.extend(p.types)
-        case.wtgs.extend([p.wtg]*p.size)
-        case.parks.extend([p]*p.size)
-        case.names.extend([p.name]*p.size)
-    case.wtg_names = [wtg.name for wtg in case.wtgs]
-    case.hub_heights = [wtg.hub_height for wtg in case.wtgs]
-    case.types = np.array(types)
+        case._wtgs.extend([p.wtg]*p.size)
+        case._parks.extend([p]*p.size)
+        case._names.extend([p.name]*p.size)
     #
-    # some useful stuff
-    case.wtg_list  = wtgs_
-    case.park_list = parks
-    case.n_parks   = len(parks)
-    case.pwr_funcs = [wtg.pwr_func for wtg in case.wtg_list]
-    case.park_nms  = nms_
+    case.types       = np.array(types)
+    case.hub_heights = [wtg.hub_height for wtg in case._wtgs]
+    case.n_parks     = len(parks)
+    case.park_list   = parks
+    case.park_nms    = nms_
     #
     wtgs = _get_windturbines(wtgs_)
     return case, wtgs
@@ -502,16 +506,17 @@ def main(wake_model, yaml_file=None, selected=[], dump_results=True):
       * selected:   Which parks to use. Default is [], which gives all. This is useful since it means
                     only one Inventory.xml is needed (covering all parks in the knowl-project)
     - returns
-      * sim_res
-      * sim
-      * aeps
-      * sim
-      * case
-      * knowl
-      * opts
-      * wtgs
-      * site
-      * wf_model
+      * a dict with the following elements:
+        - sim_res
+        - sim
+        - aeps
+        - sim
+        - case
+        - knowl
+        - opts
+        - wtgs
+        - site
+        - wf_model
     '''
     #
     opts = get_opts(yaml_file)
@@ -588,8 +593,9 @@ def main(wake_model, yaml_file=None, selected=[], dump_results=True):
     logging.info(f"Total runtime: {toc-tic:0.1f} seconds")
     #
     res =  sim_res, sim, aeps, case, knowl, opts, wtgs, site, wf_model
+    keys = ['sim_res', 'sim', 'aeps', 'case', 'knowl', 'opts', 'wtgs', 'site', 'wf_model']
     if dump_results: _dump(res, f'{wake_model}.pck')
-    return res
+    return dict(zip(keys, res))
 
 def run_single(directory, wake_model, yaml_file, selected=[]):
     cwd = os.getcwd()
@@ -643,31 +649,44 @@ def run_multiple(csvfile, max_cpus=3):
     pool.join()
     print('done')
 
-def run_multiple_old(csvfile, max_cpus=3):
-    '''
-    useful for running a set of simulations.
-    the csv-file should look like something like this:
-        directory                wake_model   yaml
-        #DOW_int                  ETP       ../1.yaml
-        #DOW_ext                  ETP       ../1.yaml
-        #DOW_fut                  ETP       ../1.yaml
-        DOW_int                  NOJ       ../1.yaml
-        DOW_ext                  NOJ       ../1.yaml
-        DOW_fut                  NOJ       ../1.yaml
-        DOW_int                  NOJLOCAL  ../1.yaml
-        DOW_ext                  NOJLOCAL  ../1.yaml
-        DOW_fut                  NOJLOCAL  ../1.yaml
-    '''
-    cases = pd.read_csv(csvfile, delim_whitespace=True, comment='#')
-    pool = mp.Pool(max_cpus)
-    results = []
+def _run_knowl_cases(pattern, noj_only):
+    cwd = os.getcwd()
+    os.chdir(KNOWLDIR)
+    case_dirs = UT.glob(pattern); case_dirs.sort()
     #
-    for i, case in cases.iterrows():
-        pool.apply_async(run_single, args=(case.directory, case.wake_model, case.yaml))
-    #
-    pool.close()
-    pool.join()
-    print('done')
+    for case_dir in case_dirs:
+        logging.info('')
+        logging.info(f'------ case_dir : {case_dir} ------')
+        os.chdir(case_dir)
+        #
+        logging.info('------ NOJ ------')
+        res = main('NOJ', dump_results=False)
+        r1 = WU.read_output_file('NOJ.txt')           # existing file
+        r2 = WU.read_output_file('FugaOutput_1.txt')  # created now
+        #
+        assert np.allclose(r1.net, r2.net)
+        assert np.allclose(r1.gross, r2.gross)
+        #
+        if not noj_only:
+            #
+            logging.info(' ------ TurbOPark ------')
+            main('ETP', dump_results=False)
+            r1 = WU.read_output_file('ETP.txt')            # existing file
+            r2 = WU.read_output_file('FugaOutput_1.txt')  # created now
+            #
+            assert np.allclose(r1.net, r2.net)
+            assert np.allclose(r1.gross, r2.gross)
+        os.chdir(KNOWLDIR)
+    os.chdir(cwd)
+    logging.info(f' testing OK')
+    return res    # could be useful
+
+def test_knowl_large_cases(noj_only=False):
+    return _run_knowl_cases('Phase?_*/', noj_only)
+
+def test_knowl_small_case(noj_only=False):
+    return _run_knowl_cases('WestermostRough', noj_only)
+
 
 
 ################################## -- MAIN LOGIC -- ###########################
@@ -684,6 +703,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     #
     # run program
-    sim_res, sim, aeps, case, knowl, opts, wtgs, site, wf_model = \
-        main(args.wake_model, yaml_file=args.yaml_file)
+    res = main(args.wake_model, yaml_file=args.yaml_file)
 
