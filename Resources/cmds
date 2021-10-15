@@ -283,7 +283,8 @@ zM: close all
 zm: close next level
 
 # comparing content of directories
-diff -qr Dir1 Dir2
+diff -qr Dir1 Dir2    # recursive
+diff -q  Dir1 Dir2    # not recursive
 
 # converting jupyter notebook to a script
 jupytext --to script test.ipynb      # or: ipython nbconvert --to script test.ipynb

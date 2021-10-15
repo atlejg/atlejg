@@ -70,7 +70,7 @@ def calc_power(sim, wtgs, weib, park_nms=[]):
     input:
         sim  : simulation result from pywake. have typically been coarsen'ed
         wtgs : wtgs
-        weib : weibull-struct for the entire area (n3)
+        weib : weibull-struct for the entire area (n3). freqs is fraction (not %)
     output:
         net & gross power per park in GW (per WTG & sector & wind-speed)
     '''
@@ -79,12 +79,17 @@ def calc_power(sim, wtgs, weib, park_nms=[]):
     wb_A = interp1d(weib.dirs, weib.As, kind='nearest', fill_value='extrapolate')
     #
     pwrs = []
-    for i in np.unique(sim.type.values):                                                                             # loop each park
+    for type_i in np.unique(sim.type.values):                                               # loop each park
         #
-        pwr = sim.where(sim.type==i, drop=True).Power
-        nm = park_nms[i] if park_nms else ''
+        pwr = sim.where(sim.type==type_i, drop=True).Power
+        nm = park_nms[type_i] if park_nms else ''
         #
-        gross  = np.tile(wtgs.power(pwr.ws, pwr.type), [pwr.sizes['wt'], pwr.sizes['wd'], 1])                         # gross power - from WTG power curve
+        # handle deprecated things... should not be necessary...
+        try:
+            gr = wtgs.power(pwr.ws, type_i)
+        except:
+            gr = wtgs.power(pwr.ws, type=type_i)
+        gross  = np.tile(gr, [pwr.sizes['wt'], pwr.sizes['wd'], 1])                         # gross power - from WTG power curve
         #
         # weighting according to European Wind Atlas using the weibull
         net_w   = np.zeros(pwr.values.shape)

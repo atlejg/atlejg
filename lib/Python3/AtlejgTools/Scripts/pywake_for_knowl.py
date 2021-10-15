@@ -96,7 +96,6 @@ import glob, re, zipfile, logging, yaml
 from scipy.interpolate import interp1d
 import AtlejgTools.WindYieldAssessment.Utils as WU
 import AtlejgTools.Utils as UT
-import AtlejgTools.Scripts.run_pywake as run_pywake
 
 N_SECTORS = 12
 WWH_FILE  = 'FugaAdapted.wwh'  # the zipped inventory file (for Fuga)
@@ -470,7 +469,7 @@ def get_opts(yaml_file):
     set_default_opts(opts)
     return opts
 
-def _dump(res, fnm):
+def dump(res, fnm):
     f = open(fnm, 'wb')
     pickle.dump(res, f)
     f.close()
@@ -494,6 +493,33 @@ def plot_flowmap(sim_res, ws0, ws_min, ws_max, wd0, wake_model, case_nm, plot_wt
     flow_map.plot_wake_map(levels=levels, plot_windturbines=plot_wt)    # , plot_ixs=False)
     plt.title(f'{case_nm} :: {wake_model} :: {ws0:.0f} m/s :: {wd0:.0f} deg')
     plt.show()
+
+def deficit_model(site, wtgs, opts):
+    '''
+    for the choice of wake_model, see note4
+    '''
+    wake_model = opts.wake_model.upper()
+    if wake_model   == 'FUGA':
+        assert wtgs.uniq_wtgs == 1
+        wf_model = py_wake.Fuga(opts.lut_path, site, wtgs)
+    elif wake_model in ['TP', 'TURBOPARK']:
+        wf_model = py_wake.TP(site, wtgs, k=opts.tp_A)       # 'standard' TurbOPark
+    elif wake_model == 'ETP':
+        wf_model = py_wake.ETP(site, wtgs, k=opts.tp_A)      # 'Equinor' TurbOPark
+    elif wake_model == 'NOJ':
+        wf_model = py_wake.NOJ(site, wtgs, k=opts.noj_k)
+    elif wake_model == 'NOJLOCAL':
+        wf_model = py_wake.NOJLocal(site, wtgs)
+    elif wake_model == 'ZGAUSS':
+        wf_model = py_wake.deficit_models.gaussian.ZongGaussian(
+                        site,
+                        wtgs,
+                        superpositionModel=py_wake.superposition_models.WeightedSum(),
+                        turbulenceModel=py_wake.turbulence_models.crespo.CrespoHernandez()
+                    )
+    else:
+        raise Exception('Only Fuga, TP/TurbOPark, ETP (Equinor TP), ZGauss, NOJ, NOJLocal wake models are available.')
+    return wf_model
 
 
 def main(wake_model, yaml_file=None, selected=[], dump_results=True):
@@ -542,7 +568,7 @@ def main(wake_model, yaml_file=None, selected=[], dump_results=True):
     # pick and initialize the chosen wake model
     if not wake_model: wake_model = opts.wake_model
     wake_model = wake_model.upper()
-    wf_model = run_pywake.deficit_model(wake_model, opts, site, wtgs)
+    wf_model = deficit_model(wake_model, opts, site, wtgs)
     #
     # run simulations
     logging.info(f'run wake model {wake_model} for all combinations of wd and ws')
@@ -594,7 +620,7 @@ def main(wake_model, yaml_file=None, selected=[], dump_results=True):
     #
     res =  sim_res, sim, aeps, case, knowl, opts, wtgs, site, wf_model
     keys = ['sim_res', 'sim', 'aeps', 'case', 'knowl', 'opts', 'wtgs', 'site', 'wf_model']
-    if dump_results: _dump(res, f'{wake_model}.pck')
+    if dump_results: dump(res, f'{wake_model}.pck')
     return dict(zip(keys, res))
 
 def run_single(directory, wake_model, yaml_file, selected=[]):
