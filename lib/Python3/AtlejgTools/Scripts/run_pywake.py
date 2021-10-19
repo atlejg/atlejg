@@ -45,7 +45,46 @@ import AtlejgTools.WindYieldAssessment.Utils as WU
 import AtlejgTools.WindYieldAssessment.WindModeller as wm
 import AtlejgTools.Scripts.pywake_for_knowl as pfk
 
-N_SECTORS = 12
+N_SECTORS    = 12
+TYPE_EXCEL   = 'excel'
+TYPE_WTGFILE = 'wtg'
+TEST_REPO    = '/project/RCP/active/wind_yield_assessment/agy/WindWorks/Testdata/'
+
+def wtg_from_excel(fnm):
+    '''
+    reads excel file into a WindTurbines object
+    - input
+      * fnm: a generic Equinor WTG in xlsx-format, typically EQN-D250-15MW.xlsx
+    - returns
+      * a WindTurbines object
+    '''
+    data = pd.read_excel(fnm, sheet_name='PowerCurve', header=0)
+    props = pd.read_excel(fnm, sheet_name='Properties', header=None)
+    props = dict(zip(props[0].values, props[1].values))     # make a dict out of it
+    scaler = 1000. if 'kW' in data.columns[1] else 1.
+    data.set_axis(['ws', 'pwr', 'ct'], axis=1, inplace=True)
+    nm = UT.basename(fnm)
+    diam = props['Rotor Diameter']
+    hub_height = diam/2. + props['Air Gap']
+    ct_func = WU.interpolate_curve(data.ws, data.ct)
+    pwr_func = WU.interpolate_curve(data.ws, scaler*data.pwr)
+    return WindTurbines(names=[nm], diameters=[diam], hub_heights=[hub_height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit='W')
+
+def wtg_from_winmodeller(pwr_file, ct_file, diam, hub_height=-1, gap=26.):
+    '''
+    reads WindModeller input-files into a WindTurbines object
+    - input
+      * pwr_file: WindModeller profile file for power
+      * ct_file: WindModeller profile file for CT
+    - returns
+      * a WindTurbines object
+    '''
+    pwr_func, _, attr = wm.read_curve(pwr_file, True)
+    ct_func, _, _     = wm.read_curve(ct_file, True)
+    unit = re.search('\[(\w*)\]', attr[-1]).group()[1:-1]
+    if hub_height < 0:
+        hub_height = diam/2. + gap
+    return WindTurbines(names=['wtg'], diameters=[diam], hub_heights=[hub_height], ct_funcs=[ct_func], power_funcs=[pwr_func], power_unit=unit)
 
 def read_setup(opts):
     '''
@@ -64,11 +103,17 @@ def read_setup(opts):
     '''
     layout = pd.DataFrame([])
     for fnm in opts.layout_files:
-        layout0 = pd.read_csv(fnm, sep=opts.csv_sep)
+        if fnm.endswith('.csv'):
+            layout0 = pd.read_csv(fnm, sep=opts.csv_sep)
+        else:
+            layout0 = pd.read_excel(fnm)
         # put in default values for empty ones
-        if not 'wtg'    in layout0.columns: layout0['wtg']    = default_wtg
-        if not 'parknm' in layout0.columns: layout0['parknm'] = default_parknm
+        if not 'nm'     in layout0.columns: layout0['nm']     = [str(i) for i in range(len(layout0))]
+        if not 'wtg'    in layout0.columns: layout0['wtg']    = opts.default_wtg
+        if not 'parknm' in layout0.columns: layout0['parknm'] = opts.default_parknm
         layout0.fillna({'wtg':opts.default_wtg, 'parknm':opts.default_parknm}, inplace=True)
+        #
+        # concat into one big structure
         layout = pd.concat([layout,layout0])
     #
     case = UT.Struct()
@@ -108,7 +153,12 @@ def read_setup(opts):
         park.ys   = case.ys[ixs] 
         case.park_list.append(park)
     #
-    wtgs = WindTurbines.from_WAsP_wtg([f'{opts.wtg_directory}/{wtg}' for wtg in case._wtg_list])
+    wtg_files = [f'{opts.wtg_directory}/{wtg}' for wtg in case._wtg_list]
+    if opts.wtg_filetype == TYPE_EXCEL:
+        assert len(wtg_files) == 1, 'For excel-wtgs only 1 park is implemented'
+        wtgs = wtg_from_excel(wtg_files[0])
+    else:
+        wtgs = WindTurbines.from_WAsP_wtg(wtg_files)
     #
     for i, park in enumerate(case.park_list):
         park.wtg = UT.Struct()
@@ -116,6 +166,7 @@ def read_setup(opts):
         park.wtg.name = wtgs.name(i)
     #
     return case, wtgs
+
 
 def write_for_webviz(fnm, net, gross):
     '''
@@ -166,13 +217,81 @@ def write_results(case, opts, wtgs, net, gross, suffix='.csv'):
     #
     logging.info(f'writing results to : {fnm}')
 
-def set_defaults(opts, mode):
+def test_run_pywake(testdir, yaml_file, orig_prefix, knowl_mode=False, wake_model=None):
+    '''
+    generic test-function
+    - input
+      * testdir:     where testdata is found, relative to TEST_REPO
+      * yaml_file:   the input file
+      * orig_prefix: prefix to csv-file and resultf-file (txt-file) that
+                     we will compare new results to
+      * knowl_mode:  boolean
+      * wake_model:  to be used when running in knowl_mode
+    - returns
+      * a results-dict
+    '''
+    cwd = os.getcwd()
+    os.chdir(TEST_REPO+testdir)
+    logging.info(os.getcwd())
+    #
+    # run simulatiojn
+    res =  main(yaml_file, knowl_mode=knowl_mode, wake_model=wake_model)
+    opts = res['opts']
+    #
+    # compare csv-files
+    orig = pd.read_csv(orig_prefix+'.csv', sep=opts.csv_sep)
+    new  = pd.read_csv(opts.resultfile_prefix+'.csv', sep=opts.csv_sep)
+    #
+    logging.info(f'comparing new results to {orig_prefix}.csv')
+    txt_cols = ['wakemodel', 'weibull', 'wtg']
+    assert np.allclose(new.drop(txt_cols, axis=1), orig.drop(txt_cols, axis=1))
+    #
+    # compare result-files (txt-files)
+    orig = WU.read_output_file(orig_prefix+'.txt')
+    new  = WU.read_output_file(opts.resultfile_prefix+'.txt')
+    #
+    logging.info(f'comparing new results to {orig_prefix}.txt')
+    assert np.allclose(new.net, orig.net)
+    assert np.allclose(new.gross, orig.gross)
+    assert np.allclose(new.wl, orig.wl)
+    #
+    logging.info(f' testing OK')
+    os.chdir(cwd)
+    return res
+
+def test_DBC():
+    '''
+    test on a small Doggerbank-C case
+    '''
+    logging.info('\n* Testing Doggerbank-C case')
+    return test_run_pywake('DBC', '1.yaml', 'orig')
+
+def test_Arkona():
+    '''
+    test on a Arkona-case 
+    '''
+    logging.info('\n* Testing Arkona case')
+    return test_run_pywake('Arkona/Test_1', '2.yaml', 'orig')
+
+def test_Arkona_knowlinput():
+    '''
+    test on a Arkona-case with Knowl inputfiles
+    '''
+    logging.info('\n* Testing Arkona case (knowl-mode)')
+    return test_run_pywake('Arkona/Test_Knowl/ARK_ext', '1.yaml', 'orig', knowl_mode=True, wake_model='ETP')
+
+def test_all():
+    test_DBC()
+    test_Arkona()
+    test_Arkona_knowlinput()
+    logging.info('\n* ALL TESTS OK')
+
+def set_defaults(opts, knowl_mode):
     if not hasattr(opts, 'A_scaler'):          opts.A_scaler          = 1.
     if not hasattr(opts, 'case_nm'):           opts.case_nm           = 'pywake'
     if not hasattr(opts, 'wake_model'):        opts.wake_model        = 'ETP'
     if not hasattr(opts, 'tp_A'):              opts.tp_A              = 0.60
     if not hasattr(opts, 'noj_k'):             opts.noj_k             = 0.04
-    if not hasattr(opts, 'turb_intens'):       opts.turb_intens       = 0.05
     if not hasattr(opts, 'ws_min'):            opts.ws_min            = 2.
     if not hasattr(opts, 'ws_max'):            opts.ws_max            = 30.
     if not hasattr(opts, 'delta_winddir'):     opts.delta_winddir     = 1.
@@ -183,13 +302,18 @@ def set_defaults(opts, mode):
     if not hasattr(opts, 'default_wtg'):       opts.default_wtg       = ''
     if not hasattr(opts, 'weibull_file'):      opts.weibull_file      = ''
     if not hasattr(opts, 'csv_sep'):           opts.csv_sep           = ';'
-    if not hasattr(opts, 'dump_results'):      opts.dump_results      = True
-    if not hasattr(opts, 'resultfile_prefix'): opts.resultfile_prefix = 'pywake_results'
-    if mode == 'knowl':
-        if not hasattr(opts, 'inventory_file'): opts.inventory_file = 'Inventory.xml'
-        if not hasattr(opts, 'weibull_index'):  opts.weibull_index  = 1
+    if not hasattr(opts, 'dump_results'):      opts.dump_results      = False
+    if knowl_mode:
+        if not hasattr(opts, 'inventory_file'):    opts.inventory_file    = 'Inventory.xml'
+        if not hasattr(opts, 'weibull_index'):     opts.weibull_index     = 1
+        if not hasattr(opts, 'resultfile_prefix'): opts.resultfile_prefix = 'FugaOutput_1'
+        if not hasattr(opts, 'selected'):          opts.selected          = []       # [] means all
         if not hasattr(opts, 'knowl_file'):
             opts.knowl_file = glob.glob('knowl_v*input.xlsx')[0]
+    else:
+        if not hasattr(opts, 'resultfile_prefix'): opts.resultfile_prefix = 'pywake_results'
+        if not hasattr(opts, 'turb_intens'):       opts.turb_intens       = 0.05
+        if not hasattr(opts, 'wtg_filetype'):      opts.wtg_filetype      = TYPE_WTGFILE
 
 def get_weibull(fnm, A_scaler=1., is_percent=True):
     '''
@@ -235,21 +359,34 @@ def deficit_model(site, wtgs, opts):
         raise Exception('Only Fuga, TP/TurbOPark, ETP (Equinor TP), ZGauss, NOJ, NOJLocal wake models are available.')
     return wf_model
 
-def write_AEP(case, sim, wtgs, weib, delta_winddir, outfile):
-    # coarsen it by averaging
+def write_AEP(case, pwr, wtgs, weib, outfile):
+    '''
+    write AEP
+    '''
     n_sectors = len(weib.freqs)
-    width  = 360. / n_sectors
-    n_bins    = int(width / delta_winddir)         # number of bins per sector
-    simc = sim.coarsen(wd=n_bins).mean()
+    pwrc = WU.coarsen(pwr, n_sectors)
     #
-    aeps = WU.calc_AEP(simc, wtgs, weib, park_nms=case.park_nms, verbose=True)
+    aeps = WU.calc_AEP(pwrc, wtgs, weib, park_nms=case.park_nms, verbose=True)
     WU.create_output(aeps, case, outfile)
-    return simc, aeps
+    return pwrc, aeps
 
-def main(mode, yaml_file, wake_model):
+def write_AEP_old(case, pwr, wtgs, weib, outfile):
+    '''
+    write AEP
+    '''
+    n_sectors = len(weib.freqs)
+    dwd = pwr.wd.values[1] - pwr.wd.values[0]
+    width  = 360. / n_sectors
+    n_bins    = int(width / dwd)         # number of bins per sector
+    pwrc = pwr.coarsen(wd=n_bins).mean()
+    #
+    aeps = WU.calc_AEP(pwrc, wtgs, weib, park_nms=case.park_nms, verbose=True)
+    WU.create_output(aeps, case, outfile)
+    return pwrc, aeps
+
+def main(yaml_file, wake_model=None, knowl_mode=False):
     '''
     - input
-      * mode : 'default' or 'knowl'
       * yaml_file like this:
             case_nm:            !!str      Arkona
             #
@@ -278,10 +415,13 @@ def main(mode, yaml_file, wake_model):
             webviz_file:        !!str      none
             csv_sep:            !!str      ;
       * wake_model: 'ETP' etc (see note4) or None.
-        if None, it will use value from opts (yaml-file)
+        if set, it will override the value from opts (yaml-file).
+        this option is needed when being called from Knowl.
+      * knowl_mode : True if you are using knowl-input files
     - returns
-      * sim, simc, aeps, case, opts, wtgs, site, wf_model, weib
-        simc is a coarsened version of sim
+      * sim, pwrc, aeps, case, opts, wtgs, site, wf_model, weib
+        pwrc is a wd-coarsened version of sim.Power. it is coarsened from delta_winddir to the sectors
+        given by the weibull.
     - notes
       * many attributes of the yaml-file has a default value; see set_defaults()
     '''
@@ -295,18 +435,18 @@ def main(mode, yaml_file, wake_model):
         opts = UT.get_yaml(yaml_file)
     else:
         opts = UT.Struct()
-    set_defaults(opts, mode)
+    set_defaults(opts, knowl_mode)
     if wake_model: opts.wake_model = wake_model
     #
     # setup things
-    if mode == 'knowl':
-        knowl = pfk.read_knowl_file(opts.knowl_file)
-        case, wtgs = pfk.read_inventory(opts.inventory_file)
-        weib = knowl.weibulls[opts.weibull_index-1]
-        opts.turb_intens = knowl.turb_intens
-    else:
+    if not knowl_mode:
         case, wtgs = read_setup(opts)
         weib = get_weibull(opts.weibull_file)
+    else:
+        knowl = pfk.read_knowl_file(opts.knowl_file)
+        case, wtgs = pfk.read_inventory(opts.inventory_file, selected=opts.selected)
+        weib = knowl.weibulls[opts.weibull_index-1]
+        opts.turb_intens = knowl.turb_intens
     #
     # initialize
     site = UniformWeibullSite(weib.freqs, weib.As, weib.Ks, opts.turb_intens)
@@ -319,8 +459,8 @@ def main(mode, yaml_file, wake_model):
     sim = wf_model(case.xs, case.ys, type=case.types, wd=wd, ws=ws)
     #
     # reporting AEP per sector like knowl/fuga
-    fnm = opts.resultfile_prefix + '.res'
-    simc, aeps = write_AEP(case, sim, wtgs, weib, opts.delta_winddir, fnm)
+    fnm = opts.resultfile_prefix + '.txt'
+    pwrc, aeps = write_AEP(case, sim.Power, wtgs, weib, fnm)
     #
     # report all data
     net   = sim.aep(with_wake_loss=True)
@@ -331,8 +471,8 @@ def main(mode, yaml_file, wake_model):
     toc = time.perf_counter()
     logging.info(f"Total runtime: {toc-tic:0.1f} seconds")
     #
-    vals =  sim, simc, aeps, case, opts, wtgs, site, wf_model, weib
-    keys = ['sim', 'simc', 'aeps', 'case', 'opts', 'wtgs', 'site', 'wf_model', 'weib']
+    vals =  sim, pwrc, aeps, case, opts, wtgs, site, wf_model, weib
+    keys = ['sim', 'pwrc', 'aeps', 'case', 'opts', 'wtgs', 'site', 'wf_model', 'weib']
     res = dict(zip(keys, vals))
     if opts.dump_results: pfk.dump(res, f'{opts.resultfile_prefix}.pck')
     return res
@@ -345,10 +485,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--yaml', '-y', help='yaml-file describing the case', default=None)
     parser.add_argument('--wakemodel', '-w', help='overwrites input in yaml-file', default=None) # useful for knowl
-    parser.add_argument('--knowl', '-k', action='store_true', help='input from Knowl?')
+    parser.add_argument('--knowl', '-k', action='store_true', help='input is from Knowl?')
     args = parser.parse_args()
 
-    mode = 'knowl' if args.knowl else 'default'
-
-    res = main(mode, args.yaml, args.wakemodel)
+    res = main(args.yaml, wake_model=args.wakemodel, knowl_mode=args.knowl)
 

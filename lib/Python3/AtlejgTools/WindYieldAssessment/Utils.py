@@ -55,7 +55,7 @@ def _weigthed_pwr(u, power, wb_a, wb_k):
     #
     return wpw
 
-def calc_power(sim, wtgs, weib, park_nms=[]):
+def calc_power(pwr, wtgs, weib, park_nms=[]):
     '''
     calculates weibull-averaged net and gross power for each sector.
     # 
@@ -68,7 +68,7 @@ def calc_power(sim, wtgs, weib, park_nms=[]):
         n3: assumes one weibull for the whole area
     # 
     input:
-        sim  : simulation result from pywake. have typically been coarsen'ed
+        pwr  : simulation result from pywake. have typically been coarsen'ed
         wtgs : wtgs
         weib : weibull-struct for the entire area (n3). freqs is fraction (not %)
     output:
@@ -79,32 +79,32 @@ def calc_power(sim, wtgs, weib, park_nms=[]):
     wb_A = interp1d(weib.dirs, weib.As, kind='nearest', fill_value='extrapolate')
     #
     pwrs = []
-    for type_i in np.unique(sim.type.values):                                               # loop each park
+    for type_i in np.unique(pwr.type.values):                                               # loop each park
         #
-        pwr = sim.where(sim.type==type_i, drop=True).Power
+        pwr0 = pwr.where(pwr.type==type_i, drop=True)
         nm = park_nms[type_i] if park_nms else ''
         #
         # handle deprecated things... should not be necessary...
         try:
-            gr = wtgs.power(pwr.ws, type_i)
+            gr = wtgs.power(pwr0.ws, type=type_i)
         except:
-            gr = wtgs.power(pwr.ws, type=type_i)
-        gross  = np.tile(gr, [pwr.sizes['wt'], pwr.sizes['wd'], 1])                         # gross power - from WTG power curve
+            gr = wtgs.power(pwr0.ws, type_i)
+        gross  = np.tile(gr, [pwr0.sizes['wt'], pwr0.sizes['wd'], 1])                         # gross power - from WTG power curve
         #
         # weighting according to European Wind Atlas using the weibull
-        net_w   = np.zeros(pwr.values.shape)
-        gross_w = np.zeros(pwr.values.shape)
-        for n, wd in enumerate(pwr.wd.values):
-            net_w[:,n,:-1]   = _weigthed_pwr(pwr.ws.values, pwr.values[:,n,:], wb_A(wd), wb_K(wd))
-            gross_w[:,n,:-1] = _weigthed_pwr(pwr.ws.values, gross[:,n,:],      wb_A(wd), wb_K(wd))
+        net_w   = np.zeros(pwr0.values.shape)
+        gross_w = np.zeros(pwr0.values.shape)
+        for n, wd in enumerate(pwr0.wd.values):
+            net_w[:,n,:-1]   = _weigthed_pwr(pwr0.ws.values, pwr0.values[:,n,:], wb_A(wd), wb_K(wd))
+            gross_w[:,n,:-1] = _weigthed_pwr(pwr0.ws.values, gross[:,n,:],      wb_A(wd), wb_K(wd))
         #
-        na = xr.DataArray(data=net_w,   dims=pwr.dims, coords=pwr.coords, attrs=dict(description=f'Net power {nm}'))
-        ga = xr.DataArray(data=gross_w, dims=pwr.dims, coords=pwr.coords, attrs=dict(description=f'Gross power {nm}'))
+        na = xr.DataArray(data=net_w,   dims=pwr0.dims, coords=pwr0.coords, attrs=dict(description=f'Net power {nm}'))
+        ga = xr.DataArray(data=gross_w, dims=pwr0.dims, coords=pwr0.coords, attrs=dict(description=f'Gross power {nm}'))
         pwrs.append([na, ga])
     #
     return pwrs
 
-def calc_AEP(sim, wtgs, weib, park_nms=[], verbose=False):
+def calc_AEP(pwr, wtgs, weib, park_nms=[], verbose=False):
     '''
     calculates weibull-averaged net and gross AEP for each sector.
     # 
@@ -117,7 +117,7 @@ def calc_AEP(sim, wtgs, weib, park_nms=[], verbose=False):
         n3: assumes one weibull for the whole area
     # 
     input:
-        sim  : simulation result from pywake
+        pwr  : net power from pywake
         wtgs : wtgs
         weib : weibull-struct for the entire area (n3)
     output:
@@ -127,13 +127,13 @@ def calc_AEP(sim, wtgs, weib, park_nms=[], verbose=False):
     wb_f = interp1d(weib.dirs, weib.freqs, kind='nearest', fill_value='extrapolate')
     cf = 24*365*1e-9                                                                                               # conversion factor => GWh. 365.24?? TODO
     #
-    pwrs = calc_power(sim, wtgs, weib, park_nms=park_nms)
+    pwrs = calc_power(pwr, wtgs, weib, park_nms=park_nms)
     aeps = []
     if not park_nms: park_nms = [''] * len(aeps)
     #
     for nm, (net, gross) in zip(park_nms, pwrs):                                                                   # loop each park
         naep, gaep = net.sum('ws'), gross.sum('ws')
-        for wd in sim.wd.values:
+        for wd in pwr.wd.values:
             naep.sel(wd=wd).values *= wb_f(wd) * cf
             gaep.sel(wd=wd).values *= wb_f(wd) * cf
         aeps.append([naep, gaep])
@@ -343,60 +343,72 @@ def read_output_file(fnm, selected=[]):
     logging.debug(f'park_nms: {park_nms}')
     return r
 
-def compare_outputs(fnm1, fnm2, lbl1, lbl2, ms=60, per_wd=False):
+def compare_outputs(fnm1, fnm2, lbl1, lbl2, mode='wl', ms=60, per_wd=False):
     '''
     reads two output files and compares them (by plotting)
     useful for comparing results from different sources.
     typical usage: compare_outputs('FugaOutput_1.txt', 'pywake1.txt', 'FUGA', 'TurboPark')
-    ms: marker-size. set to None for default
-    per_wd: if True, you get one figure per wd. else just one plot for all sectors
+    - inputs
+      * mode  : what to compare : wakeloss ('wl'), 'net', or 'gross'
+      * ms: marker-size.
+      * per_wd: if True, you get one figure per wd. else just one plot for all sectors
+    - returns
+      * the three fields of the last figure
     '''
     r1 = read_output_file(fnm1)
     r2 = read_output_file(fnm2)
+    assert np.all(r1.wt.values == r2.wt.values), 'turbine names must match'
     #
     wds = r1.net.wd.values
     if not per_wd: wds = wds[-1:]
     for wd in wds:
-        n1, g1 = r1.net.sel(wd=wd), r1.gross.sel(wd=wd)
-        wl1 = (g1-n1) / g1 *100
-        n2, g2 = r2.net.sel(wd=wd), r2.gross.sel(wd=wd)
-        wl2 = (g2-n2) / g2 *100
-        min_val = min(wl1.min(), wl2.min())
-        max_val = max(wl1.max(), wl2.max())
-        assert np.all(n1.wt.values == n2.wt.values), 'turbine names must match'
+        if mode == 'wl':
+            n1, g1 = r1.net.sel(wd=wd), r1.gross.sel(wd=wd)
+            n2, g2 = r2.net.sel(wd=wd), r2.gross.sel(wd=wd)
+            v1 = (g1-n1) / g1 *100
+            v2 = (g2-n2) / g2 *100
+        elif mode == 'net':
+            v1, v2 = r1.net.sel(wd=wd), r2.net.sel(wd=wd)
+        elif mode == 'gross':
+            v1, v2 = r1.gross.sel(wd=wd), r2.gross.sel(wd=wd)
+        else:
+            raise Exception('NO SUCH MODE ', + mode)
+        min_val = min(v1.min(), v2.min())
+        max_val = max(v1.max(), v2.max())
         #
         wd_txt = f'wd = {wd:.0f} deg' if wd >= 0 else 'wd = ALL'
         #
         plt.figure(figsize=(18,5))
         #
         plt.subplot(131)
-        plt.scatter(wl1.x.values, wl1.y.values, c=wl1.values, s=ms)
+        plt.scatter(v1.x.values, v1.y.values, c=v1.values, s=ms)
         plt.axis('equal')
         cb = plt.colorbar()
-        cb.set_label('Wake loss [%]')
+        cb.set_label(mode)
         plt.clim(min_val, max_val)
         plt.title(f'{lbl1} ({wd_txt})')
         plt.xticks([]), plt.yticks([])
         #
         plt.subplot(132)
-        plt.scatter(wl2.x.values, wl2.y.values, c=wl2.values, s=ms)
+        plt.scatter(v2.x.values, v2.y.values, c=v2.values, s=ms)
         plt.axis('equal')
         cb = plt.colorbar()
-        cb.set_label('Wake loss [%]')
+        cb.set_label(mode)
         plt.clim(min_val, max_val)
         plt.title(f'{lbl2} ({wd_txt})')
         plt.xticks([]), plt.yticks([])
         #
-        wld = wl1 - wl2
+        vd = v1 - v2
         plt.subplot(133)
-        plt.scatter(wl1.x.values, wl1.y.values, c=wld.values, s=ms)  # note: use wl1-coords since they sometimes differ slightly
+        plt.scatter(v1.x.values, v1.y.values, c=vd.values, s=ms)  # note: use v1-coords since they sometimes differ slightly
         plt.axis('equal')
-        plt.colorbar()
-        cb.set_label('Wake loss [%]')
-        plt.title('Wake loss difference')
+        cb = plt.colorbar()
+        cb.set_label('difference')
+        plt.title(f'{lbl1} - {lbl2} ({wd_txt})')
         plt.xticks([]), plt.yticks([])
         plt.tight_layout()
-    return r1, r2
+    plt.show()
+    return v1, v2, vd
 
 def create_output_power(power, case, fnm=None):
     unit = power.Description.split('[')[1][:-1]
@@ -860,3 +872,46 @@ def report_to_excel_1(fnms, csvfile='wl_rep.csv', open_in_excel=True,
         os.system(cmd)
     #
     return res, csvfile
+
+def shift_it(vals, theta):
+    '''
+    does a right-shift of the data in the wd-dimension
+    - input
+      * vals:  xr.DataArray with coords wt, wd, ws
+      * theta: how much to shift it [deg]
+    - returns
+      * shifted xr.DataArray with coords wt, wd, ws
+    '''
+    #
+    dwd = vals.wd.values[1] - vals.wd.values[0]
+    shifted = vals.copy()
+    wd1 = np.arange(theta, 360, dwd)
+    wd2 = wd1 - theta
+    shifted.loc[{'wd':wd1}] = vals.sel(wd=wd2).values
+    #
+    wd1 = np.arange(0, theta, dwd)
+    wd2 = np.arange(360-theta, 360, dwd)
+    shifted.loc[{'wd':wd1}] = vals.sel(wd=wd2).values
+    #
+    return shifted
+
+def coarsen(vals, n_sectors):
+    '''
+    coarsens a DataArray by averaging.
+    does a right-shift first so that the wd=0 sector gets data from the half-sector [360-width/2, 360)
+    - input
+      * vals:      xr.DataArray with coords wt, wd, ws
+      * n_sectors: number of sectors to average into 
+    - returns
+      * coarsened xr.DataArray with coords wt, wd, ws
+    '''
+    # coarsen it by averaging
+    width  = 360. / n_sectors
+    vals_s = shift_it(vals, width/2.)
+    #
+    dwd = vals.wd.values[1] - vals.wd.values[0]
+    n_bins    = int(width / dwd)         # number of bins per sector
+    vals_c = vals_s.coarsen(wd=n_bins).mean()
+    vals_c['wd'] = np.arange(n_sectors)*width
+    #
+    return vals_c

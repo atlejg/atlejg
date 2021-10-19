@@ -494,11 +494,10 @@ def plot_flowmap(sim_res, ws0, ws_min, ws_max, wd0, wake_model, case_nm, plot_wt
     plt.title(f'{case_nm} :: {wake_model} :: {ws0:.0f} m/s :: {wd0:.0f} deg')
     plt.show()
 
-def deficit_model(site, wtgs, opts):
+def deficit_model(wake_model, opts, site, wtgs):
     '''
     for the choice of wake_model, see note4
     '''
-    wake_model = opts.wake_model.upper()
     if wake_model   == 'FUGA':
         assert wtgs.uniq_wtgs == 1
         wf_model = py_wake.Fuga(opts.lut_path, site, wtgs)
@@ -592,7 +591,7 @@ def main(wake_model, yaml_file=None, selected=[], dump_results=True):
         else:
             fnm = opts.output_fnm1
         #
-        aeps = WU.calc_AEP(sim, wtgs, weib, park_nms=case.park_nms, verbose=True)
+        aeps = WU.calc_AEP(sim.Power, wtgs, weib, park_nms=case.park_nms, verbose=True)
         WU.create_output(aeps, case, fnm)
     else:
         aeps = None

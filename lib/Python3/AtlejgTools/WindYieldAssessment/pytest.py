@@ -1,10 +1,12 @@
+import matplotlib.pyplot as plt
 import AtlejgTools.Scripts.pywake_for_knowl as pywake_for_knowl
-import AtlejgTools.Scripts.run_pywake as run_pywake
+import AtlejgTools.Scripts.run_pywake as rp
 import AtlejgTools.WindYieldAssessment.Utils as WU
 import AtlejgTools.Utils as UT
 import os, logging, sys
 import numpy as np
 import pandas as pd
+import xarray as xr
 
 ACCURACY = 1.1e-4
 
@@ -19,6 +21,46 @@ def _ae(res1, res2, accur=ACCURACY):
     err = abs(res2 - res1).values.max()
     logging.info(f' max error: {err:.2e}')
     return err <= accur
+
+def zero_results(nwt, nwd, nws):
+    '''
+    create a zero-valued DataArray in a convinent way
+    '''
+    dims   = ["wt", "wd", "ws"]
+    coords = dict(wt=range(nwt),
+                  wd=np.linspace(0, 360, nwd, endpoint=False),
+                  ws=np.linspace(4, 15, nws, endpoint=True),
+                 )
+    zeros = np.zeros((nwt, nwd, nws))
+    return xr.DataArray(data=zeros, dims=dims, coords=coords)
+
+def test_shifting(width=30.):
+    '''
+    when doing averaging into sectors, we usually want the first sector
+    to be centered around wd=0 (north). this means we need to include results
+    from wd<0 (i.e. 345-359 deg). for this purpose we need to shift all the
+    data half a sector-width to the right.
+    '''
+    pwr = zero_results(1, 360, 1).sel(wt=0, ws=4.)
+    pwr.values = 1e6*np.cos(pwr.wd/180.*np.pi) + 2e6
+    #
+    dwd = pwr.wd.values[1] - pwr.wd.values[0]
+    #
+    pwr_s = WU.shift_it(pwr, width)
+    #
+    plt.figure()
+    plt.plot(pwr.wd, pwr.values, 'k-', label='Not shifted')
+    plt.plot(pwr_s.wd, pwr_s.values, 'r-', label='Shifted')
+    #
+    n_sectors = int(360/width)
+    n_bins    = int(width/dwd)
+    pwrc1 = pwr.coarsen(wd=n_bins).mean()
+    pwrc2 = WU.coarsen(pwr, n_sectors)
+    plt.plot(pwrc1.wd, pwrc1.values, 'ko', ms=12, label='Averaged')
+    plt.plot(pwrc2.wd, pwrc2.values, 'ro', ms=12, label='Averaged')
+    plt.legend(loc='best')
+    plt.show()
+
 
 def test_synt_scada(n=1000, ws_max=15., cleanup=True):
     '''
@@ -44,15 +86,3 @@ def test_synt_scada(n=1000, ws_max=15., cleanup=True):
         os.unlink(fnm)
     return synt
 
-def pywake_dbc_test(testdir='/project/RCP/active/wind_yield_assessment/agy/WindWorks/Testdata/DBC', yaml_file='1.yml'):
-    '''
-    a doggerbank test-case
-    '''
-    cwd = os.getcwd()
-    os.chdir(testdir)
-    _, _, opts, _, _, _, _ =  run_pywake.main(yaml_file)
-    orig = pd.read_csv('orig.csv')
-    new  = pd.read_csv(opts.outfile)
-    assert np.all(new==orig)
-    logging.info(f' testing OK')
-    os.chdir(cwd)
