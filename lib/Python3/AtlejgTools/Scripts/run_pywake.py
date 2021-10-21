@@ -278,7 +278,7 @@ def test_Arkona_knowlinput():
     test on a Arkona-case with Knowl inputfiles
     '''
     logging.info('\n* Testing Arkona case (knowl-mode)')
-    return test_run_pywake('Arkona/Test_Knowl/ARK_ext', '1.yaml', 'orig', knowl_mode=True, wake_model='ETP')
+    return test_run_pywake('Arkona/Test_Knowl/ARK_ext', '1.yaml', 'orig', knowl_mode=True)
 
 def test_all():
     test_DBC()
