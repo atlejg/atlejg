@@ -7,7 +7,7 @@ with open("LICENSE") as f:
     project_license = f.read()
 
 with open("requirements.txt") as f:
-    requirements = [line.strip() for line in f.readlines()]
+    requirements = [line.split('=')[0] for line in f.readlines()]
 
 setuptools.setup(
     name="atlejg",
