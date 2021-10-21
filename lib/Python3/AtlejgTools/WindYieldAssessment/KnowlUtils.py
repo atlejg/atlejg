@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
 
 '''
-
-************ DEPRECATED - use run_pywake --knowl in stead *************
-
-
-this is a demo to show that pywake could be used for simulation of knowl-cases.
-the idea is that knowl is used for setting up the case with layout, wtg's etc, and in stead of calling
-for example Fuga, it could call pywake.
+this module replaces pywake_for_knowl (which is deprecated), and now only contains the
+functions needed to read the knowl-input.
 
 the information from knowl is transferred using the Inventory.xml (un-zipped from FugaAdapted.wwh).
 it will need to get the knowl data-directory where it will look for Inventory.xml. if it does
@@ -22,10 +17,6 @@ so the result is a strongly nested structure that is almost impossible to naviga
 
 so, I ended up parsing Inventory.xml myself, in a quite naiive way.
 
-there are still a few things to be worked out:
-    - it seems weibull-parameters change from location to location. why?
-      (i dont pick up this, i only use one set of weilbull-paramters)
-if pywake is to be called from knowl, i suggest that we make a more useful way of transferring the data needed.
 
 NOTES
 
@@ -86,7 +77,6 @@ NOTES
 
 '''
 
-import argparse
 import py_wake
 from py_wake.wind_turbines import WindTurbines
 from py_wake.site._site import UniformWeibullSite
@@ -94,23 +84,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import xarray as xr
-import os, sys, time, pickle
-import multiprocessing as mp
+import os, sys, pickle
 import glob, re, zipfile, logging, yaml
 from scipy.interpolate import interp1d
-import AtlejgTools.WindYieldAssessment.Utils as WU
 import AtlejgTools.Utils as UT
 
 N_SECTORS = 12
 WWH_FILE  = 'FugaAdapted.wwh'  # the zipped inventory file (for Fuga)
 SEP       = os.path.sep
 EPS       = 1e-9               # small non-zero value
-
-# for test-functions
-if 'linux' in sys.platform.lower():
-    KNOWLDIR  = r'/project/RCP/active/wind_yield_assessment/agy/Knowl/Testdata'
-else:
-    KNOWLDIR  = r'D:\OneDrive - Equinor\ACTIVE\Wind\knowl\Testdata'
 
 def set_default_opts(opts):
     '''
@@ -497,250 +479,3 @@ def plot_flowmap(sim_res, ws0, ws_min, ws_max, wd0, wake_model, case_nm, plot_wt
     flow_map.plot_wake_map(levels=levels, plot_windturbines=plot_wt)    # , plot_ixs=False)
     plt.title(f'{case_nm} :: {wake_model} :: {ws0:.0f} m/s :: {wd0:.0f} deg')
     plt.show()
-
-def deficit_model(wake_model, opts, site, wtgs):
-    '''
-    for the choice of wake_model, see note4
-    '''
-    if wake_model   == 'FUGA':
-        assert wtgs.uniq_wtgs == 1
-        wf_model = py_wake.Fuga(opts.lut_path, site, wtgs)
-    elif wake_model in ['TP', 'TURBOPARK']:
-        wf_model = py_wake.TP(site, wtgs, k=opts.tp_A)       # 'standard' TurbOPark
-    elif wake_model == 'ETP':
-        wf_model = py_wake.ETP(site, wtgs, k=opts.tp_A)      # 'Equinor' TurbOPark
-    elif wake_model == 'NOJ':
-        wf_model = py_wake.NOJ(site, wtgs, k=opts.noj_k)
-    elif wake_model == 'NOJLOCAL':
-        wf_model = py_wake.NOJLocal(site, wtgs)
-    elif wake_model == 'ZGAUSS':
-        wf_model = py_wake.deficit_models.gaussian.ZongGaussian(
-                        site,
-                        wtgs,
-                        superpositionModel=py_wake.superposition_models.WeightedSum(),
-                        turbulenceModel=py_wake.turbulence_models.crespo.CrespoHernandez()
-                    )
-    else:
-        raise Exception('Only Fuga, TP/TurbOPark, ETP (Equinor TP), ZGauss, NOJ, NOJLocal wake models are available.')
-    return wf_model
-
-
-def main(wake_model, yaml_file=None, selected=[], dump_results=True, force=False):
-    '''
-    DEPRECATED - use run_pywake --knowl in stead
-    pick up knowl case description and run PyWake simulation.
-    if wake_model is None, it *must* be given in the yaml_file
-    - input
-      * wake_model:   NOJ, NOJLOCAL, ETP ...
-      * yaml_file:    see note1
-      * selected:     Which parks to use. Default is [], which gives all. This is useful since it means
-                      only one Inventory.xml is needed (covering all parks in the knowl-project)
-      * dump_results: boolean. dump pickle-file?
-      * force:        run simulation even if this is DEPRECATED
-    - returns
-      * a dict with the following elements:
-        - sim_res
-        - sim
-        - aeps
-        - sim
-        - case
-        - knowl
-        - opts
-        - wtgs
-        - site
-        - wf_model
-    '''
-    #
-    logging.warn('DEPRECATED! use run_pywke.py --knowl in stead')
-    if not force:
-        raise Exception('must use force=True to continue')
-    #
-    opts = get_opts(yaml_file)
-    #
-    knowl = read_knowl_file(opts.knowl_file)
-    case, wtgs = read_inventory(opts.inventory_file, selected=selected)
-    #
-    logging.basicConfig(level=logging.INFO, filename=opts.logfile)
-    tic = time.perf_counter()
-    #
-    # setup things
-    if not knowl.wrg_file:
-        weib = knowl.weibulls[opts.weibull_index-1]            # we just use one. see note2. TODO!
-        site = UniformWeibullSite(weib.freqs, weib.As, weib.Ks, knowl.turb_intens)
-    else:
-        wrg = WU.read_wrg(knowl.wrg_file, tke=knowl.turb_intens)
-        if opts.shift_wind_map:                                # for testing/development only
-            wrg = wrg.assign_coords(z=case.hub_heights[:1])
-        wrg = wrg.rename(A='Weibull_A', k='Weibull_k', f='Sector_frequency', sec='wd', z='h', tke='TI')
-        wrg = wrg.assign_coords(wd=(wrg.wd-1)*30)
-        site = py_wake.site.XRSite(wrg)
-    #
-    # pick and initialize the chosen wake model
-    if not wake_model: wake_model = opts.wake_model
-    wake_model = wake_model.upper()
-    wf_model = deficit_model(wake_model, opts, site, wtgs)
-    #
-    # run simulations
-    logging.info(f'run wake model {wake_model} for all combinations of wd and ws')
-    wd = np.arange(0, 360, opts.delta_winddir)
-    ws = np.arange(np.floor(wtgs.ws_min/2), np.ceil(wtgs.ws_max)+1, opts.delta_windspeed)
-    sim_res = wf_model(case.xs, case.ys, type=case.types, wd=wd, ws=ws)
-    assert(np.all(np.equal(sim_res.x.values, case.xs)))
-    assert(np.all(np.equal(sim_res.y.values, case.ys)))
-    #
-    if opts.report_aep:
-        #
-        # coarsen it by averaging
-        n_sectors = len(weib.freqs)
-        width  = 360. / n_sectors
-        n_bins    = int(width / opts.delta_winddir)         # number of bins per sector
-        sim = sim_res.coarsen(wd=n_bins).mean()
-        #
-        # reporting AEP etc
-        if not hasattr(opts, 'output_fnm1') or not opts.output_fnm1:
-            fnm = wake_model + '.txt'
-        else:
-            fnm = opts.output_fnm1
-        #
-        aeps = WU.calc_AEP(sim.Power, wtgs, weib, park_nms=case.park_nms, verbose=True)
-        WU.create_output(aeps, case, fnm)
-    else:
-        aeps = None
-        sim = sim_res
-    #
-    # optional stuff
-    if opts.plot_wakemap:
-        ws_min, ws_max = np.floor(opts.legend_scaler*opts.plot_ws), opts.plot_ws+1
-        plot_flowmap(sim_res, opts.plot_ws, ws_min, ws_max, opts.plot_wd, wake_model, opts.case_nm, opts.plot_wt)
-    #
-    if opts.plot_layout:
-        logging.info('Plotting layout')
-        plt.figure()
-        wtgs.plot(case.xs, case.ys)
-        plt.show()
-    #
-    if opts.plot_wind:
-        logging.info('Plotting wind-distribution')
-        plt.figure()
-        site.plot_wd_distribution(n_wd=12, ws_bins=[0,5,10,15,20,25])
-        plt.show()
-    #
-    toc = time.perf_counter()
-    logging.info(f"Total runtime: {toc-tic:0.1f} seconds")
-    #
-    res =  sim_res, sim, aeps, case, knowl, opts, wtgs, site, wf_model
-    keys = ['sim_res', 'sim', 'aeps', 'case', 'knowl', 'opts', 'wtgs', 'site', 'wf_model']
-    if dump_results: dump(res, f'{wake_model}.pck')
-    return dict(zip(keys, res))
-
-def run_single(directory, wake_model, yaml_file, selected=[]):
-    cwd = os.getcwd()
-    if not os.path.exists(directory):
-        print('creating', directory)
-        os.mkdir(directory)
-    os.chdir(directory)
-    print(directory, wake_model, yaml_file)
-    main(wake_model, yaml_file=yaml_file, selected=selected)
-    os.chdir(cwd)
-
-def read_casefile(csvfile, sep='&', comment='#'):
-    '''
-    see docs for run_multiple
-    '''
-    cases = pd.read_csv(csvfile, sep=';', comment='#')
-    parklist = []
-    for i, case in cases.iterrows():
-        if case.parks is np.NaN:
-            parks = []    # get all parks
-        else:
-            parks = [park.strip() for park in case.parks.split('&')]
-        parklist.append(parks)
-    cases.parks = parklist
-    #
-    return cases
-
-def run_multiple(csvfile, max_cpus=3):
-    '''
-    useful for running a set of simulations.
-    the csv-file should look like something like this (to be opened in excel!):
-        directory;parks;wake_model;yaml
-        UKE_int;DEP NW & DEP SE & DEP & SEP;ETP;../../2.yaml
-        UKE_ext;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll;ETP;../../2.yaml
-        UKE_fut;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll & R4;ETP;../../2.yaml
-        UKE_int;DEP NW & DEP SE & DEP & SEP;NOJ;../../2.yaml
-        UKE_ext;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll;NOJ;../../2.yaml
-        UKE_fut;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll & R4;NOJ;../../2.yaml
-        UKE_int;DEP NW & DEP SE & DEP & SEP;NOJLOCAL;../../2.yaml
-        UKE_ext;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll;NOJLOCAL;../../2.yaml
-        UKE_fut;DEP NW & DEP SE & DEP & SEP & DOW & ShS & RaceBank & Triton Knoll & R4;NOJLOCAL;../../2.yaml
-    '''
-    cases = read_casefile(csvfile)
-    pool = mp.Pool(max_cpus)
-    results = []
-    #
-    for i, case in cases.iterrows():
-        pool.apply_async(run_single, args=(case.directory, case.wake_model, case.yaml, case.parks))
-    #
-    pool.close()
-    pool.join()
-    print('done')
-
-def _run_knowl_cases(pattern, noj_only):
-    cwd = os.getcwd()
-    os.chdir(KNOWLDIR)
-    case_dirs = UT.glob(pattern); case_dirs.sort()
-    #
-    for case_dir in case_dirs:
-        logging.info('')
-        logging.info(f'------ case_dir : {case_dir} ------')
-        os.chdir(case_dir)
-        #
-        logging.info('------ NOJ ------')
-        res = main('NOJ', dump_results=False)
-        r1 = WU.read_output_file('NOJ.txt')           # existing file
-        r2 = WU.read_output_file('FugaOutput_1.txt')  # created now
-        #
-        assert np.allclose(r1.net, r2.net)
-        assert np.allclose(r1.gross, r2.gross)
-        #
-        if not noj_only:
-            #
-            logging.info(' ------ TurbOPark ------')
-            main('ETP', dump_results=False)
-            r1 = WU.read_output_file('ETP.txt')            # existing file
-            r2 = WU.read_output_file('FugaOutput_1.txt')  # created now
-            #
-            assert np.allclose(r1.net, r2.net)
-            assert np.allclose(r1.gross, r2.gross)
-        os.chdir(KNOWLDIR)
-    os.chdir(cwd)
-    logging.info(f' testing OK')
-    return res    # could be useful
-
-def test_knowl_large_cases(noj_only=False):
-    return _run_knowl_cases('Phase?_*/', noj_only)
-
-def test_knowl_small_case(noj_only=False):
-    return _run_knowl_cases('WestermostRough', noj_only)
-
-
-
-################################## -- MAIN LOGIC -- ###########################
-
-if __name__ == '__main__':
-
-
-    #
-    # get necessary input
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-w", "--wake_model", default='NOJ',
-                        help="wake-model: Fuga, TP, ETP, NOJ, NOJLOCAL. (TP=TurboPark, ETP=Equinor-TP, NOJ=NO-Jensen). Required")
-    parser.add_argument("-y", "--yaml_file",   default=None,
-                        help="name of yaml-file of options for this program. Optional")
-    parser.add_argument('--force', '-f', action='store_true', help='force running the program - despite deprecation...')
-    args = parser.parse_args()
-    #
-    # run program
-    
-    res = main(args.wake_model, yaml_file=args.yaml_file, force=args.force)
-
