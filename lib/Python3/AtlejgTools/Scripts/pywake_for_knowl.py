@@ -521,15 +521,18 @@ def deficit_model(wake_model, opts, site, wtgs):
     return wf_model
 
 
-def main(wake_model, yaml_file=None, selected=[], dump_results=True):
+def main(wake_model, yaml_file=None, selected=[], dump_results=True, force=False):
     '''
+    DEPRECATED - use run_pywake --knowl in stead
     pick up knowl case description and run PyWake simulation.
     if wake_model is None, it *must* be given in the yaml_file
     - input
-      * wake_model: NOJ, NOJLOCAL, ETP ...
-      * yaml_file:  see note1
-      * selected:   Which parks to use. Default is [], which gives all. This is useful since it means
-                    only one Inventory.xml is needed (covering all parks in the knowl-project)
+      * wake_model:   NOJ, NOJLOCAL, ETP ...
+      * yaml_file:    see note1
+      * selected:     Which parks to use. Default is [], which gives all. This is useful since it means
+                      only one Inventory.xml is needed (covering all parks in the knowl-project)
+      * dump_results: boolean. dump pickle-file?
+      * force:        run simulation even if this is DEPRECATED
     - returns
       * a dict with the following elements:
         - sim_res
@@ -543,6 +546,10 @@ def main(wake_model, yaml_file=None, selected=[], dump_results=True):
         - site
         - wf_model
     '''
+    #
+    logging.warn('DEPRECATED! use run_pywke.py --knowl in stead')
+    if not force:
+        raise Exception('must use force=True to continue')
     #
     opts = get_opts(yaml_file)
     #
@@ -718,6 +725,7 @@ def test_knowl_small_case(noj_only=False):
 
 if __name__ == '__main__':
 
+
     #
     # get necessary input
     parser = argparse.ArgumentParser()
@@ -725,8 +733,10 @@ if __name__ == '__main__':
                         help="wake-model: Fuga, TP, ETP, NOJ, NOJLOCAL. (TP=TurboPark, ETP=Equinor-TP, NOJ=NO-Jensen). Required")
     parser.add_argument("-y", "--yaml_file",   default=None,
                         help="name of yaml-file of options for this program. Optional")
+    parser.add_argument('--force', '-f', action='store_true', help='force running the program - despite deprecation...')
     args = parser.parse_args()
     #
     # run program
-    res = main(args.wake_model, yaml_file=args.yaml_file)
+    
+    res = main(args.wake_model, yaml_file=args.yaml_file, force=args.force)
 
