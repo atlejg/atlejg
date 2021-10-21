@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 '''
+@AUTHOR Atle J. Gyllensten, agy@equinor.com
+
+A pywake-wrapper to be used for running simulations in an effective way,
+especially as a part of the WindWorks-initiativ.
 
 Oct 2021
-
-improved version of run_pywake.py
-this one handles multiple parks & multiple wtg's
-eventually, it should be merged with pywake_for_knowl.py
-
+  - now handles multiple parks & multiple wtg's
+  - --knowl option to replace pywake_for_knowl.py (which is now deprecated)
 
 NOTES
 
@@ -22,12 +23,12 @@ NOTES
           wl: wake loss
 
  - note3
-   must have an old version of xlrd: pip install xlrd==1.2.0
+    must have an old version of xlrd: pip install xlrd==1.2.0 for pd.read_excel to work.
 
  - note4
-        only TP/TurbOPark, ETP (Equinor TP), ZGauss, NOJ, NOJLocal and Fuga
-        wake models are available.
-        for Fuga, only 1 wtg-type is allowed
+    only TP/TurbOPark, ETP (Equinor TP), ZGauss, NOJ, NOJLocal and Fuga
+    wake models are available.
+    for Fuga, only 1 wtg-type is allowed
 
 '''
 
@@ -42,8 +43,8 @@ import re, logging, argparse
 from scipy.interpolate import interp1d
 import AtlejgTools.Utils as UT
 import AtlejgTools.WindYieldAssessment.Utils as WU
+import AtlejgTools.WindYieldAssessment.KnowlUtils as KU
 import AtlejgTools.WindYieldAssessment.WindModeller as wm
-import AtlejgTools.Scripts.pywake_for_knowl as pfk
 
 N_SECTORS    = 12
 TYPE_EXCEL   = 'excel'
@@ -443,8 +444,8 @@ def main(yaml_file, wake_model=None, knowl_mode=False):
         case, wtgs = read_setup(opts)
         weib = get_weibull(opts.weibull_file)
     else:
-        knowl = pfk.read_knowl_file(opts.knowl_file)
-        case, wtgs = pfk.read_inventory(opts.inventory_file, selected=opts.selected)
+        knowl = KU.read_knowl_file(opts.knowl_file)
+        case, wtgs = KU.read_inventory(opts.inventory_file, selected=opts.selected)
         weib = knowl.weibulls[opts.weibull_index-1]
         opts.turb_intens = knowl.turb_intens
     #
@@ -474,7 +475,7 @@ def main(yaml_file, wake_model=None, knowl_mode=False):
     vals =  sim, pwrc, aeps, case, opts, wtgs, site, wf_model, weib
     keys = ['sim', 'pwrc', 'aeps', 'case', 'opts', 'wtgs', 'site', 'wf_model', 'weib']
     res = dict(zip(keys, vals))
-    if opts.dump_results: pfk.dump(res, f'{opts.resultfile_prefix}.pck')
+    if opts.dump_results: KU.dump(res, f'{opts.resultfile_prefix}.pck')
     return res
 
 ################################## -- MAIN LOGIC -- ###########################
