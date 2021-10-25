@@ -4,3 +4,6 @@
 ipython_log.py
 .*.swp
 *.bak
+atlejg.egg-info
+build
+dist
