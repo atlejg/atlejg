@@ -434,6 +434,7 @@ def main(yaml_file, wake_model=None, knowl_mode=False):
     if yaml_file:
         logging.info(f"Reading input file: {yaml_file}")
         opts = UT.get_yaml(yaml_file)
+        if not hasattr(opts, 'resultfile_prefix'): opts.resultfile_prefix = UT.basename(yaml_file)
     else:
         opts = UT.Struct()
     set_defaults(opts, knowl_mode)
