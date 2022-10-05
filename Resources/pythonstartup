@@ -1,29 +1,42 @@
 # -- coding: utf-8     # handle filenames with norwegian special characters
 import os, sys
+from pathlib import Path
 if 'win' in sys.platform:
-   pass
-   #sys.path.insert(0, '\\\\statoil.net\\unix_tr\\Project\\RCP\\active\\fluent\\Atle_Resources\\lib\\Python')
-   #sys.path.insert(0, '\\\\statoil.net\\unix_tr\\Project\\RCP\\active\\fluent\\Atle_Resources\\lib\\Python\\vkip')
-   #sys.path.insert(0, '\\\\statoil.net\\unix_tr\\Project\\RCP\\active\\fluent\\Atle_Resources\\atlejg\\lib\\Python2')
-   #sys.path.insert(0, 'c:/Appl/atlejg/lib/Python3')
+    sys.path.append(str(Path('C:/Appl/PythonPackages/WindWorks/')))
+    TWW.TEST_REPO = Path("D:\OneDrive - Equinor\ACTIVE\Wind\WindWorks\Testdata")
+    #
+    sys.path.append(str(Path('C:/Appl/atlejg/lib/Python3')))
 else:
-   pass
-   #sys.path.insert(1, '/private/agy/Tools/atlejg/lib/Python3')                        # in PYTHONPATH
-   #sys.path.append('/project/res/ecalc/master/lib/python3.7/site-packages')            # mostly for ecl.ecl
-   #sys.path.append('/private/agy/Tools/subscript/src/subscript')
+    pass
+    #sys.path.insert(1, '/private/agy/Tools/atlejg/lib/Python3')                        # in PYTHONPATH
+    #sys.path.append('/project/res/ecalc/master/lib/python3.7/site-packages')            # mostly for ecl.ecl
+    #sys.path.append('/private/agy/Tools/subscript/src/subscript')
+
+import py_wake
+import WindWorks.Utils as WU
+import WindWorks.FugaUtils as FU
+import WindWorks.KnowlUtils as KU
+import WindWorks.FugaUtils as FU
+import WindWorks.SetupTools as ST
+import WindWorks.SimulationCase as SC
+import WindWorks.Defaults as DEF
+#import WindWorks.GUI
+import WindWorks.run as ww
+import WindWorks.test_windworks as TWW
 
 # make sure figures are handled 'properly' in interactive ipython sessions
 import matplotlib
 matplotlib.interactive(1)
 
+import scipy
+import xarray as xr
 from importlib import reload              # want reload as in ipython2
 from pylab import *
 import pandas as pd
 import AtlejgTools.FluentUtils as FL
 import AtlejgTools.Utils as UT
-#import AtlejgTools.RCP_project.Valve_characteristics as VC
+import AtlejgTools.RCP_project.Valve_characteristics as VC
 import AtlejgTools.SimulationTools.UnitConversion      as U
-import AtlejgTools.WindYieldAssessment.Utils        as WU
 import AtlejgTools.WindYieldAssessment.WindModeller as WM
 
 if 'win' not in sys.platform:
@@ -33,6 +46,9 @@ if 'win' not in sys.platform:
 
 rcParams['figure.figsize'] = 9, 5
 rcParams['lines.linewidth'] = 5    # orig: 1
+
+import logging
+logging.basicConfig(level=logging.INFO, force=True)
 
 #from vim import vim    # useful for testing snippets of code. consider using %edit (ed) instead
 # dont need these for iptyhon 0.12

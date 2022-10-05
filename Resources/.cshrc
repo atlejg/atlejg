@@ -44,7 +44,11 @@ source $LoginPath/DEFAULT.$ext
 source /prog/res/komodo/stable-py3/enable.csh                  # n1
 #source /project/res/komodo/testing/enable.csh                  # hot from the press..
 
-source /project/RCP/active/venv/agy/WRA36b/bin/activate.csh    # n2
+if ( (! $?ENVONLY) && $?prompt ) then
+    # note: this 'activate' is causing the "prompt: Undefined variable" message
+    #       when using bsub, bjobs etc. this if-test fixes this
+    source /project/RCP/active/venv/agy/WW38b/bin/activate.csh    # n2
+endif
 
 # Then add *my* stuff. Keep fingers crossed..
 source $HOME/.mycshrc

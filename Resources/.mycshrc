@@ -47,8 +47,8 @@ set pushdsilent
 set history = 500
 
 if ( (! $?ENVONLY) && $?prompt ) then
-set prompt=`echo "$prompt" | awk '{print $1}'`    # cleaning: [WRA36a] [agy@tr-linrgsn003 agy] => [WRA36a]
-set prompt="${prompt} %c2> "
+    set prompt=`echo "$prompt" | awk '{print $1}'`    # cleaning: [WRA36a] [agy@tr-linrgsn003 agy] => [WRA36a]
+    set prompt="${prompt} %c2> "
 endif
 
 ### MY ENVIRONMENT VARIABLES
@@ -181,7 +181,8 @@ setenv PERLLIB "${PERLLIB}:${SCRIPT_DIR}"
 setenv PERL5LIB $PERLLIB
 
 # WindWork stuff
-alias windworks /project/RCP/active/wind_yield_assessment/agy/WindWorks/Tools/windworks
+#alias windworks /project/RCP/active/wind_yield_assessment/agy/WindWorks/Tools/windworks
+alias windworks "python /project/RCP/active/wind_yield_assessment/agy/WindWorks/src/WindWorks/WindWorks/run.py"
 
 # GAMBIT stuff
 # Wed Jan 13 12:03:05 MET 2016
