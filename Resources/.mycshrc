@@ -182,6 +182,7 @@ setenv PERL5LIB $PERLLIB
 
 # WindWork stuff
 if (`hostname | grep -i st-` != '') then
+    # stavanger
     alias windworks "python /project/RCP/active/wind_yield_assessment/agy/WindWorks/src/WindWorks/WindWorks/run.py"
 else
     alias windworks /project/RCP/active/wind_yield_assessment/agy/WindWorks/Tools/windworks
