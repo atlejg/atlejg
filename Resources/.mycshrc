@@ -12,7 +12,7 @@ if (! ${?prompt}) goto end    # could i do exit instead of goto ??
 if (-d /project/RCP/active/fluent/) then
    setenv ACTIVE /project/RCP/active
    setenv RC $ACTIVE/fluent/Atle_Resources
-    setenv TMP $ACTIVE/fluent/TMP
+   setenv TMP $ACTIVE/fluent/TMP
 else
    setenv ACTIVE $HOME
    setenv RC $HOME/Tools
@@ -181,8 +181,11 @@ setenv PERLLIB "${PERLLIB}:${SCRIPT_DIR}"
 setenv PERL5LIB $PERLLIB
 
 # WindWork stuff
-#alias windworks /project/RCP/active/wind_yield_assessment/agy/WindWorks/Tools/windworks
-alias windworks "python /project/RCP/active/wind_yield_assessment/agy/WindWorks/src/WindWorks/WindWorks/run.py"
+if (`hostname | grep -i st-` != '') then
+    alias windworks "python /project/RCP/active/wind_yield_assessment/agy/WindWorks/src/WindWorks/WindWorks/run.py"
+else
+    alias windworks /project/RCP/active/wind_yield_assessment/agy/WindWorks/Tools/windworks
+endif
 
 # GAMBIT stuff
 # Wed Jan 13 12:03:05 MET 2016
