@@ -65,7 +65,7 @@ map <F3> :exec("tag ".expand("<cword>"))<CR>
 " open in new tab
 map <F4> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
 " open in new vertical tab - more useful
-map <F5> :vsp <CR>:exec("tag ".expand("<cword>"))<CR>
+map <F5> :sp <CR>:exec("tag ".expand("<cword>"))<CR>
 "map <C-]> :ta <cword> <CR> "!dir <cword> <CR> " DOES NOT WORK. WHY ??? (dir <cword> works...)
 "nmap <c-r> :ta expand("<cword>")<CR>
 "map <c-r> :ta expand("<cword>")<CR>
@@ -102,7 +102,7 @@ augroup END
 filetype plugin on
 set ofu=syntaxcomplete#Complete
 " maybe not so useful now that Ctrl-X Ctrl-O works...
-let g:pydiction_location = '/private/agy/.vim/after/ftplugin/pydiction/complete-dict'
+"let g:pydiction_location = '/private/agy/.vim/after/ftplugin/pydiction/complete-dict'
 
 " for python debugging
 :map <F2> opdb.set_trace()<Esc>
