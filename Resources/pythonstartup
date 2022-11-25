@@ -1,16 +1,7 @@
 # -- coding: utf-8     # handle filenames with norwegian special characters
+
 import os, sys
 from pathlib import Path
-if 'win' in sys.platform:
-    sys.path.append(str(Path('C:/Appl/PythonPackages/WindWorks/')))
-    TWW.TEST_REPO = Path("D:\OneDrive - Equinor\ACTIVE\Wind\WindWorks\Testdata")
-    #
-    sys.path.append(str(Path('C:/Appl/atlejg/lib/Python3')))
-else:
-    pass
-    #sys.path.insert(1, '/private/agy/Tools/atlejg/lib/Python3')                        # in PYTHONPATH
-    #sys.path.append('/project/res/ecalc/master/lib/python3.7/site-packages')            # mostly for ecl.ecl
-    #sys.path.append('/private/agy/Tools/subscript/src/subscript')
 
 import py_wake
 import WindWorks.Utils as WU
@@ -23,6 +14,14 @@ import WindWorks.Defaults as DEF
 #import WindWorks.GUI
 import WindWorks.run as ww
 import WindWorks.test_windworks as TWW
+
+if 'win' in sys.platform:
+    sys.path.append(str(Path('C:/Appl/PythonPackages/WindWorks/')))
+    TWW.TEST_REPO = Path("D:\OneDrive - Equinor\ACTIVE\Wind\WindWorks\Testdata")
+    #
+    sys.path.append(str(Path('C:/Appl/atlejg/lib/Python3')))
+else:
+    pass
 
 # make sure figures are handled 'properly' in interactive ipython sessions
 import matplotlib
