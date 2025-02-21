@@ -8,18 +8,18 @@ onintr -
 # Check if this is an interactive session
 if (! ${?prompt}) goto end    # could i do exit instead of goto ??
 
-#
+setenv ATLEJG C:/Users/agy/Documents/GitHub/atlejg
+
 if (-d /project/RCP/active/fluent/) then
    setenv ACTIVE /project/RCP/active/fluent/
    setenv RC $ACTIVE/Atle_Resources
    setenv TMP $ACTIVE/fluent/TMP
 else
    setenv ACTIVE $HOME
-   setenv RC $HOME/Tools
+   setenv RC $ATLEJG/Resources
    setenv TMP /tmp
 endif
 
-setenv ATLEJG C:/Users/agy/Documents/GitHub/atlejg
 setenv LC_ALL 'C'
 
 # ---------------------- based on /etc/csh.cshrc for Cygwin
@@ -58,7 +58,7 @@ setenv WORK /project/RCP/work/$USER
 setenv PY $ATLEJG/lib/Python3/AtlejgTools/
 
 # PATH stuff
-setenv PATH "${HOME}/bin:${PATH}"
+setenv PATH "${ATLEJG}/bin:${PATH}"
 
 # PERL-stuff
 setenv PERLLIB "/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/site_perl:/project/res/x86_64_RH_5/lib64/perl5/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5:/project/res/x86_64_RH_5/lib/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib/perl5/site_perl:/project/res/x86_64_RH_5/lib/perl5/5.8.8:/project/res/x86_64_RH_5/lib/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib/perl5"
@@ -96,7 +96,7 @@ alias rio 'ssh -X rio-linrgsn008.rio.statoil.no'
 alias ssh_crontab 'ssh -X stj-linrgs039.stj.statoil.no'        # need to be here for crontab
 #
 alias @floviz '@floviz -local -version 2009.2'
-alias cmds 'vi $ATLEJG/Resources/cmds'
+alias cmds 'vi $RC/cmds'
 alias bookshelf 'acroread /prog/ecl/grid/2016.2/manuals/bookshelf.pdf'
 alias killps '/prog/script/killps agy'
 alias pkill pkill -u $USER  # only kill my jobs
@@ -126,12 +126,12 @@ setenv TS_MAILTO agy@equinor.com
 
 # PYTHON STUFF
 setenv PYTHONPATH "$ATLEJG/lib/Python3"                                     # my stuff
-alias pylab 'ipython --pylab --logfile=ipython_log.py -i $ATLEJG/Resources/pythonstartup'
+alias pylab 'ipython --pylab --logfile=ipython_log.py -i $RC/pythonstartup'
 
 # vim stuff
 setenv EDITOR vim
 alias vimdiff "vimdiff -c 'syntax off'"  # focus on differences - not syntax
-alias vim vim -u $ATLEJG/Resources/.vimrc
+alias vim vim -u $RC/.vimrc
 alias gvim "c:/Appl/Vim/vim81/gvim.exe -u C:\\Users\\agy\\Documents\\GitHub\\atlejg\\Resources\\.vimrc"     # windows gvim needs dos-addresse
 alias vi 'vim'
 alias v 'vi -R' # like view - but using vim
