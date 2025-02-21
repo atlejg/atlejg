@@ -1,0 +1,1010 @@
+[Event "slow chess - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.14"]
+[Round "2"]
+[White "JorgeLicht"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1471"]
+[BlackElo "1563"]
+[TimeControl "1/432000"]
+[EndDate "2018.07.08"]
+[Termination "JorgeLicht won by resignation"]
+
+1. e4 c5 2. Nf3 d6 3. Nc3 e5 4. Nd5 Nf6 5. Nxf6+ Qxf6 6. Bc4 Bg4 7. Be2 Be7 8.
+d3 O-O 9. Bg5 Qe6 10. Bxe7 Qxe7 11. Nd2 Bxe2 12. Qxe2 Nc6 13. c3 b5 14. O-O a6
+15. a3 f5 16. f4 Rf6 17. Rae1 a5 18. c4 b4 19. Nb3 a4 20. Nc1 Nd4 21. Qd1 b3 22.
+fxe5 dxe5 23. exf5 Rxf5 24. Rxf5 Nxf5 25. Qf3 Qf8 26. Rxe5 Nd4 27. Qxf8+ Kxf8
+28. Rxc5 Re8 29. Kf2 Ra8 30. Ke3 Nc2+ 31. Ke4 Re8+ 32. Re5 Ra8 33. g4 Ne1 34.
+Kf4 Rd8 35. Rxe1 h6 36. Re4 g5+ 37. Ke3 Kf7 38. Ne2 Kf6 39. Nc3 Ra8 40. c5 Kg6
+41. Rxa4 Rc8 42. Ra6+ Kg7 43. d4 Rc7 44. Kd3 Rf7 45. Re6 Rf3+ 46. Kc4 Rf2 47. c6
+Rxb2 48. c7 Ra2 49. Nxa2 bxa2 50. Re1 a1=Q 51. Rxa1 1-0
+
+[Event "slow chess - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.14"]
+[Round "2"]
+[White "atlejg"]
+[Black "DeMichial"]
+[Result "0-1"]
+[WhiteElo "1598"]
+[BlackElo "1563"]
+[TimeControl "1/432000"]
+[EndDate "2018.07.25"]
+[Termination "DeMichial won by checkmate"]
+
+1. d4 e6 2. e4 d5 3. e5 Nc6 4. Nf3 Bd7 5. Bd3 Nge7 6. O-O Ng6 7. c3 Qe7 8. Nbd2
+O-O-O 9. b4 f6 10. exf6 gxf6 11. Ba3 Nb8 12. Re1 Qg7 13. Bxg6 Qxg6 14. Nh4 Qg5
+15. Ndf3 Qg7 16. Bc1 Rg8 17. a4 Be7 18. a5 f5 19. Ra2 Be8 20. Qd2 Bb5 21. Qh6
+Qf7 22. Ne5 Qg7 23. Qxg7 Rxg7 24. Nef3 Rdg8 25. Rxe6 Nc6 26. Bf4 Nd8 27. Re5 Bc4
+28. Ra1 Bxh4 29. Nxh4 Rg4 30. Rxf5 Rxh4 31. g3 Ne6 32. Kh1 Bd3 33. gxh4 Be4+ 34.
+f3 Bxf3# 0-1
+
+[Event "slow chess - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.14"]
+[Round "2"]
+[White "DeMichial"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1578"]
+[BlackElo "1587"]
+[TimeControl "1/432000"]
+[EndDate "2018.07.15"]
+[Termination "atlejg won by resignation"]
+
+1. c4 d6 2. Nc3 e5 3. e3 Nf6 4. Be2 Be7 5. Nf3 O-O 6. O-O c5 7. Nd5 e4 8. Nxe7+
+Qxe7 9. Ne1 Nc6 10. f3 exf3 11. Bxf3 Ne5 12. Be2 Be6 13. b3 a6 14. Bb2 b6 15. d4
+cxd4 16. exd4 Ng6 17. d5 Bd7 18. Qd4 Qxe2 19. Rxf6 gxf6 20. Qxf6 Ne5 21. Ba3
+Qe3+ 22. Kh1 Rfe8 23. Bxd6 Ng4 24. Qf1 Nf2+ 25. Kg1 Nd3+ 26. Kh1 Nxe1 27. Bf4
+Qe4 28. Bd2 Qxg2+ 29. Qxg2+ Nxg2 30. Kxg2 Re2+ 31. Kf3 Rxd2 32. Rg1+ Kh8 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.02.14"]
+[Round "-"]
+[White "carlosgentl"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1394"]
+[BlackElo "1575"]
+[TimeControl "1/259200"]
+[EndDate "2018.07.06"]
+[Termination "atlejg won by resignation"]
+
+1. d4 d5 2. e3 Nf6 3. Nf3 Bg4 4. Be2 h6 5. c4 c6 6. a3 e6 7. b3 Bd6 8. Nc3 O-O
+9. Bb2 c5 10. h3 Bh5 11. O-O Nbd7 12. dxc5 Nxc5 13. b4 Ncd7 14. c5 Be7 15. Nd4
+a6 16. Bxh5 Nxh5 17. Qxh5 Nf6 18. Qf3 Qc7 19. Nce2 Ne4 20. Rad1 a5 21. Nb5 Qd7
+22. Qg4 Bf6 23. Bxf6 Nxf6 24. Qg3 Qxb5 25. Nd4 Qd7 26. f3 axb4 27. axb4 Ra4 28.
+Rb1 Rc8 29. Rfd1 Ra6 30. Nb5 Qxb5 31. Kh2 b6 32. cxb6 Qxb6 33. Qf2 Ra4 34. b5
+Ra5 35. Qb2 Rc5 36. Rd4 Raxb5 37. Rb4 Rxb4 38. Qxb4 Qxb4 39. Rxb4 Rc4 40. Rb1
+Rc3 41. Re1 Nd7 42. e4 dxe4 43. Rxe4 g6 44. Rd4 Nf6 45. Rh4 Kg7 46. f4 Nd5 47.
+Rg4 Rc4 48. Kg3 Rc3+ 49. Kf2 Ne3 50. Rh4 Nf5 51. Rg4 h5 52. Rg5 f6 53. Rxf5 gxf5
+54. g3 h4 55. gxh4 Rxh3 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.03.01"]
+[Round "-"]
+[White "clemyd"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1430"]
+[BlackElo "1575"]
+[TimeControl "1/259200"]
+[EndDate "2018.06.30"]
+[Termination "clemyd won by resignation"]
+
+1. d4 d5 2. c4 c6 3. Nc3 Nd7 4. Nf3 g6 5. cxd5 c5 6. dxc5 Nxc5 7. Be3 b6 8. Bd4
+f6 9. Bxc5 bxc5 10. e4 a6 11. Bc4 Nh6 12. O-O Nf7 13. Re1 Bh6 14. a4 O-O 15. h3
+Nd6 16. Ba2 Qd7 17. Rc1 Bxc1 18. Qxc1 Nf7 19. Qf4 Qd6 20. Qh4 Rb8 21. Re2 Kg7
+22. Nd1 Bd7 23. b3 Ne5 24. Nxe5 Qxe5 25. f4 Qd4+ 26. Nf2 e6 27. b4 Rxb4 28. dxe6
+Rb2 29. Rxb2 Qxb2 30. exd7 Qxa2 31. Ng4 Qxa4 32. Qh6+ Kg8 33. Nxf6+ Kf7 34. e5
+Qc6 35. Qxh7+ Ke6 36. Qxg6 Rd8 37. Qg4+ Ke7 38. Kh2 Rxd7 39. Nxd7 Qxd7 40. Qg7+
+Ke8 41. Qg6+ Qf7 42. Qc6+ Kd8 43. Qd6+ Qd7 44. Qxc5 Qc7 45. Qf8+ Kd7 46. Kg3 Qd8
+47. Qd6+ Ke8 48. Qxa6 Kf8 49. Qf6+ Qxf6 50. exf6 Kf7 51. Kh4 Kxf6 52. g4 Kg6 53.
+f5+ Kf6 54. Kh5 Kg7 55. f6+ Kxf6 56. Kh6 Kf7 57. g5 Kg8 58. g6 Kh8 59. g7+ Kg8
+60. h4 Kf7 61. Kh7 Kf6 62. g8=Q Ke5 63. Qg5+ Ke4 64. Kg6 Kd3 65. h5 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.03.16"]
+[Round "-"]
+[White "gmlenrev"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1575"]
+[BlackElo "1588"]
+[TimeControl "1/432000"]
+[EndDate "2018.07.29"]
+[Termination "gmlenrev won by checkmate"]
+
+1. d4 d5 2. c4 c6 3. Nf3 Nf6 4. g3 e6 5. Bg2 b6 6. Nc3 Bb7 7. Bg5 Be7 8. O-O O-O
+9. Rc1 h6 10. Be3 Nbd7 11. cxd5 cxd5 12. a3 Nb8 13. Re1 Nc6 14. Nd2 Qd7 15. Nf1
+Rac8 16. Qd3 Nb8 17. Qd2 Ng4 18. h3 Nxe3 19. Qxe3 Bg5 20. f4 Be7 21. Qd2 Ba6 22.
+Nh2 b5 23. Bf1 Rfd8 24. e3 b4 25. axb4 Bxb4 26. Bxa6 Nxa6 27. Nf3 Bd6 28. Ra1
+Qc6 29. Rec1 Qb7 30. Qe2 Rc6 31. Ne5 Bxe5 32. fxe5 Rb8 33. Rc2 Rb6 34. b3 Nc7
+35. Na4 Ra6 36. Kf2 Ra5 37. Nc5 Rxa1 38. Nxb7 Rxb7 39. Qd3 g6 40. Qc3 Kg7 41.
+Qc6 Rh1 42. Kg2 Rb6 43. Qxc7 Rxb3 44. Kxh1 Rxe3 45. Kg2 a6 46. Qe7 a5 47. Qf6+
+Kh7 48. Rc8 Re2+ 49. Kf3 Rf2+ 50. Kxf2 g5 51. Rh8# 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.03.17"]
+[Round "-"]
+[White "atlejg"]
+[Black "Desroska"]
+[Result "1-0"]
+[WhiteElo "1577"]
+[BlackElo "1719"]
+[TimeControl "1/432000"]
+[EndDate "2018.07.11"]
+[Termination "atlejg won by resignation"]
+
+1. e4 c6 2. d4 d5 3. e5 Bf5 4. Bd3 Bxd3 5. Qxd3 e6 6. Nf3 Bb4+ 7. Bd2 Bxd2+ 8.
+Nbxd2 Ne7 9. O-O Nd7 10. h3 Qb6 11. b3 Ng6 12. c4 dxc4 13. Nxc4 Qa6 14. Nd6+ Ke7
+15. Qxa6 bxa6 16. Rac1 Rab8 17. Rxc6 Rb6 18. Nc8+ 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.03.18"]
+[Round "-"]
+[White "atlejg"]
+[Black "Zzgloo"]
+[Result "1-0"]
+[WhiteElo "1609"]
+[BlackElo "1763"]
+[TimeControl "1/259200"]
+[EndDate "2018.07.23"]
+[Termination "atlejg won by resignation"]
+
+1. e4 e5 2. d3 Bc5 3. Nf3 Nc6 4. Nxe5 Bxf2+ 5. Kxf2 Nxe5 6. Be2 Qf6+ 7. Bf3 d5
+8. h3 Be6 9. Nc3 O-O-O 10. Rf1 Ne7 11. Kg1 Nxf3+ 12. Rxf3 Qg6 13. Qe1 dxe4 14.
+Rg3 Qf6 15. Nxe4 Qd4+ 16. Qe3 Nf5 17. Qxd4 Rxd4 18. Rf3 b6 19. c3 Rdd8 20. Bg5
+f6 21. Bd2 h5 22. a3 Rhf8 23. Re1 Bd7 24. g3 Rde8 25. Kg2 Ne7 26. c4 a5 27. b4
+Nc6 28. Bc3 axb4 29. axb4 Ne7 30. b5 Ng6 31. Bb4 Rg8 32. Bc3 f5 33. Ng5 Rxe1 34.
+Bxe1 Re8 35. Kf2 Nh8 36. Bc3 Re7 37. Re3 Ng6 38. Rxe7 Nxe7 39. Bxg7 Ng6 40. Nh7
+f4 41. Nf6 Ne5 42. Nxd7 fxg3+ 43. Kxg3 Nxd7 44. Kh4 Nc5 45. d4 Nd3 46. Kxh5 Nb2
+47. c5 Na4 48. Kg6 bxc5 49. dxc5 Nxc5 50. h4 Ne6 51. Be5 Kd7 52. h5 c5 53. h6 c4
+54. b6 Kc6 55. Bf6 Kxb6 56. Kf7 c3 57. Bxc3 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.04.02"]
+[Round "-"]
+[White "GermanTraver"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1469"]
+[BlackElo "1570"]
+[TimeControl "1/259200"]
+[EndDate "2018.07.06"]
+[Termination "atlejg won by resignation"]
+
+1. d4 d5 2. Nf3 Nf6 3. c4 c5 4. Nc3 cxd4 5. Nxd4 dxc4 6. e4 e5 7. Nc2 Qxd1+ 8.
+Nxd1 Nxe4 9. f3 Nd6 10. Nde3 b5 11. Be2 f6 12. O-O Bb7 13. Bd2 Be7 14. Bb4 O-O
+15. Rad1 Nc8 16. Nd5 Bxb4 17. Ncxb4 a5 18. Nc2 Bc6 19. Nce3 Na6 20. a4 Kh8 21.
+Rd2 Rf7 22. Rfd1 h6 23. axb5 Bxb5 24. Nxc4 Ba4 25. Ra1 Nc5 26. Ra3 Bc6 27. Nc3
+a4 28. Rd8+ Kh7 29. Nd6 Nxd6 30. Rxd6 Be8 31. Nd5 Rd7 32. Rxd7 Bxd7 33. Nb6 Ra7
+34. Bd1 Rb7 35. Nxd7 Nxd7 36. Bxa4 Nc5 37. Bc2+ g6 38. Rc3 Na6 39. b3 Nb4 40.
+Bd1 Kg7 41. Kf2 Rd7 42. Ke2 Na2 43. Rd3 Nc1+ 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.04.22"]
+[Round "-"]
+[White "atlejg"]
+[Black "einmag"]
+[Result "0-1"]
+[WhiteElo "1571"]
+[BlackElo "1455"]
+[TimeControl "1/259200"]
+[EndDate "2018.08.11"]
+[Termination "einmag won by checkmate"]
+
+1. e4 c5 2. Nc3 e6 3. Nf3 a6 4. g3 b5 5. a3 Bb7 6. d3 d6 7. Bg2 g6 8. O-O Bg7 9.
+Bd2 Ne7 10. Re1 O-O 11. b4 Nd7 12. Rb1 c4 13. a4 a5 14. Nxb5 Nb6 15. bxa5 Nxa4
+16. Nxd6 Bxe4 17. Nxe4 c3 18. Be3 Nb2 19. Qe2 Rxa5 20. Bc1 Ra2 21. Bxb2 cxb2 22.
+Qd2 Nd5 23. d4 Qc7 24. c3 Rb8 25. Nc5 Qa7 26. Bf1 Qa5 27. Nxe6 Nxc3 28. Nxg7
+Nxb1 29. Qxa5 Rxa5 30. Rxb1 Kxg7 31. Nd2 Rd5 32. Nf3 Rd6 33. Kg2 Rc6 34. Bd3 Rc1
+35. h4 Rxb1 36. Bxb1 Rc8 37. Nd2 Rc1 38. Ba2 Rd1 39. Nc4 Rxd4 40. Nxb2 Rd2 41.
+Bc4 Rxb2 42. Ba6 f6 43. Bc8 h5 44. Bd7 Kh6 45. Be6 g5 46. hxg5+ fxg5 47. Bf5 g4
+48. Be6 Kg5 49. Bd7 h4 50. gxh4+ Kxh4 51. Kf1 Kg5 52. Bc6 Kh4 53. Bd5 Kh3 54.
+Bc6 Rb4 55. Ke1 Rf4 56. Bb7 Kh2 57. Ke2 Kg1 58. Ke1 Rxf2 59. Bc8 g3 60. Bb7 g2
+61. Ba6 Rb2 62. Bd3 Kh2 63. Be2 g1=Q+ 64. Bf1 Qe3+ 65. Kd1 Qd2# 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.05.02"]
+[Round "-"]
+[White "blackgore"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1489"]
+[BlackElo "1563"]
+[TimeControl "1/259200"]
+[EndDate "2018.07.01"]
+[Termination "blackgore won by resignation"]
+
+1. e4 c5 2. f4 d6 3. Nf3 Nc6 4. Bc4 a6 5. a3 b5 6. Ba2 e6 7. d4 cxd4 8. Nxd4
+Nxd4 9. Qxd4 Bb7 10. Nc3 Be7 11. Qxg7 Bf6 12. Qg3 Bh4 13. O-O Bxg3 14. hxg3 h5
+15. Be3 Nf6 16. e5 dxe5 17. f5 Qd6 18. fxe6 Ng4 19. exf7+ Kf8 20. Bg5 Qd4+ 21.
+Kh1 Bxg2+ 22. Kxg2 Qd2+ 23. Bxd2 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.05.02"]
+[Round "-"]
+[White "kuroman"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1927"]
+[BlackElo "1589"]
+[TimeControl "1/259200"]
+[EndDate "2018.06.29"]
+[Termination "kuroman won by resignation"]
+
+1. d4 d5 2. c4 c6 3. Nc3 Nf6 4. Bf4 Bf5 5. e3 g6 6. Nf3 Bg7 7. cxd5 Nxd5 8. Bg3
+Nxc3 9. bxc3 O-O 10. Bc4 c5 11. O-O cxd4 12. exd4 a6 13. Ne5 Qa5 14. Qb3 e6 15.
+Qxb7 Qxc3 16. Qxa8 Nd7 17. Qxa6 Bxe5 18. Bxe5 Nxe5 19. dxe5 Qxe5 20. Bd3 Bxd3
+21. Qxd3 Qa5 22. a4 Rd8 23. Qb5 Qa8 24. Rfb1 Kg7 25. a5 Rd5 26. Qb6 Qe8 27. a6
+Qd7 28. a7 Rd6 29. Qb7 Qxb7 30. Rxb7 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.05.09"]
+[Round "-"]
+[White "gecama"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1878"]
+[BlackElo "1585"]
+[TimeControl "1/259200"]
+[EndDate "2018.08.05"]
+[Termination "gecama won by checkmate"]
+
+1. d4 d5 2. e4 dxe4 3. Nc3 Nf6 4. f3 exf3 5. Nxf3 Bg4 6. Be3 e6 7. Bd3 Bd6 8.
+O-O O-O 9. Qd2 Nc6 10. a3 a6 11. Rae1 h6 12. Bxh6 Bxf3 13. Rxf3 Nxd4 14. Rxf6
+Qxf6 15. Bg5 Nf3+ 16. gxf3 Qxf3 17. Rf1 Bc5+ 18. Rf2 Qxf2+ 19. Qxf2 Bxf2+ 20.
+Kxf2 f6 21. Be3 Kf7 22. Ne2 Rh8 23. Kg3 g6 24. Bc4 b5 25. Bb3 g5 26. Nd4 Kg6 27.
+Bxe6 c5 28. Bf5+ Kh6 29. Ne6 Rae8 30. Bxc5 Rxe6 31. Bxe6 Re8 32. Bd5 f5 33. c4
+Kg7 34. cxb5 axb5 35. Bc6 Rc8 36. Bd4+ Kg6 37. Bxb5 Rc1 38. Be8+ Kh6 39. a4 Rc8
+40. Bb5 Rd8 41. Bc3 Rf8 42. a5 Kh5 43. Be2+ Kh6 44. a6 Re8 45. a7 Rxe2 46. a8=Q
+Re3+ 47. Kf2 f4 48. Qg8 Kh5 49. Bf6 Rg3 50. hxg3 fxg3+ 51. Kxg3 Kh6 52. Qxg5+
+Kh7 53. Qg7# 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.05.19"]
+[Round "-"]
+[White "atlejg"]
+[Black "Doge_Dandolo"]
+[Result "1-0"]
+[WhiteElo "1595"]
+[BlackElo "1520"]
+[TimeControl "1/259200"]
+[EndDate "2018.07.19"]
+[Termination "atlejg won by resignation"]
+
+1. e4 g6 2. d4 Bg7 3. Nf3 d6 4. Bc4 Nf6 5. Nc3 O-O 6. O-O Nc6 7. a3 h6 8. h3
+Nxe4 9. Nxe4 d5 10. Bxd5 Qxd5 11. Nc3 Qd6 12. Ne2 Be6 13. c3 a5 14. Bf4 Qd7 15.
+Ne5 Nxe5 16. Bxe5 Bxe5 17. dxe5 Qxd1 18. Rfxd1 a4 19. Nd4 Bc4 20. g3 Rfd8 21. f4
+c5 22. Nf3 Bb3 23. Rxd8+ Rxd8 24. Kf2 f6 25. Ke2 Kf7 26. Nd2 Be6 27. Ne4 b6 28.
+h4 Bf5 29. Ke3 Rd7 30. Rb1 Be6 31. Ra1 Bb3 32. Rc1 Bc4 33. Rb1 Rd3+ 34. Kf2 Bd5
+35. Re1 f5 36. Nd6+ exd6 37. exd6 Be6 38. h5 g5 39. fxg5 hxg5 40. h6 Rxd6 41. h7
+Kg7 42. Rh1 Kh8 43. Rh6 Kg7 44. h8=Q+ 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.05.29"]
+[Round "-"]
+[White "GermanTraver"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1465"]
+[BlackElo "1560"]
+[TimeControl "1/259200"]
+[EndDate "2018.09.06"]
+[Termination "atlejg won by resignation"]
+
+1. d4 d5 2. Bf4 Bf5 3. Nf3 Nc6 4. e3 Qd7 5. Bb5 a6 6. Ba4 b5 7. Bb3 Nf6 8. O-O
+h6 9. Nc3 Na5 10. Ne5 Qd8 11. Ne2 Nxb3 12. cxb3 Bd7 13. Rc1 Nh5 14. Nc3 Nxf4 15.
+exf4 e6 16. Re1 Bb4 17. a3 Ba5 18. Re3 c6 19. Qg4 O-O 20. Rh3 Kh7 21. Ne2 Bc7
+22. Ng3 Bxe5 23. fxe5 Rg8 24. f4 Qf8 25. f5 exf5 26. Qf4 g5 27. Qf2 f4 28. Qc2+
+Rg6 29. Nf5 Bxf5 30. Qxf5 Kg7 31. Rcc3 Qc8 32. Qc2 Qc7 33. b4 Re8 34. Qf5 Qc8
+35. Qxc8 Rxc8 36. Kf2 f6 37. g3 g4 38. Rh4 fxg3+ 39. Kxg3 fxe5 40. dxe5 d4 41.
+Rd3 Rd8 42. Kf4 Kf7 43. Rxg4 Rxg4+ 44. Kxg4 Ke6 45. Kf4 Kd5 46. b3 Re8 47. Rd1
+Rxe5 48. h4 Re4+ 49. Kg3 Re3+ 50. Kg4 d3 51. Kh5 Kd4 52. Kxh6 Re2 53. h5 d2 54.
+Kg7 Kd3 55. h6 Kc2 56. Rxd2+ Rxd2 57. h7 Rh2 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.06.12"]
+[Round "-"]
+[White "brakeneckc2"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1628"]
+[BlackElo "1562"]
+[TimeControl "1/259200"]
+[EndDate "2018.08.15"]
+[Termination "brakeneckc2 won by resignation"]
+
+1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 Nxd4 5. Qxd4 d6 6. Bb5+ Bd7 7. Qa4 Bxb5
+8. Qxb5+ Qd7 9. Qxd7+ Kxd7 10. O-O e6 11. Be3 e5 12. Nc3 h6 13. Nd5 Ne7 14. Nc3
+f5 15. f4 fxe4 16. fxe5 d5 17. Rad1 Ke6 18. Nb5 Rc8 19. Bxa7 Kxe5 20. Bd4+ Ke6
+21. c3 Nf5 22. Ba7 Bc5+ 23. Bxc5 Rxc5 24. a4 Ne3 25. b4 Rcc8 26. Nd4+ Ke5 27.
+Ne2 Nxd1 28. Rxd1 Rhf8 29. g3 g5 30. Kg2 g4 31. Nf4 Rxf4 32. gxf4+ Kxf4 33. Rxd5
+Rxc3 34. Rb5 e3 35. Kf1 Rc1+ 36. Ke2 Rc2+ 37. Kd3 Rxh2 38. Rxb7 g3 39. a5 g2 40.
+Rg7 Kf3 41. a6 Rh1 42. a7 Ra1 43. b5 Rxa7 44. Rxa7 h5 45. Rg7 e2 46. Rf7+ Kg3
+47. Kxe2 Kh2 48. Rh7 g1=Q 49. Rxh5+ Kg2 50. Rg5+ Kh2 51. Rxg1 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.06.25"]
+[Round "-"]
+[White "atlejg"]
+[Black "RaymundR"]
+[Result "0-1"]
+[WhiteElo "1552"]
+[BlackElo "1545"]
+[TimeControl "1/259200"]
+[EndDate "2018.08.26"]
+[Termination "RaymundR won by resignation"]
+
+1. d4 Nf6 2. c4 e6 3. e3 d5 4. cxd5 Nxd5 5. Bc4 Bb4+ 6. Bd2 Bxd2+ 7. Qxd2 O-O 8.
+Nf3 Nc6 9. Nc3 a6 10. Nxd5 exd5 11. Bb3 Be6 12. O-O a5 13. a3 Qf6 14. Bc2 Rad8
+15. h3 Rfe8 16. Kh2 Bf5 17. Bxf5 Qxf5 18. Nh4 Qf6 19. g3 Re4 20. f3 Rxh4 21.
+gxh4 Qxh4 22. Rg1 Re8 23. Rg4 Qh6 24. Rag1 g6 25. f4 Ne7 26. Qxa5 Nf5 27. Qd2
+Rxe3 28. R1g2 Qxh3+ 29. Kg1 Rd3 30. Rh2 Qxg4+ 31. Rg2 Rxd2 32. Rxg4 Rxb2 33. Kh1
+Nxd4 34. Rg3 Ne2 35. Rf3 d4 36. a4 Rd2 37. a5 d3 38. a6 bxa6 39. f5 Rd1+ 40. Kg2
+d2 41. Kf2 Nd4 42. Rd3 Rc1 43. Rxd2 Rc2 44. Rxc2 Nxc2 45. fxg6 fxg6 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.06.27"]
+[Round "-"]
+[White "brakeneckc2"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1663"]
+[BlackElo "1555"]
+[TimeControl "1/259200"]
+[EndDate "2018.09.01"]
+[Termination "brakeneckc2 won by checkmate"]
+
+1. e4 c6 2. d4 d5 3. e5 e6 4. Nf3 Bb4+ 5. c3 Ba5 6. Bd3 Ne7 7. O-O O-O 8. Bg5
+Qd7 9. Nbd2 Ng6 10. h3 Bd8 11. Qe2 Bxg5 12. Nxg5 h6 13. Ngf3 Qe7 14. c4 Nf4 15.
+Qe3 Nxd3 16. Qxd3 b6 17. cxd5 Ba6 18. d6 Bxd3 19. dxe7 Re8 20. Rfc1 Rxe7 21. Rc3
+Ba6 22. Ne4 Rc7 23. Nd6 Nd7 24. Rac1 c5 25. b3 Kf8 26. Nd2 Ke7 27. Rf3 Bb7 28.
+Rxf7+ Kd8 29. Nxb7+ Rxb7 30. Rxg7 Rbb8 31. Nf3 cxd4 32. Nxd4 Rc8 33. Rg8+ Nf8
+34. Rxf8+ Kd7 35. Rfxc8 Rxc8 36. Rxc8 Kxc8 37. Nxe6 Kd7 38. Nd4 a5 39. f4 Ke7
+40. Kf2 h5 41. f5 h4 42. Kf3 a4 43. Kg4 axb3 44. axb3 b5 45. Nxb5 Kf7 46. Kxh4
+Ke7 47. g4 Kf7 48. g5 Kg7 49. e6 Kf8 50. Kh5 Kg8 51. f6 Kf8 52. g6 Kg8 53. e7
+Kh8 54. e8=Q# 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.06.30"]
+[Round "-"]
+[White "atlejg"]
+[Black "kuroman"]
+[Result "0-1"]
+[WhiteElo "1557"]
+[BlackElo "1853"]
+[TimeControl "1/259200"]
+[EndDate "2018.09.16"]
+[Termination "kuroman won by resignation"]
+
+1. e4 e5 2. Nf3 Qf6 3. Bc4 Bc5 4. O-O d6 5. h3 Qg6 6. Kh2 Qxe4 7. Bxf7+ Kd8 8.
+d3 Qf5 9. Bb3 Be6 10. Bxe6 Qxe6 11. a3 h6 12. b4 Bb6 13. Bb2 Nf6 14. Re1 a5 15.
+Qe2 Re8 16. Nbd2 Nbd7 17. Nc4 Ra6 18. b5 Ra8 19. Nxb6 Nxb6 20. Bxe5 dxe5 21.
+Nxe5 Kc8 22. c4 Nbd7 23. d4 Nxe5 24. dxe5 Nd7 25. f4 b6 26. Rad1 Kb7 27. g3 Rad8
+28. Qg4 Qxg4 29. hxg4 c6 30. Kh3 cxb5 31. cxb5 Kc7 32. e6 Nf6 33. Rxd8 Kxd8 34.
+f5 Ke7 35. Kh4 Rc8 36. g5 Rc4+ 37. Kh3 hxg5 38. Kg2 Rc5 39. a4 Rxf5 40. Rc1 Rc5
+41. Rxc5 bxc5 42. b6 Kxe6 43. Kf3 Kd6 44. b7 Kc7 45. Ke3 Kxb7 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.06.30"]
+[Round "-"]
+[White "atlejg"]
+[Black "clemyd"]
+[Result "1-0"]
+[WhiteElo "1560"]
+[BlackElo "1471"]
+[TimeControl "1/259200"]
+[EndDate "2018.08.30"]
+[Termination "atlejg won by resignation"]
+
+1. d4 Nf6 2. c4 g6 3. d5 Bg7 4. Nc3 O-O 5. g3 d6 6. h3 Nbd7 7. Bg2 Nb6 8. b3 e6
+9. e3 exd5 10. Bb2 dxc4 11. b4 Be6 12. Nge2 Rc8 13. Bxb7 Rb8 14. Bg2 Nfd5 15. a3
+Qd7 16. Nd4 Rfe8 17. Qd2 Na4 18. O-O-O Nxb4 19. axb4 Rxb4 20. Bc6 Rxb2 21. Qxb2
+Nxb2 22. Bxd7 Bxd7 23. Kxb2 Rb8+ 24. Ka1 c5 25. Nde2 Rb6 26. Rd2 Bf5 27. Rb2 Rb3
+28. Rxb3 cxb3 29. Kb2 c4 30. h4 Bg4 31. Nd4 a6 32. Ra1 Bc8 33. Nc6 Bb7 34. Nb8
+d5 35. Nxa6 d4 36. exd4 Bxd4 37. f3 Bxf3 38. Rf1 Bd5 39. Nc7 Bg2 40. Rf4 Be5 41.
+Rxc4 Bf1 42. Rc5 Bf6 43. Kxb3 Bd3 44. N7d5 Bd4 45. Rc8+ Kg7 46. Rd8 Bf2 47. Nf6
+Bf5 48. Nce4 Be6+ 49. Ka4 Bxg3 50. Rg8+ 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.07.06"]
+[Round "-"]
+[White "atlejg"]
+[Black "GermanTraver"]
+[Result "1/2-1/2"]
+[WhiteElo "1553"]
+[BlackElo "1487"]
+[TimeControl "1/259200"]
+[EndDate "2018.09.02"]
+[Termination "Game drawn by agreement"]
+
+1. d4 Nf6 2. c4 g6 3. Nf3 Bg7 4. e3 O-O 5. Be2 d5 6. b3 c6 7. O-O Bf5 8. h3 Re8
+9. Bd3 Bxd3 10. Qxd3 Ne4 11. Nc3 Nxc3 12. Qxc3 b6 13. Bb2 c5 14. Rad1 Nc6 15. a3
+e5 16. dxe5 Nxe5 17. Nxe5 Bxe5 18. Qc2 Qf6 19. Bxe5 Qxe5 20. Rxd5 Qf6 21. Rfd1
+Rad8 22. Rxd8 Rxd8 23. Rxd8+ Qxd8 24. f4 f5 25. g4 Qh4 26. Qg2 Qe1+ 27. Kh2 fxg4
+28. hxg4 Qh4+ 29. Qh3 Qf2+ 30. Qg2 Qh4+ 1/2-1/2
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.07.08"]
+[Round "-"]
+[White "atlejg"]
+[Black "carlosgentl"]
+[Result "0-1"]
+[WhiteElo "1551"]
+[BlackElo "1409"]
+[TimeControl "1/259200"]
+[EndDate "2018.12.25"]
+[Termination "carlosgentl won by checkmate"]
+
+1. e4 c5 2. Nf3 e6 3. Bb5 Nc6 4. O-O Nf6 5. Re1 a6 6. Ba4 b5 7. Bb3 c4 8. d4
+cxb3 9. axb3 Ne7 10. Bd2 Bb7 11. e5 Nfd5 12. c4 Nc7 13. Ba5 Nc6 14. Bd2 d6 15.
+Nc3 dxe5 16. d5 exd5 17. Nxe5 Nxe5 18. Rxe5+ Be7 19. Nxd5 Nxd5 20. cxd5 O-O 21.
+Ba5 Qd6 22. Bc3 Bf6 23. Rh5 Bxc3 24. bxc3 Rad8 25. c4 g6 26. Rh3 Rfe8 27. Qd2
+Bc8 28. Rg3 Bf5 29. Rc1 Qf6 30. Rcc3 Qe7 31. Rce3 Qf6 32. Rxe8+ Rxe8 33. c5 Qe5
+34. f4 Qe7 35. d6 Qd7 36. b4 Re4 37. Rc3 Rxb4 38. c6 Rb1+ 39. Rc1 Rxc1+ 40. Qxc1
+Qxd6 41. c7 Bc8 42. f5 Qd4+ 43. Kf1 Qd3+ 44. Kg1 Qxf5 45. Qe1 Qc5+ 46. Kh1 Qxc7
+47. h3 Bb7 48. Qa1 Qg3 49. Qg1 Qxh3+ 50. Qh2 Qd7 51. Qg1 Qc6 52. Kh2 a5 53. Qf1
+b4 54. Qe2 b3 55. Qd2 a4 56. Qd8+ Kg7 57. Qd4+ f6 58. Qd2 Bc8 59. Qe2 Qd6+ 60.
+g3 a3 61. Qc4 Be6 62. Qc3 b2 63. Qa5 b1=Q 64. Qa7+ Kh6 65. Qe3+ g5 66. Qe2 Qd5
+67. g4 Qb2 68. Qxb2 axb2 69. Kg3 Qd3+ 70. Kg2 Bxg4 71. Kf2 Qe2+ 72. Kg3 Qf3+ 73.
+Kh2 Qc3 74. Kg2 b1=Q 75. Kf2 Qbc2+ 76. Kf1 Qa1# 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.07.13"]
+[Round "-"]
+[White "Desroska"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1808"]
+[BlackElo "1595"]
+[TimeControl "1/432000"]
+[EndDate "2018.11.16"]
+[Termination "Desroska won by checkmate"]
+
+1. e4 e5 2. Nf3 d6 3. d4 exd4 4. Nxd4 c5 5. Nf5 g6 6. Ne3 Bg7 7. Nc4 d5 8. Qxd5
+Qxd5 9. exd5 Kd7 10. Nc3 Bxc3+ 11. bxc3 Nf6 12. Bf4 Re8+ 13. Ne3 Nh5 14. Bb5+
+Nc6 15. dxc6+ bxc6 16. Rd1+ Ke7 17. Bd6+ Kf6 18. Bxc6 Rxe3+ 19. fxe3 Bg4 20.
+O-O+ Bf5 21. Bxa8 Kg7 22. e4 Bg4 23. Rd2 f6 24. e5 fxe5 25. Bxe5+ Kh6 26. Bf3
+Bxf3 27. Rxf3 a5 28. g4 Ng7 29. g5+ Kxg5 30. Bxg7 Kg4 31. Kg2 h6 32. Bxh6 g5 33.
+Rd5 c4 34. Rxg5+ Kh4 35. Rh3# 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.07.21"]
+[Round "-"]
+[White "Doge_Dandolo"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1485"]
+[BlackElo "1570"]
+[TimeControl "1/259200"]
+[EndDate "2018.08.19"]
+[Termination "atlejg won by resignation"]
+
+1. f4 e6 2. Nf3 d5 3. g3 Bc5 4. Bg2 Nf6 5. e3 O-O 6. O-O Nc6 7. d4 Bd6 8. b3 Ne4
+9. c4 b6 10. Ba3 Bxa3 11. Nxa3 Qe7 12. Nc2 a5 13. Nce1 Ba6 14. Qc2 b5 15. cxd5
+exd5 16. Qxc6 b4 17. Qxd5 Rfd8 18. Qc6 Bxf1 19. Kxf1 Nc3 20. Nd2 Qxe3 21. Nef3
+Qd3+ 22. Kg1 Ne2+ 23. Kf2 Nxd4 24. Nxd4 Qxd4+ 25. Kf1 Qxa1+ 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.07.24"]
+[Round "-"]
+[White "Zzgloo"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1724"]
+[BlackElo "1591"]
+[TimeControl "1/259200"]
+[EndDate "2018.10.14"]
+[Termination "atlejg won by resignation"]
+
+1. e4 c5 2. Nf3 Nc6 3. Bc4 e6 4. c3 a5 5. d4 cxd4 6. cxd4 d6 7. O-O Nf6 8. Re1
+g6 9. Nc3 Bg7 10. Bg5 O-O 11. Rc1 e5 12. d5 Ne7 13. Nb5 Bd7 14. Nxd6 Qb6 15.
+Nxb7 Qxb7 16. Nxe5 h6 17. Bxf6 Bxf6 18. Nxd7 Qxd7 19. e5 Bg5 20. e6 fxe6 21.
+dxe6 Qxd1 22. Rcxd1 Rad8 23. Rd7 Kg7 24. g3 Rxd7 25. exd7 Rd8 26. Bb5 Nd5 27. f4
+Bf6 28. Re2 Nb6 29. b3 Nxd7 30. Rc2 Bd4+ 31. Kf1 Nf6 32. Rc7+ Kh8 33. Rc6 Ra8
+34. a4 g5 35. f5 g4 36. Ke2 Kg7 37. Rc7+ Kf8 38. Kf1 Be5 39. Rc5 Bd4 40. Rc6 h5
+41. Bc4 Ra7 42. Re6 Bc3 43. Ke2 Re7 44. Ke3 Bb4 45. Kf4 Rxe6 46. fxe6 Ke7 47.
+Kf5 Be1 48. Ke5 Bf2 0-1
+
+[Event "Dark Knight Chess Tournament - Round 1"]
+[Site "Chess.com"]
+[Date "2018.08.02"]
+[Round "1"]
+[White "Komuto_Hirowato"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1822"]
+[BlackElo "1583"]
+[TimeControl "1/259200"]
+[EndDate "2018.11.28"]
+[Termination "Komuto_Hirowato won on time"]
+
+1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7 5. e3 h6 6. Bh4 Nfd7 7. Bg3 dxc4 8. Bxc4
+c6 9. Nf3 O-O 10. O-O b5 11. Be2 Nb6 12. Rc1 a6 13. Ne4 Nd5 14. Nc5 Bd6 15. Ne5
+Bxe5 16. Bxe5 Nd7 17. Bg3 Nxc5 18. Rxc5 a5 19. Rxc6 Bd7 20. Rc5 b4 21. Bf3 Rc8
+22. Qc2 Rxc5 23. Qxc5 Bc8 24. Bxd5 Qxd5 25. Qxd5 exd5 26. Bc7 a4 27. Bd6 Rd8 28.
+Bxb4 Bd7 29. Rc1 Rb8 30. a3 Rb7 31. Rc5 Be6 32. Ra5 Rc7 33. Bc3 Rc4 34. f3 Kf8
+35. Kf2 Ke7 36. Kg3 Kf6 37. Bb4 Rc2 38. Bc3 g5 39. e4 dxe4 40. d5+ Rxc3 41. bxc3
+Ke5 42. dxe6+ Kxe6 43. fxe4 1-0
+
+[Event "Dark Knight Chess Tournament - Round 1"]
+[Site "Chess.com"]
+[Date "2018.08.02"]
+[Round "1"]
+[White "atlejg"]
+[Black "Komuto_Hirowato"]
+[Result "0-1"]
+[WhiteElo "1585"]
+[BlackElo "1792"]
+[TimeControl "1/259200"]
+[EndDate "2018.10.16"]
+[Termination "Komuto_Hirowato won by checkmate"]
+
+1. c4 Nf6 2. g3 g6 3. Bg2 Bg7 4. Nf3 O-O 5. O-O d6 6. d4 c5 7. Nc3 e6 8. dxc5
+dxc5 9. Na4 Qe7 10. Qc2 Nc6 11. Be3 Nd7 12. Rfd1 Rb8 13. Rab1 b6 14. a3 Bb7 15.
+Nc3 Nde5 16. b3 Nxf3+ 17. exf3 Rfd8 18. Ne4 h6 19. Bd2 Nd4 20. Qa2 f5 21. Nc3
+Bxf3 22. Rdc1 Bxg2 23. Kxg2 Qb7+ 24. Kh3 g5 25. g4 Qf3# 0-1
+
+[Event "Dark Knight Chess Tournament - Round 1"]
+[Site "Chess.com"]
+[Date "2018.08.02"]
+[Round "1"]
+[White "atlejg"]
+[Black "mike5972p"]
+[Result "1-0"]
+[WhiteElo "1575"]
+[BlackElo "1545"]
+[TimeControl "1/259200"]
+[EndDate "2018.10.13"]
+[Termination "atlejg won on time"]
+
+1. c4 c5 2. g3 g6 3. Bg2 Nc6 4. Nf3 Bg7 5. O-O Nf6 6. d3 O-O 7. Bd2 b6 8. a3 Bb7
+9. b4 cxb4 10. axb4 Ng4 11. Ra3 Nce5 12. h3 Nxf3+ 13. Bxf3 Bxf3 14. exf3 Ne5 15.
+Kg2 f5 16. Re1 e6 17. Bc3 Nc6 18. Bxg7 Kxg7 19. Qc2 Nd4 20. Qc3 Qf6 21. Nd2 1-0
+
+[Event "Dark Knight Chess Tournament - Round 1"]
+[Site "Chess.com"]
+[Date "2018.08.02"]
+[Round "1"]
+[White "atlejg"]
+[Black "oromaniuk"]
+[Result "0-1"]
+[WhiteElo "1563"]
+[BlackElo "1349"]
+[TimeControl "1/259200"]
+[EndDate "2018.08.24"]
+[Termination "oromaniuk won on time"]
+
+1. c4 e5 2. g3 Nf6 3. Bg2 Bc5 4. e3 O-O 5. Nf3 d6 6. O-O a6 7. b3 Nc6 8. Ba3
+Bxa3 9. Nxa3 h6 10. d4 exd4 0-1
+
+[Event "Dark Knight Chess Tournament - Round 1"]
+[Site "Chess.com"]
+[Date "2018.08.02"]
+[Round "1"]
+[White "atlejg"]
+[Black "Cahania"]
+[Result "1-0"]
+[WhiteElo "1562"]
+[BlackElo "1210"]
+[TimeControl "1/259200"]
+[EndDate "2018.09.01"]
+[Termination "atlejg won by resignation"]
+
+1. c4 e5 2. g3 Nf6 3. Bg2 Bc5 4. e3 c6 5. Ne2 d5 6. cxd5 cxd5 7. O-O Nc6 8. d4
+exd4 9. exd4 Bb6 10. Bg5 h6 11. Bxf6 Qxf6 12. Nbc3 Nxd4 13. Nxd5 Qe5 14. Nxd4
+Bxd4 15. Re1 Bxf2+ 16. Kxf2 1-0
+
+[Event "Dark Knight Chess Tournament - Round 1"]
+[Site "Chess.com"]
+[Date "2018.08.02"]
+[Round "1"]
+[White "mike5972p"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1511"]
+[BlackElo "1579"]
+[TimeControl "1/259200"]
+[EndDate "2018.08.22"]
+[Termination "atlejg won on time"]
+
+1. e4 c5 2. a3 d6 3. b4 b6 4. d4 cxd4 5. Qxd4 e5 6. Qd5 Qc7 0-1
+
+[Event "Dark Knight Chess Tournament - Round 1"]
+[Site "Chess.com"]
+[Date "2018.08.02"]
+[Round "1"]
+[White "oromaniuk"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1305"]
+[BlackElo "1561"]
+[TimeControl "1/259200"]
+[EndDate "2018.09.21"]
+[Termination "atlejg won by resignation"]
+
+1. e4 c5 2. Nf3 d6 3. Bc4 Bg4 4. h3 Bh5 5. g4 Bg6 6. d3 e6 7. h4 h6 8. h5 Bh7 9.
+Nc3 Be7 10. Be3 Nf6 11. g5 Ng4 12. gxh6 Nxe3 13. fxe3 gxh6 14. Qe2 a6 15. O-O-O
+b5 16. Bxb5+ axb5 17. Nxb5 Rxa2 18. d4 Bxe4 19. dxc5 d5 20. Nc3 Bxf3 21. Qxf3
+Ra1+ 22. Nb1 Bxc5 23. e4 Qg5+ 24. Rd2 Be3 25. Rh2 Bxd2+ 0-1
+
+[Event "Dark Knight Chess Tournament - Round 1"]
+[Site "Chess.com"]
+[Date "2018.08.02"]
+[Round "1"]
+[White "Cahania"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1243"]
+[BlackElo "1564"]
+[TimeControl "1/259200"]
+[EndDate "2018.09.27"]
+[Termination "atlejg won by resignation"]
+
+1. d4 d5 2. Nf3 e6 3. Bf4 Bd6 4. Bxd6 Qxd6 5. Nc3 Ne7 6. e3 O-O 7. Ng5 c5 8. Qh5
+h6 9. Bd3 Nf5 10. Bxf5 exf5 11. h4 cxd4 12. exd4 Qb4 13. Rb1 Qxd4 14. Rh3 Qg4
+15. Qxg4 fxg4 16. Rd3 hxg5 17. hxg5 Bf5 18. Rxd5 Bxc2 19. Rc1 Bg6 20. Ke2 Re8+
+21. Kd2 Nc6 22. Rd7 a6 23. Rxb7 Rad8+ 24. Nd5 Rxd5+ 25. Kc3 Rc5+ 26. Kd2 Rd8+
+27. Ke1 Rxc1+ 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.08.09"]
+[Round "-"]
+[White "atlejg"]
+[Black "gecama"]
+[Result "1/2-1/2"]
+[WhiteElo "1559"]
+[BlackElo "1820"]
+[TimeControl "1/259200"]
+[EndDate "2018.12.27"]
+[Termination "Game drawn by stalemate"]
+
+1. c4 e5 2. g3 h5 3. Nf3 e4 4. Ng1 d5 5. cxd5 Nf6 6. Bg2 Bc5 7. Qa4+ Bd7 8. Qc4
+Bb6 9. Bxe4 O-O 10. Bg2 Ng4 11. Nh3 Qf6 12. Qf4 Qe7 13. d6 cxd6 14. Bxb7 Bc6 15.
+Bxa8 Bxa8 16. f3 Nd7 17. d4 Re8 18. Ng1 Ndf6 19. Nc3 Nd5 20. Nxd5 Bxd5 21. fxg4
+Bxh1 22. gxh5 Qb7 23. Bd2 Qd5 24. Bc3 Re4 25. Qf1 Bxd4 26. Bxd4 Qxd4 27. Nf3
+Qxb2 28. Rd1 Qc3+ 29. Kf2 Qe3+ 30. Ke1 Bxf3 31. Qf2 Qxe2+ 32. Qxe2 Rxe2+ 33. Kf1
+d5 34. Re1 Rxh2 35. Re3 Be4 36. a3 Rxh5 37. g4 Rh2 38. Ke1 Rg2 39. a4 Rxg4 40.
+a5 Rg1+ 41. Kf2 Rg2+ 42. Kf1 f5 43. a6 d4 44. Rxe4 fxe4 45. Kxg2 Kf7 46. Kg3 Ke6
+47. Kf4 Kd5 48. Kf5 d3 49. Kf4 d2 50. Ke3 d1=Q 51. Kf4 Qf3+ 52. Kg5 Ke5 53. Kg6
+Qf4 54. Kh7 g5 55. Kh8 Qf7 1/2-1/2
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.08.12"]
+[Round "-"]
+[White "einmag"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1505"]
+[BlackElo "1577"]
+[TimeControl "1/259200"]
+[EndDate "2018.10.30"]
+[Termination "einmag won by resignation"]
+
+1. e4 c5 2. Nc3 g6 3. Nf3 Bg7 4. d4 cxd4 5. Nxd4 Nc6 6. Nb3 e6 7. Be3 a6 8. a4
+Nge7 9. Be2 d5 10. exd5 Bxc3+ 11. bxc3 Nxd5 12. Bh6 Rg8 13. Qd2 Nde7 14. Qxd8+
+Nxd8 15. Bg5 Nd5 16. Bd2 Ke7 17. O-O Nc6 18. c4 Nb6 19. Be3 Nd7 20. Rfd1 Nb4 21.
+Rd2 Nf6 22. Bc5+ Ke8 23. Bxb4 b6 24. Bf3 Ra7 25. Rad1 Nd7 26. a5 bxa5 27. Nxa5
+h5 28. c5 f5 29. c6 Rg7 30. cxd7+ Bxd7 31. Rd6 e5 32. Bc6 Re7 33. Rxg6 Kf7 34.
+Bxe7 Kxg6 35. Rxd7 Rxd7 36. Bxd7 e4 37. Be8+ Kh6 38. Kf1 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.08.15"]
+[Round "-"]
+[White "atlejg"]
+[Black "brakeneckc2"]
+[Result "0-1"]
+[WhiteElo "1585"]
+[BlackElo "1651"]
+[TimeControl "1/259200"]
+[EndDate "2018.11.17"]
+[Termination "brakeneckc2 won by resignation"]
+
+1. c4 e5 2. g3 Nc6 3. Bg2 Nf6 4. d3 Bc5 5. e4 h6 6. Nf3 d6 7. O-O Ng4 8. Nc3 O-O
+9. a3 a6 10. b4 Ba7 11. Qe1 Nd4 12. Nxd4 Bxd4 13. h3 Nf6 14. Be3 Bxe3 15. Qxe3
+Be6 16. Rfe1 Qd7 17. Kh2 Rab8 18. Qe2 b5 19. Nd5 Ne8 20. Qf1 c6 21. Ne3 Nf6 22.
+h4 Nh5 23. Bh3 g5 24. Bxe6 Qxe6 25. Nf5 Ng7 26. Nxg7 Kxg7 27. cxb5 axb5 28. Rec1
+Rbc8 29. h5 Qg4 30. Qh3 Qf3 31. Rf1 f5 32. exf5 Rxf5 33. Kg1 Rcf8 34. Qh2 Qxd3
+35. Rad1 Qxa3 36. Rxd6 Qxb4 37. Rxc6 Rxf2 38. Rc7+ Kg8 39. Rxf2 Qe1+ 40. Kg2
+Rxf2+ 41. Kh3 Rxh2+ 42. Kxh2 Qd2+ 43. Kh3 Qd8 44. Rc5 Qd7+ 45. g4 e4 46. Re5
+Qd3+ 47. Kh2 Qd6 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.08.20"]
+[Round "-"]
+[White "atlejg"]
+[Black "Doge_Dandolo"]
+[Result "1-0"]
+[WhiteElo "1589"]
+[BlackElo "1560"]
+[TimeControl "1/259200"]
+[EndDate "2018.11.12"]
+[Termination "atlejg won by resignation"]
+
+1. c4 b6 2. d4 e6 3. Nf3 Bb7 4. Nbd2 f5 5. g3 Nf6 6. Bg2 Be7 7. O-O O-O 8. b3
+Ne4 9. Bb2 Bf6 10. Qc2 Na6 11. a3 c5 12. Nxe4 Bxe4 13. Qd2 Rc8 14. Rac1 d6 15.
+Rcd1 Qe7 16. Ne1 Bxg2 17. Nxg2 Rfd8 18. d5 Bxb2 19. Qxb2 e5 20. e3 Nc7 21. Nh4
+Qg5 22. f4 Qf6 23. fxe5 dxe5 24. Rxf5 Qh6 25. Rxe5 Re8 26. Rxe8+ Rxe8 27. Nf5
+Qg5 28. Qf2 Na6 29. d6 Nb8 30. d7 Rd8 31. h4 Qf6 32. Qf3 Nxd7 33. Rd6 Qa1+ 34.
+Kh2 Qxa3 35. Ne7+ Kh8 36. Rxd7 Qb2+ 37. Kh3 Re8 38. Qh5 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.08.26"]
+[Round "-"]
+[White "RaymundR"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1523"]
+[BlackElo "1554"]
+[TimeControl "1/259200"]
+[EndDate "2018.12.22"]
+[Termination "RaymundR won by resignation"]
+
+1. e4 c5 2. Nf3 g6 3. d4 e6 4. c3 b6 5. Bc4 Nf6 6. Bg5 Bb7 7. e5 Be7 8. Nbd2 Ng8
+9. Bxe7 Nxe7 10. Qc2 O-O 11. O-O d6 12. exd6 Qxd6 13. Ne4 Bxe4 14. Qxe4 Qc6 15.
+d5 exd5 16. Qxe7 dxc4 17. Ne5 Qe8 18. Qb7 Qxe5 19. Qxa8 Qe2 20. Qxa7 Qe6 21.
+Rfe1 Qc6 22. Rad1 b5 23. Re7 Kg7 24. Qc7 Qxc7 25. Rxc7 Na6 26. Rb7 b4 27. cxb4
+cxb4 28. Rb6 Ra8 29. Rd4 c3 30. bxc3 bxc3 31. Rc4 Rd8 32. g3 Nb8 33. Rxc3 Nd7
+34. Rd6 Kf8 35. Rc7 Ke8 36. a4 Nb8 37. Rxd8+ Kxd8 38. Rxf7 h5 39. Rf8+ Kc7 40.
+Rg8 Nd7 41. Rxg6 Ne5 42. Rh6 Ng4 43. Rxh5 Nf6 44. Rf5 Ne8 45. h4 Nd6 46. Rd5 Kc6
+47. Rh5 Nc4 48. g4 Nd6 49. Rh6 Kc7 50. Rxd6 Kxd6 51. h5 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.08.31"]
+[Round "-"]
+[White "clemyd"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1479"]
+[BlackElo "1601"]
+[TimeControl "1/259200"]
+[EndDate "2018.11.16"]
+[Termination "atlejg won by resignation"]
+
+1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 e5 5. Nb3 Nf6 6. Nc3 g6 7. Bg5 Be6 8. Nd5
+Be7 9. Bd3 Nxd5 10. exd5 Qa5+ 11. Nxa5 Bxd5 12. Bxe7 Kxe7 13. O-O Be6 14. Nxb7
+Nc6 15. Bb5 Nd4 16. Qd3 Bf5 17. Qa3 Nxb5 18. c4 Nxa3 19. bxa3 Be6 20. Rfc1 Rab8
+21. Na5 Rhc8 22. g3 Rc5 23. Nb3 Rxc4 24. Rxc4 Bxc4 25. Rb1 Rb6 26. Rc1 Bxb3 27.
+axb3 a5 28. Rc3 Ke6 29. Kf1 h5 30. Ke2 f5 31. f3 e4 32. fxe4 fxe4 33. Ke3 d5 34.
+Kd4 Kd6 35. Rc5 e3 36. Rxd5+ Kc6 37. Rxa5 Rxb3 38. Ra6+ Kd7 39. Rxg6 e2 40. Rg7+
+Ke8 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.09.01"]
+[Round "-"]
+[White "Cahania"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1215"]
+[BlackElo "1588"]
+[TimeControl "1/259200"]
+[EndDate "2018.11.25"]
+[Termination "atlejg won by resignation"]
+
+1. d4 d5 2. Bf4 g6 3. e3 Bg7 4. Nf3 Nc6 5. Bd3 e6 6. c4 b6 7. Qa4 Bd7 8. Qc2 Nb4
+9. Qd2 Nxd3+ 10. Qxd3 c6 11. Nc3 Bh6 12. Be5 Nf6 13. g4 g5 14. O-O-O Bg7 15.
+Nxg5 dxc4 16. Qxc4 h6 17. Nf3 Rg8 18. h3 b5 19. Qc5 Bf8 20. Bd6 Bxd6 21. Qxd6
+Rb8 22. Ne5 b4 23. Na4 Ne4 24. Qxd7+ Qxd7 25. Nxd7 Kxd7 26. Rhf1 Rb5 27. b3 Ng5
+28. Rh1 Ne4 29. Rh2 Ke7 30. f3 Nf6 31. Kb2 Rd8 32. Nc5 Nd5 33. Nd3 Nxe3 34. Re2
+Nxd1+ 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.09.02"]
+[Round "-"]
+[White "GermanTraver"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1439"]
+[BlackElo "1592"]
+[TimeControl "1/259200"]
+[EndDate "2018.10.23"]
+[Termination "atlejg won by resignation"]
+
+1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 e5 5. Nf3 Nf6 6. Nc3 Be7 7. Bb5+ Bd7 8.
+Bxd7+ Qxd7 9. Nd5 Nxe4 10. O-O O-O 11. Re1 Nf6 12. Nxe5 dxe5 13. Rxe5 Nxd5 14.
+Rxd5 Qc7 15. Qd4 Nc6 16. Qg4 Qc8 17. Qe4 Qe6 18. Qc4 Qe1+ 19. Qf1 Qxf1+ 20. Kxf1
+Rfd8 21. Rb5 Rd1+ 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.09.03"]
+[Round "-"]
+[White "atlejg"]
+[Black "brakeneckc2"]
+[Result "0-1"]
+[WhiteElo "1574"]
+[BlackElo "1670"]
+[TimeControl "1/259200"]
+[EndDate "2018.12.03"]
+[Termination "brakeneckc2 won by checkmate"]
+
+1. c4 e5 2. g3 Nf6 3. Bg2 h6 4. Nf3 Nc6 5. d3 Bc5 6. O-O O-O 7. Nbd2 d6 8. Nb3
+Bb6 9. Be3 Bxe3 10. fxe3 Be6 11. e4 a6 12. Qd2 Qd7 13. Qe3 Nb4 14. Rfc1 Bh3 15.
+Nh4 Bxg2 16. Kxg2 c5 17. a3 Nc6 18. h3 b5 19. Rf1 Qe6 20. Rac1 Nd7 21. Nf5 Nb6
+22. cxb5 axb5 23. Nd2 b4 24. axb4 Nxb4 25. b3 Ra2 26. Nc4 Nc8 27. Ncxd6 Nxd6 28.
+Rxc5 Nxf5 29. exf5 Qxb3 30. Rf2 f6 31. Qf3 Kh8 32. Rc7 Nd5 33. Rd7 Ra5 34. e4
+Nb4 35. Qg4 Rg8 36. Rb7 Qc3 37. h4 Nxd3 38. Rf3 Ne1+ 39. Kf2 Qd2+ 40. Kf1 Qg2+
+41. Kxe1 Ra1+ 42. Rb1 Rxb1# 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.09.07"]
+[Round "-"]
+[White "atlejg"]
+[Black "GermanTraver"]
+[Result "1/2-1/2"]
+[WhiteElo "1556"]
+[BlackElo "1462"]
+[TimeControl "1/259200"]
+[EndDate "2018.12.29"]
+[Termination "Game drawn by agreement"]
+
+1. c4 e5 2. g3 Nf6 3. Bg2 Nc6 4. d3 Bb4+ 5. Bd2 d5 6. a3 Be7 7. cxd5 Nxd5 8. Nc3
+Be6 9. e4 Nf6 10. Nge2 O-O 11. O-O Nd4 12. Nxd4 Qxd4 13. Be3 Qd7 14. h3 Rfd8 15.
+Kh2 Qxd3 16. Qxd3 Rxd3 17. Nb5 a6 18. Nxc7 Rad8 19. Nxe6 fxe6 20. Rac1 R8d7 21.
+Bc5 Kf7 22. Be3 Ne8 23. Bf3 g6 24. Be2 R3d6 25. b4 b5 26. Rc2 Nf6 27. f3 Bd8 28.
+Rfc1 Bb6 29. Bxb6 Rxb6 30. Rc7 Ke7 31. Rxd7+ Kxd7 32. Kg2 Rc6 33. Rd1+ Kc7 34.
+Kf2 Rc2 35. Ra1 Nd7 36. Ke3 Nb6 37. Kd3 Rc6 38. h4 Na4 39. Kd2 Nb2 40. Rc1 Rxc1
+41. Kxc1 Na4 42. Kc2 Nb6 43. Kc3 Kc6 1/2-1/2
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.09.16"]
+[Round "-"]
+[White "kuroman"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1840"]
+[BlackElo "1569"]
+[TimeControl "1/259200"]
+[EndDate "2018.12.11"]
+[Termination "kuroman won by checkmate"]
+
+1. e4 c5 2. Nf3 d6 3. b4 b6 4. bxc5 bxc5 5. Bc4 Ba6 6. Bxa6 Nxa6 7. O-O e5 8.
+Nc3 Nf6 9. Nd5 Be7 10. Nxe7 Qxe7 11. c3 O-O 12. Rb1 Nxe4 13. Qa4 Rab8 14. Rxb8
+Nxb8 15. Qxe4 Nd7 16. d4 cxd4 17. cxd4 h6 18. dxe5 Qe6 19. a3 f6 20. Qb7 Nxe5
+21. Nxe5 Qxe5 22. Qxa7 Re8 23. a4 Qe4 24. Qd7 Ra8 25. Qxd6 Rxa4 26. Be3 Rb4 27.
+h3 Rb3 28. Rd1 Kh7 29. Qc7 Rb7 30. Qc8 f5 31. Rd4 Rb1+ 32. Kh2 Qe5+ 33. g3 Qa5
+34. Qd7 Ra1 35. Bxh6 Qe5 36. Be3 Qa5 37. Rh4+ Kg6 38. Qe6# 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.09.28"]
+[Round "-"]
+[White "atlejg"]
+[Black "Cahania"]
+[Result "1-0"]
+[WhiteElo "1592"]
+[BlackElo "1244"]
+[TimeControl "1/259200"]
+[EndDate "2018.11.12"]
+[Termination "atlejg won by resignation"]
+
+1. c4 f5 2. d4 Nf6 3. Nf3 d6 4. g3 Nc6 5. Bg2 e5 6. dxe5 dxe5 7. Qxd8+ Nxd8 8.
+O-O Bd6 9. b3 Be6 10. Ng5 h6 11. Nxe6 Nxe6 12. Bxb7 Rb8 13. Bg2 O-O 14. Ba3 Nd4
+15. Bxd6 cxd6 16. Nc3 Nh5 17. e3 Nc2 18. Rad1 Rb6 19. Nd5 Rc6 20. Ne7+ 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.10.14"]
+[Round "-"]
+[White "atlejg"]
+[Black "Zzgloo"]
+[Result "0-1"]
+[WhiteElo "1554"]
+[BlackElo "1721"]
+[TimeControl "1/259200"]
+[EndDate "2019.01.17"]
+[Termination "Zzgloo won by checkmate"]
+
+1. c4 Nf6 2. d4 g6 3. e3 Bg7 4. Bd3 c6 5. Nf3 O-O 6. O-O d5 7. c5 Re8 8. b4 Nbd7
+9. Nbd2 Nf8 10. Bb2 h6 11. h3 N8h7 12. a4 Ng5 13. Nxg5 hxg5 14. Qc2 Qc7 15. Rae1
+g4 16. h4 g3 17. Bxg6 gxf2+ 18. Rxf2 fxg6 19. Qxg6 Be6 20. Rf3 Bf7 21. Qg3 Qd7
+22. Nf1 Ne4 23. Qf4 Bh5 24. Qf5 Qxf5 25. Rxf5 Bg6 26. Rf4 Bh6 27. Rg4 Kh7 28.
+Ng3 Rf8 29. Nxe4 Bxe4 30. a5 Rf6 31. Bc3 Raf8 32. Bd2 Rf2 33. Bc3 Rc2 34. Ba1
+Rff2 35. Kh2 Bxg2 36. Rg3 Be4+ 37. Kg1 Rh2 38. h5 Rh1# 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.10.30"]
+[Round "-"]
+[White "atlejg"]
+[Black "einmag"]
+[Result "1-0"]
+[WhiteElo "1561"]
+[BlackElo "1563"]
+[TimeControl "1/259200"]
+[EndDate "2019.01.16"]
+[Termination "atlejg won by checkmate"]
+
+1. c4 e5 2. d3 f5 3. e3 d6 4. g3 Nc6 5. Bg2 Bd7 6. Ne2 Nf6 7. O-O a6 8. a3 Qe7
+9. b4 e4 10. Nf4 O-O-O 11. Nc3 g5 12. Nfd5 Nxd5 13. Nxd5 Qf7 14. Bb2 Bg7 15.
+Bxg7 Qxg7 16. dxe4 h5 17. b5 h4 18. bxc6 hxg3 19. cxd7+ Rxd7 20. fxg3 Qh6 21. h3
+Qe6 22. exf5 Qe5 23. Qg4 Rf7 24. Qxg5 b5 25. Qg6 Rfh7 26. Qe6+ Qxe6 27. fxe6 c6
+28. Nf4 Kd8 29. Bxc6 Rg8 30. Kg2 bxc4 31. Bd7 Rf8 32. e4 Rg7 33. Rac1 Rfg8 34.
+Rf3 Rg5 35. Nd5 Re5 36. Rxc4 Rg7 37. Rc8# 1-0
+
+[Event "OPEN TOURNAMENT - Round 4"]
+[Site "Chess.com"]
+[Date "2018.11.05"]
+[Round "4"]
+[White "flashkick"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1700"]
+[BlackElo "1548"]
+[TimeControl "1/259200"]
+[EndDate "2019.01.11"]
+[Termination "flashkick won by checkmate"]
+
+1. d4 d5 2. Bf4 e6 3. e3 Nf6 4. Bd3 Bd6 5. Bg3 O-O 6. Nd2 Qe7 7. Ngf3 h6 8. Qe2
+a6 9. Ne5 Nc6 10. c3 Bxe5 11. dxe5 Nd7 12. f4 f6 13. exf6 Nxf6 14. Nf3 Na5 15.
+Ne5 Rd8 16. Rg1 Nc6 17. Ng6 Qf7 18. Bh4 Ne7 19. Ne5 Qf8 20. g4 Nd7 21. g5 hxg5
+22. Qh5 Nf6 23. Qxg5 Kh8 24. Ng6+ Nxg6 25. Qxg6 Rd7 26. Bxf6 gxf6 27. Qh5+ Rh7
+28. Qxh7# 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.11.13"]
+[Round "-"]
+[White "Doge_Dandolo"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1503"]
+[BlackElo "1565"]
+[TimeControl "1/259200"]
+[EndDate "2018.12.24"]
+[Termination "atlejg won by resignation"]
+
+1. b3 e5 2. Bb2 e4 3. e3 d5 4. Nc3 Nf6 5. Nge2 Bd6 6. d3 exd3 7. Qxd3 c6 8. h3
+O-O 9. O-O-O Na6 10. a3 b5 11. Nd4 Nc5 12. Qd2 Qd7 13. g4 a5 14. g5 Nfe4 15. Bd3
+Nxd2 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2018.11.16"]
+[Round "-"]
+[White "atlejg"]
+[Black "joachhb"]
+[Result "1-0"]
+[WhiteElo "1568"]
+[BlackElo "1222"]
+[TimeControl "1/259200"]
+[EndDate "2018.12.25"]
+[Termination "atlejg won on time"]
+
+1. c4 e5 2. g3 Nc6 3. Nc3 Nf6 4. e4 d6 5. Bg2 Bg4 6. Bf3 h5 7. h3 Bxf3 8. Nxf3
+Nd4 9. Nxd4 exd4 10. Nd5 Nxe4 11. Qe2 f5 12. d3 c6 13. Nf4 1-0
