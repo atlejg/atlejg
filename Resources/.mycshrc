@@ -19,7 +19,7 @@ else
    setenv TMP /tmp
 endif
 
-setenv ATLEJG $HOME/Tools/atlejg
+setenv ATLEJG C:/Users/agy/Documents/GitHub/atlejg
 setenv LC_ALL 'C'
 
 # ---------------------- based on /etc/csh.cshrc for Cygwin
@@ -149,7 +149,7 @@ alias pylab 'ipython --pylab --logfile=ipython_log.py -i $ATLEJG/Resources/pytho
 setenv EDITOR vim
 alias vimdiff "vimdiff -c 'syntax off'"  # focus on differences - not syntax
 alias vim vim -u $ATLEJG/Resources/.vimrc
-alias gvim "c:/Appl/Vim/vim81/gvim.exe -u c:\\Appl\\atlejg\\Resources\\.vimrc"     # windows gvim needs dos-addresse
+alias gvim "c:/Appl/Vim/vim81/gvim.exe -u C:\\Users\\agy\\Documents\\GitHub\\atlejg\\Resources\\.vimrc"     # windows gvim needs dos-addresse
 alias vi 'vim'
 alias v 'vi -R' # like view - but using vim
 
