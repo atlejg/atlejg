@@ -10,18 +10,17 @@ if (! ${?prompt}) goto end    # could i do exit instead of goto ??
 
 #
 if (-d /project/RCP/active/fluent/) then
-   setenv ACTIVE /project/RCP/active
-   setenv RC $ACTIVE/fluent/Atle_Resources
+   setenv ACTIVE /project/RCP/active/fluent/
+   setenv RC $ACTIVE/Atle_Resources
    setenv TMP $ACTIVE/fluent/TMP
 else
    setenv ACTIVE $HOME
    setenv RC $HOME/Tools
    setenv TMP /tmp
 endif
- 
+
 setenv ATLEJG $HOME/Tools/atlejg
-
-
+setenv LC_ALL 'C'
 
 # ---------------------- based on /etc/csh.cshrc for Cygwin
 
@@ -53,14 +52,10 @@ endif
 
 ### MY ENVIRONMENT VARIABLES
 #
-# need http_proxy to make wget work! sometimes must also use --proxy-user and --proxy-passwd options!
-setenv http_proxy http://www-proxy.statoil.no:80
-setenv https_proxy http://www-proxy.statoil.no:80  # for example easy_install needs this
-setenv use_proxy on
-#
 setenv EXT_PERL_MODULES $RC/PerlModules    # for: use lib $ENV{'EXT_PERL_MODULES'};
 setenv PASSIVE /project/RCP/passive/fluent/
 setenv WORK /project/RCP/work/$USER
+setenv PATH "${PATH}:/prog/Fluent/i686/Fluent.Inc/bin"
 #
 # PATH stuff
 #setenv PATH "${HOME}/Tools/resscript_bin:${PATH}"
@@ -91,7 +86,6 @@ alias lss 'ls -sSh | more'   # better than  ls -s -1 | sort -n -r | more
 alias lssr 'ls -sShR | more' # recursive
 alias lsd 'find . -type d -maxdepth 1 | sort' # list all dirs in current dir
 # really short names for the most used commands ...
-alias v 'vi -R' # like view - but using vim
 alias m 'more'
 alias g 'grep'
 alias xterm 'xterm -bg black -fg white'
@@ -138,6 +132,8 @@ alias x11one "xrandr --fb 1920x1080"
 alias x11two "xrandr --fb 3840x1080"
 alias x11big1 "xrandr --fb 2560x1600"
 alias x11big2 "xrandr --fb 5120x1600"
+
+alias mintty "mintty tcsh"
 #
 # for receiving mail when using ts for queueing tasks
 setenv TS_MAILTO agy@equinor.com
@@ -146,12 +142,16 @@ setenv TS_MAILTO agy@equinor.com
 # 
 
 setenv PYTHONPATH "$ATLEJG/lib/Python3"                                     # my stuff
-alias pylab 'ipython --pylab --logfile=ipython_log.py -i $HOME/Tools/atlejg/Resources/pythonstartup'
+alias pylab 'ipython --pylab --logfile=ipython_log.py -i $ATLEJG/Resources/pythonstartup'
 
 # vim stuff
 #
 setenv EDITOR vim
 alias vimdiff "vimdiff -c 'syntax off'"  # focus on differences - not syntax
+alias vim vim -u $ATLEJG/Resources/.vimrc
+alias gvim "c:/Appl/Vim/vim81/gvim.exe -u c:\\Appl\\atlejg\\Resources\\.vimrc"     # windows gvim needs dos-addresse
+alias vi 'vim'
+alias v 'vi -R' # like view - but using vim
 
 #
 # FLUENT STUFF
@@ -160,6 +160,8 @@ setenv FLUENT_ARCH lnamd64
 
 setenv ANSYS_DIR /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192
 #setenv ANSYS_DIR /project/RCP/active/Ansys/Ansys_2020R1/ansys_inc/v201       # WindModeller does not work with this :-(
+#alias fluent /prog/Fluent/ansys_inc_V16.2/ansys_inc/v162/fluent/bin/fluent -cc
+#alias cfdpost /prog/Fluent/ansys_inc_V16.2/ansys_inc/v162/CFD-Post/bin/cfx5post
 
 setenv PATH "${PATH}:${ANSYS_DIR}/CFX/bin"
 setenv PATH "${PATH}:${ANSYS_DIR}/fluent/bin"
@@ -204,13 +206,6 @@ setenv PY $ATLEJG/lib/Python3/AtlejgTools/
 # dont want redirected output to overwrite files - unless told to (using >!)
 set noclobber
 set nobeep filec fignore=(.o \~ .BAK)
-
-
-
-
-
-
-
 
 
 
@@ -305,6 +300,11 @@ set nobeep filec fignore=(.o \~ .BAK)
 #setenv PYTHONPATH "${PYTHONPATH}:/project/res/lib/python2.7/site-packages"    # for resscript.header etc.
 #setenv PYTHONPATH "${PYTHONPATH}:/private/agy/Tools/subscript-internal/src/subscript_internal/"
 #alias python python3
+## need http_proxy to make wget work! sometimes must also use --proxy-user and --proxy-passwd options!
+##setenv http_proxy http://www-proxy.statoil.no:80
+##setenv https_proxy http://www-proxy.statoil.no:80  # for example easy_install needs this
+##setenv use_proxy on
+#
 #
 # goto-label...
 end:
