@@ -164,6 +164,9 @@ if has("autocmd")
   " make sure tabstop = 4 is respected for python
   autocmd FileType python setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab
 
+  "" run flake8 for every python-file save
+  "autocmd BufWritePost *.py call flake8#Flake8()
+
 endif " has("autocmd")
 
 "" auto-completion not so efficient...
@@ -183,3 +186,9 @@ set foldlevel=99
 " aligns text (like comments after code) so they end at column 80
 " <leader> means '\', so \+tab executes this
 nnoremap <leader><tab> mc80A <esc>080lDgelD`cP
+
+" get block-cursor in normal mode
+let &t_ti.="\e[1 q"
+let &t_SI.="\e[5 q"
+let &t_EI.="\e[1 q"
+let &t_te.="\e[0 q"
