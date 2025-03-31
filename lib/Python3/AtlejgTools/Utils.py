@@ -8,6 +8,8 @@ from mpl_toolkits.axisartist.parasite_axes import HostAxes, ParasiteAxes
 from matplotlib import rcParams
 import yaml
 import pprint
+from pathlib import Path
+
 
 class Struct(object):
     '''
@@ -416,7 +418,7 @@ class CacheManager(object):
 def tmpfile(dir='.'):
     return tempfile.mkstemp(dir=dir)[1]
 
-def make_collage(pic_files, nrows, ncolumns, newfile='collage.png'):
+def make_collage(pic_files, nrows, ncolumns, newfile='collage.png', convert_path=r'C:\Appl\Cygwin\bin\magick.exe', tmpdir='c:/TMP'):
     '''
     makes a collage of nrows and ncolumns of the given picture files.
     uses ImageMagick convert
@@ -424,14 +426,16 @@ def make_collage(pic_files, nrows, ncolumns, newfile='collage.png'):
     fnames = []
     for n in range(nrows):
         pics = pic_files[n*ncolumns:(n+1)*ncolumns]
-        fname = tempfile.mkstemp()[1]
-        cmd = '/usr/bin/convert +append ' + join(pics) + ' ' + fname
+        fname = tempfile.mkstemp(dir=tmpdir)[1]
+        cmd = convert_path + ' ' + ' '.join(pics) + ' +append ' + fname
+        print(cmd)
         os.system(cmd)
         fnames.append(fname)
-    cmd = '/usr/bin/convert -append ' + join(fnames) + ' ' + newfile
+    cmd = convert_path + ' ' + ' '.join(fnames) + ' -append ' + newfile
+    print(cmd)
     os.system(cmd)
     print(newfile, 'created')
-    [os.unlink(fname) for fname in fnames] # delete intermediate files
+    #[os.unlink(fname) for fname in fnames] # delete intermediate files
 
 def each_figure_do(fignos, cmd):
     for figno in fignos:

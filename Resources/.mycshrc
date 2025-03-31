@@ -8,7 +8,7 @@ onintr -
 # Check if this is an interactive session
 if (! ${?prompt}) goto end    # could i do exit instead of goto ??
 
-setenv ATLEJG C:/Users/agy/Documents/GitHub/atlejg
+setenv ATLEJG c:/Users/agy/Documents/GitHub/atlejg/
 
 if (-d /project/RCP/active/fluent/) then
    setenv ACTIVE /project/RCP/active/fluent/
@@ -46,8 +46,9 @@ set pushdsilent
 set history = 500
 
 if ( (! $?ENVONLY) && $?prompt ) then
-    set prompt=`echo "$prompt" | awk '{print $1}'`    # cleaning: [WRA36a] [agy@tr-linrgsn003 agy] => [WRA36a]
-    set prompt="${prompt} %c2> "
+    #set prompt=`echo "$prompt" | awk '{print $1}'`    # cleaning: [WRA36a] [agy@tr-linrgsn003 agy] => [WRA36a]
+    #set prompt="${prompt} %c2> "
+    set prompt="%c2> "
 endif
 
 ### MY ENVIRONMENT VARIABLES
@@ -58,13 +59,16 @@ setenv WORK /project/RCP/work/$USER
 setenv PY $ATLEJG/lib/Python3/AtlejgTools/
 
 # PATH stuff
-setenv PATH "${ATLEJG}/bin:${PATH}"
+setenv PATH "${HOME}/bin:${PATH}"
 
 # PERL-stuff
 setenv PERLLIB "/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/site_perl:/project/res/x86_64_RH_5/lib64/perl5/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5:/project/res/x86_64_RH_5/lib/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib/perl5/site_perl:/project/res/x86_64_RH_5/lib/perl5/5.8.8:/project/res/x86_64_RH_5/lib/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib/perl5"
 
 ### MY ALIASES
 #
+
+alias aporuser 'ssh -i ~/.ssh/DLS_key.pem aporuser@128.251.196.63'
+
 # ls-stuff
 unalias ls
 alias l 'ls -C'
