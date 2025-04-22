@@ -2,8 +2,9 @@
 import os, sys
 from pathlib import Path
 if 'win' in sys.platform:
-    sys.path.append(str(Path('C:/Appl/PythonPackages/WindWorks/')))
-    TWW.TEST_REPO = Path("D:\OneDrive - Equinor\ACTIVE\Wind\WindWorks\Testdata")
+    pass
+    #sys.path.append(str(Path('C:/Appl/PythonPackages/WindWorks/')))
+    #TWW.TEST_REPO = Path("D:\OneDrive - Equinor\ACTIVE\Wind\WindWorks\Testdata")
     #
     sys.path.append(str(Path('C:/Appl/atlejg/lib/Python3')))
 else:
@@ -12,17 +13,17 @@ else:
     #sys.path.append('/project/res/ecalc/master/lib/python3.7/site-packages')            # mostly for ecl.ecl
     #sys.path.append('/private/agy/Tools/subscript/src/subscript')
 
-import py_wake
-import WindWorks.Utils as WU
-import WindWorks.FugaUtils as FU
-import WindWorks.KnowlUtils as KU
-import WindWorks.FugaUtils as FU
-import WindWorks.SetupTools as ST
-import WindWorks.SimulationCase as SC
-import WindWorks.Defaults as DEF
+#import py_wake
+#import WindWorks.Utils as WU
+#import WindWorks.FugaUtils as FU
+#import WindWorks.KnowlUtils as KU
+#import WindWorks.FugaUtils as FU
+#import WindWorks.SetupTools as ST
+#import WindWorks.SimulationCase as SC
+#import WindWorks.Defaults as DEF
 #import WindWorks.GUI
-import WindWorks.run as ww
-import WindWorks.test_windworks as TWW
+#import WindWorks.run as ww
+#import WindWorks.test_windworks as TWW
 
 # make sure figures are handled 'properly' in interactive ipython sessions
 import matplotlib
@@ -37,11 +38,11 @@ import AtlejgTools.FluentUtils as FL
 import AtlejgTools.Utils as UT
 import AtlejgTools.RCP_project.Valve_characteristics as VC
 import AtlejgTools.SimulationTools.UnitConversion      as U
-import AtlejgTools.WindYieldAssessment.WindModeller as WM
+#import AtlejgTools.WindYieldAssessment.WindModeller as WM
 
 if 'win' not in sys.platform:
-   #import AtlejgTools.EclipseTools.Utils as ECL
-   #import AtlejgTools.SimulationTools.PostProcessing as PP
+   import AtlejgTools.EclipseTools.Utils as ECL
+   import AtlejgTools.SimulationTools.PostProcessing as PP
    import AtlejgTools.SimulationTools.ParameterStudy as PS
 
 rcParams['figure.figsize'] = 9, 5
@@ -50,8 +51,3 @@ rcParams['lines.linewidth'] = 5    # orig: 1
 import logging
 logging.basicConfig(level=logging.INFO, force=True)
 
-#from vim import vim    # useful for testing snippets of code. consider using %edit (ed) instead
-# dont need these for iptyhon 0.12
-#print "\n\n\n     CLOSE THAT WINDOW!\n\n"
-#figure()
-#show()

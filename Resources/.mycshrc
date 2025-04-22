@@ -53,10 +53,13 @@ endif
 
 ### MY ENVIRONMENT VARIABLES
 #
-# need http_proxy to make wget work! sometimes must also use --proxy-user and --proxy-passwd options!
-setenv http_proxy http://www-proxy.statoil.no:80
-setenv https_proxy http://www-proxy.statoil.no:80  # for example easy_install needs this
-setenv use_proxy on
+## need http_proxy to make wget work! sometimes must also use --proxy-user and --proxy-passwd options!
+#setenv http_proxy http://www-proxy.statoil.no:80
+#setenv https_proxy http://www-proxy.statoil.no:80  # for example easy_install needs this
+#setenv use_proxy on
+unsetenv http_proxy
+unsetenv https_proxy
+
 #
 setenv EXT_PERL_MODULES $RC/PerlModules    # for: use lib $ENV{'EXT_PERL_MODULES'};
 setenv PASSIVE /project/RCP/passive/fluent/
@@ -144,7 +147,6 @@ setenv TS_MAILTO agy@equinor.com
 
 # PYTHON STUFF
 # 
-
 setenv PYTHONPATH "$ATLEJG/lib/Python3"                                     # my stuff
 alias pylab 'ipython --pylab --logfile=ipython_log.py -i $HOME/Tools/atlejg/Resources/pythonstartup'
 
@@ -187,6 +189,7 @@ if (`hostname | grep -i st-` != '') then
 else
     alias windworks "/project/RCP/active/wind_yield_assessment/agy/WindWorks/Tools/windworks"
 endif
+setenv METOCEAN_API_KEY 6ba9949b10084769a9278406fc1ba574
 
 # GAMBIT stuff
 # Wed Jan 13 12:03:05 MET 2016
