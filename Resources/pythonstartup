@@ -35,6 +35,7 @@ import AtlejgTools.Utils as UT
 import AtlejgTools.SimulationTools.UnitConversion      as U
 
 if 'win' not in sys.platform:
+   sys.path.append(str(Path('/prog/res/komodo/2025.04.03-py311-rhel8/root/lib64/python3.11/site-packages/')))
    import AtlejgTools.EclipseTools.Utils as ECL
    import AtlejgTools.SimulationTools.PostProcessing as PP
    import AtlejgTools.SimulationTools.ParameterStudy as PS

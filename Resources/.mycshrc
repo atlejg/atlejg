@@ -8,7 +8,11 @@ onintr -
 # Check if this is an interactive session
 if (! ${?prompt}) goto end    # could i do exit instead of goto ??
 
-setenv ATLEJG c:/Users/agy/Documents/GitHub/atlejg/
+if (`hostname | grep -i statoil.no` != '') then
+   setenv ATLEJG $HOME/Tools/atlejg/
+else
+   setenv ATLEJG c:/Users/agy/Documents/GitHub/atlejg/
+endif
 
 if (-d /project/RCP/active/fluent/) then
    setenv ACTIVE /project/RCP/active/fluent/
@@ -46,9 +50,7 @@ set pushdsilent
 set history = 500
 
 if ( (! $?ENVONLY) && $?prompt ) then
-    #set prompt=`echo "$prompt" | awk '{print $1}'`    # cleaning: [WRA36a] [agy@tr-linrgsn003 agy] => [WRA36a]
-    #set prompt="${prompt} %c2> "
-    set prompt="%c2> "
+    set prompt="${VIRTUAL_ENV_PROMPT}%c2> "
 endif
 
 ### MY ENVIRONMENT VARIABLES
