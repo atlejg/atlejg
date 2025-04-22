@@ -12,6 +12,7 @@ if (`hostname | grep -i statoil.no` != '') then
    setenv ATLEJG $HOME/Tools/atlejg/
 else
    setenv ATLEJG c:/Users/agy/Documents/GitHub/atlejg/
+   setenv VIRTUAL_ENV_PROMPT ""
 endif
 
 if (-d /project/RCP/active/fluent/) then
