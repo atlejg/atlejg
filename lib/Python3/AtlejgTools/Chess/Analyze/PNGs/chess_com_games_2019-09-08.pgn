@@ -1,0 +1,965 @@
+[Event "Class C, Now in Session - Round 2"]
+[Site "Chess.com"]
+[Date "2015.09.10"]
+[Round "2"]
+[White "atlejg"]
+[Black "janwillemtimmerman"]
+[Result "0-1"]
+[WhiteElo "1538"]
+[BlackElo "1662"]
+[TimeControl "1/259200"]
+[EndDate "2016.01.26"]
+[Termination "janwillemtimmerman won by resignation"]
+
+1. d4 Nf6 2. c4 e6 3. Nc3 d5 4. cxd5 Nxd5 5. Nxd5 exd5 6. e3 Bf5 7. Bd3 Bb4+ 8.
+Bd2 Bxd2+ 9. Qxd2 Bxd3 10. Qxd3 O-O 11. Nf3 Nc6 12. O-O Re8 13. a3 h6 14. Rfe1
+Qe7 15. h3 a6 16. b4 Qe4 17. Qxe4 dxe4 18. Nd2 Rad8 19. f3 exf3 20. Nxf3 f6 21.
+Kh2 Ne7 22. e4 Ng6 23. g3 Ne7 24. Rad1 c6 25. Re2 Ng6 26. Kg2 Rd6 27. h4 b6 28.
+Kf2 Kf7 29. d5 Ne5 30. Nxe5+ Rxe5 31. Kf3 cxd5 32. exd5 Rdxd5 33. Rxd5 Rxd5 34.
+Rc2 Rd3+ 35. Kf2 Rxa3 36. Rc6 b5 37. Kg2 Ra4 38. Kf3 Rxb4 39. Rxa6 Rb3+ 40. Kg4
+Kg6 41. h5+ Kf7 42. Ra7+ Kf8 43. Rb7 Kg8 44. Kf5 Kh7 45. g4 Rb1 46. Rb8 b4 47.
+Rb7 b3 48. Rb8 b2 49. Rb7 Rf1+ 50. Ke6 b1=Q 0-1
+
+[Event "33rd Chess.com Tournament (1401-1600) - Round 1"]
+[Site "Chess.com"]
+[Date "2015.12.01"]
+[Round "1"]
+[White "jseb"]
+[Black "atlejg"]
+[Result "1/2-1/2"]
+[WhiteElo "1447"]
+[BlackElo "1499"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.01"]
+[Termination "Game drawn by agreement"]
+
+1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 g6 5. Bc4 Bg7 6. Nf3 Nf6 7. Nxf6+ Bxf6 8.
+Bh6 Bg4 9. h3 Bxf3 10. Qxf3 Qxd4 11. Be2 Qxb2 12. O-O Qxc2 13. Bd3 Qc5 14. Rac1
+Qb6 15. Rce1 Nd7 16. Bf4 O-O 17. Rb1 Qd8 18. Rfd1 e5 19. Bh6 Bg7 20. Bxg7 Kxg7
+21. Bc4 Qc7 22. h4 Rae8 23. Qg3 Nf6 24. Be2 Ne4 25. Qe3 Nf6 26. Qg3 Rc8 27. h5
+e4 28. Qg5 h6 29. Qh4 b5 30. hxg6 fxg6 31. Qh3 Rfe8 32. Qc3 Qe5 33. Qe3 Re7 34.
+Rbc1 b4 35. Rc5 Qe6 36. Bc4 Nd5 37. Bxd5 cxd5 38. Rxc8 Qxc8 39. Qd4+ Kh7 40.
+Qxb4 Rd7 41. Qb2 g5 42. Rc1 Rc7 43. Rxc7+ Qxc7 44. Qd4 Qd7 45. a4 a5 46. f3 e3
+47. Qxe3 d4 48. Qe4+ Kg8 49. Qg6+ Qg7 50. Qe6+ Kh7 51. Qe4+ Kh8 52. Qe8+ Qg8 53.
+Qe5+ Qg7 1/2-1/2
+
+[Event "33rd Chess.com Tournament (1401-1600) - Round 1"]
+[Site "Chess.com"]
+[Date "2015.12.01"]
+[Round "1"]
+[White "TornadoFalcon"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1402"]
+[BlackElo "1489"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.06"]
+[Termination "atlejg won on time"]
+
+1. e4 c6 2. Nf3 d5 3. exd5 cxd5 4. Bb5+ Bd7 5. Bxd7+ Qxd7 6. Ne5 Qd6 7. Qh5 g6
+8. Qe2 Bg7 9. Qb5+ Nd7 10. Nxd7 Qxd7 11. Qxd7+ Kxd7 12. Nc3 d4 0-1
+
+[Event "33rd Chess.com Tournament (1401-1600) - Round 1"]
+[Site "Chess.com"]
+[Date "2015.12.01"]
+[Round "1"]
+[White "atlejg"]
+[Black "jseb"]
+[Result "0-1"]
+[WhiteElo "1515"]
+[BlackElo "1444"]
+[TimeControl "1/259200"]
+[EndDate "2016.02.16"]
+[Termination "jseb won by resignation"]
+
+1. d4 Nf6 2. c4 d5 3. cxd5 Nxd5 4. e4 Nf6 5. e5 Nd5 6. Nf3 e6 7. g3 Bb4+ 8. Bd2
+Nc6 9. a3 Bxd2+ 10. Nbxd2 a6 11. Bg2 f6 12. O-O fxe5 13. dxe5 Bd7 14. Re1 Qe7
+15. b4 O-O-O 16. Nc4 Rhf8 17. Qd2 b5 18. Nb2 h5 19. Qg5 Qxg5 20. Nxg5 Nd4 21.
+Rad1 Nc2 22. Bxd5 Nxe1 23. Nxe6 Nf3+ 24. Kg2 Nxe5 25. Nxd8 Rxd8 26. f4 Ng4 27.
+Re1 Nf6 28. Bf3 g6 29. Re5 c6 30. Rg5 Be8 31. h4 Rd2+ 32. Kh3 Rxb2 33. f5 Bd7
+34. g4 hxg4+ 35. Bxg4 Rb3+ 36. Kg2 Nxg4 37. Rxg4 Bxf5 38. Rf4 Rxa3 39. h5 a5 40.
+bxa5 Rxa5 41. h6 Ra7 42. Rh4 Rh7 0-1
+
+[Event "33rd Chess.com Tournament (1401-1600) - Round 1"]
+[Site "Chess.com"]
+[Date "2015.12.01"]
+[Round "1"]
+[White "atlejg"]
+[Black "TornadoFalcon"]
+[Result "1-0"]
+[WhiteElo "1495"]
+[BlackElo "1378"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.06"]
+[Termination "atlejg won on time"]
+
+1. d4 d5 2. c4 dxc4 3. Qa4+ Bd7 4. Qxc4 Nc6 5. Bd2 Nf6 6. g3 g6 7. e3 Bg7 8. Bg2
+O-O 9. Ne2 b5 10. Qc3 Rb8 11. Bxc6 Bxc6 12. O-O 1-0
+
+[Event "33rd Chess.com Tournament (1401-1600) - Round 1"]
+[Site "Chess.com"]
+[Date "2015.12.01"]
+[Round "1"]
+[White "atlejg"]
+[Black "Rishi9"]
+[Result "1/2-1/2"]
+[WhiteElo "1534"]
+[BlackElo "1551"]
+[TimeControl "1/259200"]
+[EndDate "2016.01.05"]
+[Termination "Game drawn by agreement"]
+
+1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e3 O-O 5. Nf3 d5 6. cxd5 Nxd5 7. Nxd5 Qxd5 8.
+Bd3 Nc6 9. Bd2 Bf5 10. Bxf5 Qxf5 11. O-O Rad8 12. Rc1 Rd7 13. b3 Rfd8 14. Re1 e5
+15. e4 Qf6 16. d5 Ne7 17. Qc2 c6 18. Bg5 Qd6 19. Bxe7 Qxe7 20. a4 cxd5 21. exd5
+Rxd5 22. g3 Rd3 23. Kg2 Qd6 24. Qc4 Qd5 25. Qxd5 R8xd5 26. Rb1 Rc3 27. Rec1 Rdd3
+28. Rxc3 Rxc3 29. Nd2 Bh6 30. Ne4 Rc1 31. Rxc1 Bxc1 32. Nc5 b6 33. Nd3 Bd2 34.
+Nxe5 Kf8 35. f4 Bc1 36. Kf3 Bb2 37. h4 Bxe5 38. fxe5 Ke7 39. Ke4 Ke6 40. g4 h6
+41. g5 h5 42. Kd4 a6 43. b4 Kd7 44. Kd5 Kc7 45. Kc4 Kd7 46. Kd5 Kc7 47. b5 axb5
+48. axb5 Kd7 49. Kd4 Ke6 1/2-1/2
+
+[Event "33rd Chess.com Tournament (1401-1600) - Round 1"]
+[Site "Chess.com"]
+[Date "2015.12.01"]
+[Round "1"]
+[White "atlejg"]
+[Black "Martinjh"]
+[Result "0-1"]
+[WhiteElo "1516"]
+[BlackElo "1530"]
+[TimeControl "1/259200"]
+[EndDate "2016.01.22"]
+[Termination "Martinjh won by resignation"]
+
+1. d4 d5 2. c4 c6 3. c5 e6 4. Nf3 Nf6 5. Bg5 Be7 6. g3 Nbd7 7. Bg2 O-O 8. O-O b6
+9. cxb6 axb6 10. e3 h6 11. Bxf6 Bxf6 12. Nc3 c5 13. Re1 c4 14. b4 Be7 15. b5 Nf6
+16. a4 Bb4 17. Qc2 Ne4 18. Nxe4 dxe4 19. Qxe4 Bd7 20. Rec1 c3 21. Ne5 Ba5 22.
+Nc6 Bxc6 23. bxc6 Qc7 24. h4 Rfd8 25. Bf1 Rd6 26. Bb5 Re8 27. g4 g6 28. Qf4 Qe7
+29. Qxh6 e5 30. dxe5 Qxe5 31. Qg5 Qe4 32. h5 Re5 33. f3 Rxg5 34. fxe4 Rxg4+ 35.
+Kf2 Rd2+ 36. Kf3 Rg5 37. h6 Rc5 38. Rh1 c2 39. h7+ Kh8 40. e5 Rxe5 41. c7 Rc5
+42. e4 Rxc7 43. Ke3 Rd6 44. Bd3 Rc3 45. e5 Rdxd3+ 46. Ke4 Ra3 47. Raf1 Re3+ 48.
+Kd5 Rf3 49. e6 fxe6+ 50. Kxe6 Rxf1 51. Rxf1 Kxh7 52. Kf6 Bd2 53. Rh1+ Bh6 54.
+Rg1 c1=Q 55. Rxc1 Bg7+ 56. Kf7 Rxa4 57. Rc6 g5 58. Rxb6 Rf4+ 59. Ke7 g4 60. Rb1
+g3 61. Rg1 Rf3 62. Rg2 Bd4 63. Ke6 Bf2 64. Ke5 Rf8 65. Ke4 Kg6 0-1
+
+[Event "33rd Chess.com Tournament (1401-1600) - Round 1"]
+[Site "Chess.com"]
+[Date "2015.12.01"]
+[Round "1"]
+[White "Rishi9"]
+[Black "atlejg"]
+[Result "1/2-1/2"]
+[WhiteElo "1551"]
+[BlackElo "1533"]
+[TimeControl "1/259200"]
+[EndDate "2016.01.04"]
+[Termination "Game drawn by repetition"]
+
+1. e4 c6 2. d4 d5 3. Nc3 e6 4. e5 c5 5. Be3 cxd4 6. Bxd4 Nc6 7. Bb5 Bd7 8. f4
+Nxd4 9. Bxd7+ Qxd7 10. Qxd4 b6 11. Nf3 Bc5 12. Qa4 Qxa4 13. Nxa4 Be7 14. O-O f6
+15. Kh1 Nh6 16. Rfd1 O-O 17. Rac1 fxe5 18. fxe5 Ng4 19. Rf1 Rac8 20. Nc3 a5 21.
+Nd4 Nxe5 22. Nxe6 Rxf1+ 23. Rxf1 d4 24. Nxd4 Bf6 25. Nde2 Nc4 26. h3 Nxb2 27.
+Rb1 Nc4 28. Nd5 Rb8 29. Nec3 Bxc3 30. Nxc3 Na3 31. Rb2 Kf7 32. Kg1 Ke6 33. Kf2
+b5 34. Ke2 b4 35. Nb1 Nxb1 36. Rxb1 Rc8 37. Kd3 Ke5 38. Rc1 a4 39. c3 b3 40.
+axb3 axb3 41. Rb1 Rb8 42. Kc4 b2 43. Kd3 Kf4 44. Kc2 Kg3 45. Rxb2 Rf8 46. Kb3
+Rb8+ 47. Kc2 Rc8 48. Kd3 Rd8+ 49. Kc4 Rc8+ 50. Kb3 Rb8+ 51. Kc2 1/2-1/2
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2015.12.05"]
+[Round "-"]
+[White "atlejg"]
+[Black "einmag"]
+[Result "1/2-1/2"]
+[WhiteElo "1527"]
+[BlackElo "1447"]
+[TimeControl "1/259200"]
+[EndDate "2016.01.20"]
+[Termination "Game drawn by agreement"]
+
+1. d4 f6 2. c4 e5 3. d5 Ne7 4. e3 d6 5. Nf3 e4 6. Nd4 Nf5 7. Nxf5 Bxf5 8. g3 Nd7
+9. Bg2 Qe7 10. O-O O-O-O 11. Nc3 Nc5 12. Qd4 Re8 13. b4 Nd3 14. Qxa7 Nxc1 15.
+Rfxc1 c6 16. dxc6 bxc6 17. Qa6+ Qb7 18. Qxb7+ Kxb7 19. Rcb1 d5 20. cxd5 Rc8 21.
+dxc6+ Rxc6 22. Bxe4 Bxe4 23. Nxe4 Rc4 24. Nc5+ Bxc5 25. bxc5+ Kc6 26. Rc1 Kxc5
+27. Rxc4+ Kxc4 28. f4 Re8 29. Kf2 Kc3 30. Kf3 Kb2 31. Re1 Kxa2 32. e4 Kb3 33.
+Ke3 Kc4 34. Rd1 f5 35. e5 g6 36. Rc1+ Kd5 37. Rc7 h5 38. Rg7 Re6 39. Rd7+ Kc6
+40. Rg7 Kd5 1/2-1/2
+
+[Event "OPEN TOURNAMENT - Round 1"]
+[Site "Chess.com"]
+[Date "2015.12.13"]
+[Round "1"]
+[White "atlejg"]
+[Black "birlz"]
+[Result "0-1"]
+[WhiteElo "1526"]
+[BlackElo "1629"]
+[TimeControl "1/259200"]
+[EndDate "2016.01.12"]
+[Termination "birlz won by checkmate"]
+
+1. d4 Nf6 2. c4 g6 3. Nf3 Bg7 4. Nc3 O-O 5. e4 d6 6. e5 dxe5 7. d5 Bg4 8. Be2
+Qd6 9. Be3 Nbd7 10. O-O Rad8 11. Nb5 Qb4 12. b3 a6 13. Bd2 Qc5 14. b4 Qb6 15.
+Be3 c5 16. bxc5 Nxc5 17. Nc3 Qd6 18. Bxc5 Qxc5 19. Nxe5 Bxe2 20. Qxe2 Nh5 21.
+Rab1 Qd4 22. Rxb7 Bxe5 23. Rb3 Nf4 24. Qe3 Rc8 25. Re1 Qxe3 26. Rxe3 Bxc3 27.
+Rbxc3 Rfe8 28. g3 Nh5 29. Kg2 Kg7 30. g4 Nf6 31. h3 Nd7 32. Re1 Nb6 33. Rec1 Rc5
+34. Rd3 Rd8 35. Rcd1 Nxc4 36. Rd4 Rd6 37. Kf3 f6 38. Ke4 Na3 39. g5 f5+ 40. Ke5
+Nc4+ 41. Kf4 Nb6 42. Ke5 Kf7 43. h4 Rc2 44. f4 Nd7# 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2015.12.27"]
+[Round "-"]
+[White "joachhb"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1206"]
+[BlackElo "1529"]
+[TimeControl "1/259200"]
+[EndDate "2016.01.20"]
+[Termination "atlejg won on time"]
+
+1. d4 d5 2. Nc3 c6 3. e4 dxe4 4. Nxe4 e5 5. Nf3 exd4 6. Nxd4 c5 7. Nb5 Qxd1+ 8.
+Kxd1 Na6 9. Nbd6+ Bxd6 10. Nxd6+ Ke7 11. Bf4 Nf6 12. Bb5 Rd8 13. c3 Rxd6+ 14.
+Bxd6+ Kxd6 15. Re1 b6 16. Kc2 Nc7 17. Ba4 b5 18. Rad1+ Kc6 19. Bxb5+ Nxb5 20. a4
+Nc7 21. b4 cxb4 22. cxb4 a6 23. Re5 Be6 24. Rc5+ Kb7 25. b5 axb5 26. axb5 Ra5
+27. Rb1 Nd7 28. Rxc7+ Kxc7 29. b6+ Nxb6 30. Kd1 Nd5 31. Rc1+ Kd6 32. g3 Ra4 33.
+Rc2 Ne3+ 34. fxe3 Bb3 35. h4 Bxc2+ 36. Kxc2 f5 37. Kd2 Ke5 38. Ke2 Ke4 39. h5
+Ra3 40. Kf2 Ra2+ 41. Kg1 Kxe3 42. g4 fxg4 0-1
+
+[Event "OPEN TOURNAMENT - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.02"]
+[Round "1"]
+[White "atlejg"]
+[Black "astroMarc"]
+[Result "1/2-1/2"]
+[WhiteElo "1513"]
+[BlackElo "1402"]
+[TimeControl "1/259200"]
+[EndDate "2016.01.24"]
+[Termination "Game drawn by agreement"]
+
+1. d4 Nf6 2. c4 e6 3. g3 c5 4. d5 exd5 5. cxd5 d6 6. Nc3 g6 7. Bg2 b6 8. Bg5 Be7
+9. Bh6 Ng4 10. Bf4 Ba6 11. e4 Nd7 12. Bh3 Ngf6 13. Nge2 Bxe2 14. Qxe2 O-O 15.
+O-O a6 16. a3 b5 17. b3 b4 18. axb4 cxb4 19. Na4 Nc5 20. Nxc5 dxc5 21. Rxa6 Rxa6
+22. Qxa6 Nxe4 23. Qd3 Ng5 24. Bg2 Bd6 25. Bxd6 Qxd6 26. Rd1 Qd7 27. d6 f5 28.
+Qd5+ Ne6 29. Qxe6+ Qxe6 30. Bd5 Qxd5 31. Rxd5 Rd8 32. Rxc5 Rxd6 33. Rc4 Rb6
+1/2-1/2
+
+[Event "OPEN TOURNAMENT - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.12"]
+[Round "1"]
+[White "birlz"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1565"]
+[BlackElo "1482"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.25"]
+[Termination "birlz won by checkmate"]
+
+1. e4 Nc6 2. d4 e6 3. c4 d5 4. cxd5 exd5 5. e5 f6 6. exf6 Nxf6 7. Bg5 Qd6 8. Nf3
+Bg4 9. Be2 O-O-O 10. O-O h6 11. Bh4 Kb8 12. Nc3 g5 13. Bg3 Qd7 14. Ne5 Nxe5 15.
+dxe5 Bxe2 16. Nxe2 Ne4 17. Rc1 Bg7 18. e6 Qe7 19. Bxc7+ Qxc7 20. Rxc7 Kxc7 21.
+Ng3 Nxg3 22. fxg3 Rd6 23. Rf7+ Kc6 24. Qa4+ Kb6 25. Qb4+ Kc6 26. Qxb7+ Kc5 27.
+b4+ Kd4 28. Qxa7+ Kd3 29. Rxg7 Rxe6 30. Rf7 Rhe8 31. Rf3+ Re3 32. Rxe3+ Rxe3 33.
+b5 g4 34. b6 Re1+ 35. Kf2 Re2+ 36. Kf1 d4 37. Qa6+ Ke4 38. Qxe2+ Kd5 39. b7 d3
+40. Qxd3+ Kc6 41. b8=Q Kc5 42. Qbb5# 1-0
+
+[Event "We can do the tango just for two - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.16"]
+[Round "1"]
+[White "Aleksandr_spb"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1546"]
+[BlackElo "1482"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.05"]
+[Termination "Aleksandr_spb won by resignation"]
+
+1. e4 Nc6 2. d4 e6 3. Nf3 d5 4. e5 Na5 5. a3 f6 6. Bf4 fxe5 7. Nxe5 Ne7 8. Bg5
+Qd6 9. Bd3 Nac6 10. Bb5 a6 11. Bxc6+ bxc6 12. Qh5+ g6 13. Nxg6 Nxg6 14. Bf6 Qf4
+15. Bxh8 Qc1+ 16. Qd1 Qxb2 17. Nd2 Nxh8 18. Nb3 Bxa3 19. O-O Bb4 20. Qh5+ Nf7
+21. Qxh7 c5 22. dxc5 a5 23. Rfd1 a4 24. Nd4 Bxc5 25. Rab1 a3 26. Rxb2 axb2 27.
+Nb3 Bd4 28. h4 c5 29. c3 Bxc3 30. Nxc5 Ra1 31. Qc2 e5 32. Nb3 Bf5 33. Nxa1 Bxc2
+34. Nxc2 d4 35. Na3 Nd6 36. f3 Bb4 37. Nb1 Nc4 38. g4 Kf7 39. Kf2 Ne3 40. Rd3
+Nc4 41. h5 Na3 42. Rxa3 Bxa3 43. Nxa3 Kf6 44. Ke2 Kg5 45. Nb1 e4 46. fxe4 Kxg4
+47. h6 Kf4 48. Kd3 1-0
+
+[Event "We can do the tango just for two - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.16"]
+[Round "1"]
+[White "atlejg"]
+[Black "Aleksandr_spb"]
+[Result "0-1"]
+[WhiteElo "1493"]
+[BlackElo "1512"]
+[TimeControl "1/259200"]
+[EndDate "2016.02.20"]
+[Termination "Aleksandr_spb won by resignation"]
+
+1. d4 d5 2. c4 dxc4 3. Qa4+ Nc6 4. e3 Be6 5. Bxc4 Bd7 6. Qb3 e6 7. Nf3 Nf6 8.
+Nc3 a6 9. O-O h6 10. Re1 Na5 11. Qc2 Nxc4 12. Na4 b5 13. Nc3 Bd6 14. b3 Nb6 15.
+Bb2 c5 16. Ne2 cxd4 17. Nexd4 Rc8 18. Qd2 Qe7 19. Qa5 Nfd5 20. Qxa6 O-O 21. Nxb5
+Ra8 22. Na7 Bc8 23. Nxc8 Rfxc8 24. Qe2 Nb4 25. Rec1 Rxa2 26. Rxc8+ Nxc8 27. Rxa2
+Nxa2 28. Qa6 Qd7 29. Qxa2 Be5 30. h3 Qd1+ 0-1
+
+[Event "We can do the tango just for two - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.16"]
+[Round "1"]
+[White "atlejg"]
+[Black "Dennis701"]
+[Result "1/2-1/2"]
+[WhiteElo "1495"]
+[BlackElo "1553"]
+[TimeControl "1/259200"]
+[EndDate "2016.02.20"]
+[Termination "Game drawn by agreement"]
+
+1. d4 d5 2. c4 c6 3. cxd5 cxd5 4. g3 Nc6 5. Bg2 Nf6 6. e3 e6 7. Ne2 Bb4+ 8. Nbc3
+O-O 9. O-O Bd7 10. a3 Ba5 11. b4 Bc7 12. Nb5 a6 13. Nxc7 Qxc7 14. Bb2 Rac8 15.
+Nf4 b5 16. Rc1 Qd6 17. Qe2 Ne7 18. Nd3 Rxc1 19. Rxc1 Rc8 20. Nc5 Rc6 21. Nxd7
+Rxc1+ 22. Bxc1 Nxd7 23. h4 Nb6 24. Kh2 Nc4 25. Kh3 g6 26. f4 Nf5 27. g4 Ng7 28.
+Bf3 f5 29. g5 Ne8 30. h5 Kf7 31. Kh4 Qf8 32. h6 Ned6 33. Kg3 Ne4+ 34. Bxe4 fxe4
+35. Kg4 Ke7 36. Qf2 Kd6 37. Qg3 Kc6 38. Qf2 1/2-1/2
+
+[Event "We can do the tango just for two - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.16"]
+[Round "1"]
+[White "atlejg"]
+[Black "victor34"]
+[Result "0-1"]
+[WhiteElo "1494"]
+[BlackElo "1696"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.04"]
+[Termination "victor34 won by resignation"]
+
+1. d4 d5 2. c4 c6 3. c5 b6 4. b4 a5 5. Ba3 b5 6. Nc3 Nf6 7. e3 a4 8. Nf3 Bb7 9.
+g3 h6 10. Bg2 Qc7 11. O-O Nbd7 12. Re1 e6 13. Qd3 Be7 14. Bh3 g5 15. Bg2 O-O-O
+16. Nxb5 cxb5 17. Qxb5 Qc6 18. Qxc6+ Bxc6 19. Rab1 Bb5 20. Bf1 Bxf1 21. Rxf1 g4
+22. Nd2 Nb8 23. Rfc1 Kc7 24. Rb2 Nbd7 25. Nb1 Ne4 26. Nc3 Nxc3 27. Rxc3 Rb8 28.
+b5 Bf6 29. c6 Nb6 30. Bc5 Nc4 31. Rb4 Ra8 32. Kg2 Rhb8 33. f3 gxf3+ 34. Kxf3 Ra5
+35. e4 Nd2+ 36. Kg2 Nxe4 37. Ra3 Nxc5 38. dxc5 Rbxb5 39. Rxb5 Rxb5 40. Rxa4 Kxc6
+41. Rf4 Rb2+ 42. Kh3 Bg5 43. Rxf7 Rxa2 44. Rf1 Kxc5 45. Kg4 Rxh2 46. Re1 Kd6 47.
+Rf1 d4 48. Rf8 d3 49. Rf1 d2 50. Rd1 Rf2 51. Kh3 Re2 52. Ra1 Re1 53. Ra8 d1=Q
+54. Rd8+ Bxd8 0-1
+
+[Event "We can do the tango just for two - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.16"]
+[Round "1"]
+[White "atlejg"]
+[Black "jaquecesar"]
+[Result "0-1"]
+[WhiteElo "1485"]
+[BlackElo "1590"]
+[TimeControl "1/259200"]
+[EndDate "2016.02.26"]
+[Termination "jaquecesar won by resignation"]
+
+1. d4 Nf6 2. c4 g6 3. Nf3 Bg7 4. b3 O-O 5. g3 d6 6. Bg2 Nbd7 7. O-O e5 8. e3
+exd4 9. Nxd4 Ne5 10. Bb2 Bf5 11. Nxf5 gxf5 12. Bxb7 Rb8 13. Bg2 Ne4 14. Nd2 Nc5
+15. Rb1 Ncd3 16. Nf3 Nxb2 17. Qc2 Nbd3 18. Nxe5 Nxe5 19. Qxf5 Qf6 20. Qc2 Rfe8
+21. Be4 Ng6 22. h4 Ne5 23. Bxh7+ Kf8 24. Be4 Ng4 25. Rbd1 Ne5 26. f4 Ng4 27. Kg2
+Nxe3+ 0-1
+
+[Event "We can do the tango just for two - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.16"]
+[Round "1"]
+[White "Dennis701"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1547"]
+[BlackElo "1492"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.15"]
+[Termination "Dennis701 won by checkmate"]
+
+1. e4 Nc6 2. Nf3 d6 3. d4 Bg4 4. Be2 Bxf3 5. Bxf3 e5 6. dxe5 Nxe5 7. O-O Nxf3+
+8. Qxf3 Qd7 9. Re1 O-O-O 10. Nc3 Ne7 11. Qxf7 Qe8 12. Qxe8 Rxe8 13. f3 g6 14.
+Bg5 h6 15. Bh4 g5 16. Bf2 Nc6 17. a3 Bg7 18. Re3 Nd4 19. Rc1 Be5 20. Rd3 Bf4 21.
+Be3 Bxe3+ 22. Rxe3 c6 23. Ne2 Nxe2+ 24. Rxe2 Kc7 25. Rce1 Rh7 26. Kf2 c5 27. e5
+d5 28. g3 d4 29. f4 Kc6 30. f5 Rhe7 31. g4 Kd5 32. e6 Rf8 33. Kg3 c4 34. h4 d3
+35. cxd3 cxd3 36. Rd2 Kc4 37. Re3 Kc5 38. Rexd3 b6 39. Rc3+ Kb5 40. hxg5 hxg5
+41. Rd7 Rfe8 42. Rcc7 Rxd7 43. Rxd7 Kc6 44. Rxa7 Kd6 45. Rg7 Ke5 46. Rxg5 b5 47.
+Rg7 Kd6 48. g5 Ke5 49. Rf7 Rg8 50. g6 Kd6 51. Rd7+ Ke5 52. Kg4 Kf6 53. Rf7+ Ke5
+54. Kg5 b4 55. e7 bxa3 56. bxa3 Kd6 57. f6 Kd7 58. Rf8 Rxf8 59. exf8=Q Kc6 60.
+Qd8 Kc5 61. f7 Kc4 62. f8=Q Kb3 63. Qc5 Ka2 64. Qd2+ Kb3 65. Qcb4# 1-0
+
+[Event "We can do the tango just for two - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.16"]
+[Round "1"]
+[White "victor34"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1662"]
+[BlackElo "1489"]
+[TimeControl "1/259200"]
+[EndDate "2016.02.21"]
+[Termination "victor34 won by resignation"]
+
+1. d4 d5 2. c4 dxc4 3. e3 b5 4. a4 c6 5. axb5 cxb5 6. Qf3 Bb7 7. Qxb7 Nd7 8.
+Qxb5 Qc7 9. Qxc4 Rc8 10. Qxc7 Rxc7 11. Nc3 e6 12. Nb5 Rb7 13. Rxa7 Rxa7 14. Nxa7
+Bb4+ 15. Bd2 Bxd2+ 16. Kxd2 Ngf6 17. Bb5 Ne4+ 18. Ke2 Nd6 19. Ba4 Ke7 20. Nc6+
+Kf6 21. b3 Nb6 22. Nf3 Nxa4 23. bxa4 Rc8 24. Rc1 Ra8 25. Ra1 Rc8 26. Nce5 h6 27.
+a5 Ra8 28. Nd7+ Ke7 29. Nb6 Ra6 30. Ne5 Nb7 31. Kd3 Kd6 32. Nxf7+ Kc6 33. Ne5+
+Kb5 34. Nec4 Nxa5 35. Nxa5 Rxa5 36. Rxa5+ Kxa5 37. Nd7 Kb5 38. Nf8 Kc6 39. Nxe6
+Kd6 40. Nxg7 Kd7 41. Ke4 1-0
+
+[Event "We can do the tango just for two - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.16"]
+[Round "1"]
+[White "jaquecesar"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1613"]
+[BlackElo "1476"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.26"]
+[Termination "jaquecesar won by resignation"]
+
+1. e4 Nc6 2. Nf3 e5 3. Bb5 Nge7 4. c3 a6 5. Ba4 b5 6. Bb3 Ng6 7. O-O Be7 8. d4
+exd4 9. cxd4 d6 10. h3 O-O 11. Re1 Na5 12. Bc2 Nh4 13. Nc3 Nxf3+ 14. Qxf3 Bb7
+15. Qg3 Bf6 16. e5 Be7 17. Bh6 Bf6 18. exf6 Qxf6 19. Be3 Nc4 20. b3 Nxe3 21.
+Qxe3 Rfe8 22. Qd3 g6 23. Ne4 Qf5 24. Rac1 Re7 25. Re3 Bxe4 26. Rxe4 Rxe4 27.
+Qxe4 Qxe4 28. Bxe4 Re8 29. f3 Re7 30. Kf2 Kf8 31. Rc6 a5 32. Bd3 b4 33. Ra6 Re8
+34. Rxa5 Rb8 35. Rb5 Rxb5 36. Bxb5 Ke7 37. Ke3 Kf6 38. Ke4 Ke6 39. Bc4+ Kf6 40.
+Kd5 Ke7 41. Kc6 f5 42. Kxc7 h5 43. Kc6 g5 44. Kb5 Kf6 45. Kxb4 g4 46. hxg4 fxg4
+47. fxg4 h4 48. a4 Kg5 49. a5 Kxg4 50. a6 1-0
+
+[Event "CHESS.COM BLACKBURNE FESTIVAL - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.18"]
+[Round "1"]
+[White "armandolero"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1479"]
+[BlackElo "1503"]
+[TimeControl "1/259200"]
+[EndDate "2016.02.16"]
+[Termination "armandolero won by checkmate"]
+
+1. d4 d5 2. Nf3 Nf6 3. Bf4 c6 4. Nc3 g6 5. e3 Bg7 6. Bd3 O-O 7. Qd2 Bg4 8. O-O-O
+a6 9. h3 Bxf3 10. gxf3 b5 11. Ne2 Nbd7 12. e4 Qb6 13. e5 Nh5 14. Bh6 Bxh6 15.
+Qxh6 Nxe5 16. dxe5 Qxf2 17. Rhg1 Qxf3 18. Nd4 Qxh3 19. Be2 Nf4 20. Qxf4 Qd7 21.
+Qh6 e6 22. Rh1 Rfb8 23. Qxh7+ Kf8 24. Qh8+ Ke7 25. Qf6+ Kf8 26. Rh8# 1-0
+
+[Event "CHESS.COM BLACKBURNE FESTIVAL - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.18"]
+[Round "1"]
+[White "atlejg"]
+[Black "armandolero"]
+[Result "0-1"]
+[WhiteElo "1528"]
+[BlackElo "1471"]
+[TimeControl "1/259200"]
+[EndDate "2016.02.14"]
+[Termination "armandolero won by resignation"]
+
+1. d4 d5 2. Nf3 Nf6 3. Bf4 c5 4. dxc5 Nc6 5. e3 a6 6. Nc3 Bg4 7. Be2 e6 8. Na4
+Bxf3 9. Bxf3 Qa5+ 10. Nc3 Bxc5 11. a3 Qd8 12. O-O Bd6 13. Bg5 h6 14. Bxf6 Qxf6
+15. g3 Ne5 16. Bg2 h5 17. e4 d4 18. Ne2 h4 19. Qxd4 h3 20. Bh1 Nf3+ 21. Bxf3
+Qxf3 22. Nf4 Bxf4 23. Qa4+ b5 0-1
+
+[Event "CHESS.COM BLACKBURNE FESTIVAL - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.18"]
+[Round "1"]
+[White "atlejg"]
+[Black "WISER99"]
+[Result "0-1"]
+[WhiteElo "1471"]
+[BlackElo "1650"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.27"]
+[Termination "WISER99 won by checkmate"]
+
+1. d4 d5 2. Nf3 Nf6 3. Bf4 g6 4. Nc3 Bg7 5. e3 Nh5 6. Ne2 Nxf4 7. Nxf4 e6 8. Bd3
+c5 9. O-O c4 10. Be2 g5 11. Nh5 O-O 12. Nxg7 Kxg7 13. c3 Nc6 14. Ne5 f6 15. Nxc6
+bxc6 16. f4 h6 17. fxg5 hxg5 18. Bh5 Qd6 19. h4 Rh8 20. hxg5 f5 21. Rf3 Bd7 22.
+Rh3 e5 23. Qe2 Rh7 24. b3 Rah8 25. Rh2 f4 26. Rf1 e4 27. exf4 cxb3 28. axb3 c5
+29. b4 cxb4 30. cxb4 Qxb4 31. Rd1 Ba4 32. Qa6 Qb6 33. Qxa4 Rxh5 34. Rxh5 Rxh5
+35. Qd7+ Kf8 36. Qxd5 e3 37. g6 Qxg6 38. Qf3 Qh6 39. Kf1 Qa6+ 40. Kg1 Qh6 41.
+Qa8+ Kf7 42. Qxa7+ Kf6 43. Qa6+ Kf5 44. Qxh6 Rxh6 45. g3 Ke4 46. Kf1 Kf3 47. Kg1
+Kxg3 48. Rd3 Kxf4 49. Kf1 Ke4 50. Rd1 Kf3 51. Kg1 Rg6+ 52. Kh1 Kf2 53. Ra1 Rh6#
+0-1
+
+[Event "CHESS.COM BLACKBURNE FESTIVAL - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.18"]
+[Round "1"]
+[White "atlejg"]
+[Black "arktil"]
+[Result "0-1"]
+[WhiteElo "1490"]
+[BlackElo "1718"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.05"]
+[Termination "arktil won by resignation"]
+
+1. d4 d5 2. Nf3 Nf6 3. Bf4 e6 4. Nc3 Be7 5. e3 O-O 6. Bd3 c5 7. O-O Nc6 8. Ne5
+cxd4 9. Nxc6 bxc6 10. exd4 c5 11. Be3 c4 12. Be2 Qb6 13. b3 cxb3 14. axb3 Bd7
+15. Na4 Bxa4 16. Rxa4 Rfc8 17. Qd3 Rc7 18. Rfa1 a5 19. Qb5 Qxb5 20. Bxb5 Rxc2
+21. Rxa5 Rxa5 22. Rxa5 Rb2 23. Ra8+ Bf8 24. Bg5 h6 25. Bf4 Rxb3 26. Bf1 g5 27.
+Bd6 Nh7 28. g3 Kg7 29. Bxf8+ Nxf8 30. Kg2 Ng6 31. Rc8 Ne7 32. Rc1 Nf5 33. Rd1
+Rb4 34. Ba6 Rxd4 35. Rc1 Rd2 36. Kf1 Ra2 37. Bc8 Nd6 38. Bd7 Ne4 39. Kg1 Rxf2
+40. Re1 Rb2 41. Rc1 Nd2 42. h3 Nf3+ 43. Kf1 Ne5 44. Ba4 f5 45. Be8 Nc4 46. Ra1
+Rb1+ 47. Rxb1 Nd2+ 48. Kf2 Nxb1 49. Bh5 Nc3 50. Ke3 Ne4 51. Kf3 Nf6 0-1
+
+[Event "CHESS.COM BLACKBURNE FESTIVAL - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.18"]
+[Round "1"]
+[White "atlejg"]
+[Black "gio26"]
+[Result "0-1"]
+[WhiteElo "1468"]
+[BlackElo "1762"]
+[TimeControl "1/259200"]
+[EndDate "2016.04.08"]
+[Termination "gio26 won by checkmate"]
+
+1. d4 d5 2. Nf3 Nf6 3. Bf4 c5 4. e3 Nc6 5. c3 Qb6 6. Qc2 Bg4 7. Be2 c4 8. O-O g6
+9. Na3 Bg7 10. b3 Qa6 11. Nxc4 dxc4 12. Bxc4 b5 13. Be2 Rc8 14. c4 bxc4 15. Bxc4
+Qb6 16. Ne5 O-O 17. Nxg4 Nxg4 18. h3 e5 19. dxe5 Ngxe5 20. Rab1 Nb4 21. Qe2 Qa5
+22. Kh1 Nxc4 23. bxc4 Qxa2 24. Qxa2 Nxa2 25. c5 Rfe8 26. Rb5 Nc3 27. Ra5 Be5 28.
+Bxe5 Rxe5 29. Rxa7 Rexc5 30. g4 Ne4 31. Kg2 Rc1 32. Rxc1 Rxc1 33. Ra4 Nc5 34.
+Ra8+ Kg7 35. Rc8 Nd3 36. Rd8 Rd1 37. Kg3 Nxf2 38. Rxd1 Nxd1 39. Kf3 Kf6 40. e4
+Ke5 41. Kg3 Nc3 42. Kh4 Nxe4 43. g5 f6 44. gxf6 Kxf6 45. Kg4 h5+ 46. Kf4 Nd6 47.
+h4 Nf5 48. Kf3 Nxh4+ 49. Kg3 g5 50. Kh3 Kf5 51. Kg3 Ng6 52. Kh3 Kf4 53. Kh2 g4
+54. Kg2 h4 55. Kh2 h3 56. Kg1 Kg3 57. Kh1 Kh4 58. Kh2 g3+ 59. Kh1 Nf4 60. Kg1
+Ne2+ 61. Kh1 g2+ 62. Kh2 g1=Q# 0-1
+
+[Event "CHESS.COM BLACKBURNE FESTIVAL - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.18"]
+[Round "1"]
+[White "atlejg"]
+[Black "souilah1977"]
+[Result "1-0"]
+[WhiteElo "1530"]
+[BlackElo "1776"]
+[TimeControl "1/259200"]
+[EndDate "2016.01.24"]
+[Termination "atlejg won by resignation"]
+
+1. d4 d5 2. Nf3 Nf6 3. Bf4 Bg4 4. Qd3 e6 5. Ne5 c6 6. Nxg4 Nxg4 7. h3 Nf6 8. Nc3
+Bb4 9. O-O-O O-O 1-0
+
+[Event "CHESS.COM BLACKBURNE FESTIVAL - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.18"]
+[Round "1"]
+[White "WISER99"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1575"]
+[BlackElo "1488"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.14"]
+[Termination "WISER99 won by checkmate"]
+
+1. d4 d5 2. Nf3 Nf6 3. Bf4 e6 4. a3 g6 5. h4 Bg7 6. e3 O-O 7. h5 Nxh5 8. Rxh5
+gxh5 9. Ng5 Nd7 10. Qxh5 Nf6 11. Qh4 h6 12. Nf3 Ne4 13. Qh2 Qf6 14. Nc3 Ng5 15.
+Bd3 Nxf3+ 16. gxf3 e5 17. Bxe5 Qg5 18. f4 Bxe5 19. dxe5 Qg7 20. Nxd5 c6 21.
+O-O-O cxd5 22. Rg1 Re8 23. Rxg7+ Kxg7 24. f5 f6 25. Qh5 Bxf5 26. exf6+ Kxf6 27.
+Qxf5+ Ke7 28. Qxd5 b6 29. Qe5+ Kf8 30. Qf6+ Kg8 31. Qg6+ Kf8 32. Qxh6+ Ke7 33.
+f4 Rh8 34. Qg5+ Kd7 35. Bb5+ Kc7 36. Qe5+ Kb7 37. Qg7+ Kb8 38. Qxh8+ Kb7 39.
+Qg7+ Kb8 40. Bc6 a5 41. Qb7# 1-0
+
+[Event "CHESS.COM BLACKBURNE FESTIVAL - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.18"]
+[Round "1"]
+[White "arktil"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1693"]
+[BlackElo "1500"]
+[TimeControl "1/259200"]
+[EndDate "2016.02.26"]
+[Termination "atlejg won by checkmate"]
+
+1. d4 d5 2. Nf3 Nf6 3. Bf4 e6 4. e3 c5 5. Be2 cxd4 6. exd4 Bd6 7. Bg3 Bxg3 8.
+hxg3 O-O 9. Nc3 Nc6 10. O-O Re8 11. Qd2 b6 12. Rad1 Nb8 13. Ne5 Nfd7 14. Bd3
+Nxe5 15. dxe5 Ba6 16. Nb5 Bxb5 17. Bxb5 Re7 18. f4 a6 19. Ba4 b5 20. Bb3 Rd7 21.
+c3 Nc6 22. Bc2 f6 23. exf6 Qxf6 24. Qd3 Qh6 25. Kf2 Na5 26. Rh1 Qg6 27. Qe2 Qf6
+28. Rxh7 Kf7 29. Qh5+ Ke7 30. Qg4 Kd6 31. Qf3 Ke7 32. Qe3 Nc4 33. Qc5+ Kf7 34.
+Kg1 Nxb2 35. f5 Nxd1 36. Bxd1 Kg8 37. Qc6 Kxh7 38. Qxd7 exf5 39. Qxd5 Rc8 40.
+Bc2 Rxc3 41. Bxf5+ g6 42. Bh3 Rc1+ 43. Kh2 Qf2 44. Qg5 Qg1# 0-1
+
+[Event "CHESS.COM BLACKBURNE FESTIVAL - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.18"]
+[Round "1"]
+[White "gio26"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1758"]
+[BlackElo "1489"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.21"]
+[Termination "gio26 won by resignation"]
+
+1. d4 d5 2. Nf3 Nf6 3. Bf4 e6 4. Nbd2 c5 5. e3 cxd4 6. exd4 Bd6 7. Be3 O-O 8. g3
+Re8 9. Bg2 b6 10. O-O a5 11. a4 Ba6 12. Re1 h6 13. c3 Bb7 14. Qb1 Nc6 15. b3 Ng4
+16. Bh3 Nxe3 17. Rxe3 Qc7 18. Bg2 Ne7 19. b4 axb4 20. cxb4 Nf5 21. Re1 Qe7 22.
+b5 Bb4 23. Rd1 Bc3 24. Ra2 Nxd4 25. Nxd4 Bxd4 26. Nf3 Bc5 27. Qb3 d4 28. Nxd4
+Bxg2 29. Kxg2 Red8 30. Nc6 Qb7 31. f3 Rxd1 32. Qxd1 Qc7 33. Rd2 Be3 34. Rd7 Qxd7
+35. Qxd7 g6 36. Ne5 Rf8 37. Nc4 Bc5 38. Qb7 Rd8 39. Nxb6 Kg7 40. Kh3 Bb4 41. Nd7
+Ba3 42. Ne5 Rf8 43. Qc6 Bb2 44. Nd7 Rg8 45. a5 Bd4 46. a6 h5 47. b6 Bxb6 48.
+Nxb6 1-0
+
+[Event "CHESS.COM BLACKBURNE FESTIVAL - Round 1"]
+[Site "Chess.com"]
+[Date "2016.01.18"]
+[Round "1"]
+[White "souilah1977"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1725"]
+[BlackElo "1545"]
+[TimeControl "1/259200"]
+[EndDate "2016.01.24"]
+[Termination "atlejg won by resignation"]
+
+1. d4 d5 2. Nf3 Nf6 3. Bf4 Ne4 4. e3 g6 5. c4 c6 6. Nc3 Nxc3 7. bxc3 Bg7 8. Bd3
+O-O 9. O-O Re8 10. Re1 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2016.01.20"]
+[Round "-"]
+[White "atlejg"]
+[Black "joachhb"]
+[Result "1-0"]
+[WhiteElo "1541"]
+[BlackElo "1190"]
+[TimeControl "1/259200"]
+[EndDate "2016.02.01"]
+[Termination "atlejg won on time"]
+
+1. d4 d5 2. c4 Nf6 3. cxd5 Qxd5 4. Nc3 Qa5 5. e3 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2016.01.20"]
+[Round "-"]
+[White "einmag"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1457"]
+[BlackElo "1449"]
+[TimeControl "1/259200"]
+[EndDate "2016.05.19"]
+[Termination "einmag won by resignation"]
+
+1. e4 c5 2. Nf3 Nc6 3. Bb5 Qb6 4. Nc3 Nd4 5. a4 Nxb5 6. axb5 g6 7. d4 cxd4 8.
+Nxd4 Bg7 9. Be3 a6 10. O-O e5 11. Nf3 Qd8 12. b6 d6 13. h3 Ne7 14. Qd2 Be6 15.
+Ra5 Nc6 16. Ra4 O-O 17. b4 Qd7 18. b5 axb5 19. Rxa8 Rxa8 20. Nxb5 Na5 21. Nxd6
+Nc4 22. Nxc4 Qxd2 23. Ncxd2 f6 24. Rb1 Bf8 25. Nb3 Bd6 26. Bc5 Bxb3 27. Bxd6
+Bxc2 28. Rc1 Bxe4 29. Rc7 Ra6 30. Bc5 Ra8 31. Nd2 Bd5 32. Rd7 Bc6 33. Rc7 Bd5
+34. Rd7 Bc6 35. Rd6 Ra5 36. Be3 Kf7 37. Nc4 Ra4 38. Nb2 Ra5 39. Nd3 Ra4 40. Nc5
+Ra8 41. Nxb7 Bxb7 42. Rd7+ Ke6 43. Rxb7 h5 44. Rh7 Kd6 45. Rg7 Kc6 46. Rxg6 Kb7
+47. Rxf6 e4 48. Re6 Ra4 49. f3 exf3 50. gxf3 h4 51. Re7+ Kb8 52. Bf4+ Rxf4 53.
+Kg2 Rb4 54. Re4 Rxb6 55. Rxh4 Kc7 56. Re4 Rb8 57. Kg3 Kd7 58. h4 Rg8+ 59. Rg4
+Rh8 60. Re4 Rg8+ 61. Kh3 Rf8 62. f4 Kd6 63. Kg3 Rg8+ 64. Kf3 Rh8 65. f5 Rh6 66.
+Kg4 Rh7 67. h5 Rg7+ 68. Kh4 Kd5 69. f6 Rf7 70. Rf4 Ke5 71. Kg5 Ke6 72. Kg6 Rf8
+73. f7 Ke7 74. Kg7 1-0
+
+[Event "8 x 8 - <1337 - Round 4"]
+[Site "Chess.com"]
+[Date "2016.01.22"]
+[Round "4"]
+[White "zjbranson"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1386"]
+[BlackElo "1495"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.15"]
+[Termination "atlejg won by checkmate"]
+
+1. e4 c5 2. Bc4 Nf6 3. e5 d5 4. exd6 exd6 5. b3 g6 6. Bb2 Bg7 7. Qe2+ Qe7 8.
+Bb5+ Bd7 9. Qxe7+ Kxe7 10. Bxd7 Nbxd7 11. Nc3 Rhe8 12. O-O-O Kf8 13. Nf3 Ng4 14.
+Nd5 Nxf2 15. Nc7 Nxd1 16. Nxe8 Bxb2+ 17. Kxd1 Rxe8 18. Ng5 h6 19. Nf3 Ne5 20. c3
+Nxf3 21. gxf3 Ba3 22. Kc2 b5 23. h4 h5 24. d4 Re2+ 25. Kd3 Rxa2 26. dxc5 dxc5
+27. Rb1 c4+ 28. bxc4 bxc4+ 29. Kxc4 Rh2 30. Rb8+ Kg7 31. Ra8 Rxh4+ 32. Kb5 Rf4
+33. Rxa7 Bb2 34. c4 Rxf3 35. c5 Bd4 36. Kc4 Rf4 37. Kd5 h4 38. c6 Bxa7 39. c7
+Rd4+ 40. Kc6 Rc4+ 41. Kb7 Rxc7+ 42. Kxc7 Bf2 43. Kd6 h3 44. Ke5 h2 45. Kf4 h1=Q
+46. Kg4 Qe4+ 47. Kh3 g5 48. Kh2 f5 49. Kh3 Qh1# 0-1
+
+[Event "8 x 8 - <1337 - Round 4"]
+[Site "Chess.com"]
+[Date "2016.01.22"]
+[Round "4"]
+[White "richardprkr70"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1348"]
+[BlackElo "1495"]
+[TimeControl "1/259200"]
+[EndDate "2016.02.24"]
+[Termination "atlejg won by resignation"]
+
+1. e4 c5 2. Nf3 d6 3. Bc4 e5 4. d3 g6 5. Ng5 Nh6 6. h3 Bg7 7. Qf3 O-O 8. Bd2 Nc6
+9. Bc3 Qxg5 10. Bd2 Qe7 11. Nc3 Nd4 12. Qd1 Be6 13. Bxe6 Qxe6 14. Nd5 Rac8 15.
+Bc3 Nhf5 16. Qd2 Nh4 17. O-O-O Nxg2 18. h4 Nf4 19. Nxf4 exf4 20. h5 Qxa2 21.
+Qxf4 Ne2+ 0-1
+
+[Event "8 x 8 - <1337 - Round 4"]
+[Site "Chess.com"]
+[Date "2016.01.22"]
+[Round "4"]
+[White "zoomzap"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1813"]
+[BlackElo "1492"]
+[TimeControl "1/259200"]
+[EndDate "2016.02.25"]
+[Termination "zoomzap won by resignation"]
+
+1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 e5 5. Nb3 Nf6 6. Bg5 Be7 7. Bc4 O-O 8.
+Bxf6 Bxf6 9. Nc3 a6 10. O-O b5 11. Bd5 Ra7 12. Ne2 Bb7 13. Qd3 Re8 14. Ng3 Nc6
+15. Bxc6 Bxc6 16. Rfd1 Rd7 17. Nf5 d5 18. exd5 Bxd5 19. Nc5 Bc4 20. Qxd7 Qxd7
+21. Nxd7 Be6 22. Nxf6+ gxf6 23. g4 b4 24. Rd6 Ra8 25. b3 a5 26. Rad1 Bxf5 27.
+gxf5 Kg7 28. Rd8 Ra7 29. R1d7 Rxd7 30. Rxd7 1-0
+
+[Event "8 x 8 -"]
+[Site "Chess.com"]
+[Date "2016.02.24"]
+[Round "4"]
+[White "atlejg"]
+[Black "richardprkr70"]
+[Result "1-0"]
+[WhiteElo "1500"]
+[BlackElo "1324"]
+[TimeControl "1/259200"]
+[EndDate "2016.03.15"]
+[Termination "atlejg won on time"]
+
+1. d4 d5 2. c4 dxc4 3. e4 e6 4. e5 b6 5. Bxc4 Bb7 6. Nf3 Nh6 7. O-O Nf5 8. a3
+Be7 9. b4 Bxf3 10. Qxf3 Qxd4 11. Qxa8 O-O 12. Ra2 Qxc4 13. Rd2 1-0
+
+[Event "8 x 8 - <1337 - Round 4"]
+[Site "Chess.com"]
+[Date "2016.02.25"]
+[Round "4"]
+[White "atlejg"]
+[Black "zoomzap"]
+[Result "0-1"]
+[WhiteElo "1462"]
+[BlackElo "1825"]
+[TimeControl "1/259200"]
+[EndDate "2016.05.11"]
+[Termination "zoomzap won by resignation"]
+
+1. d4 Nf6 2. c4 c5 3. d5 b5 4. b3 b4 5. Bb2 e6 6. dxe6 fxe6 7. e3 Bb7 8. Nf3 Be7
+9. Bd3 O-O 10. O-O d5 11. Ne5 Nbd7 12. Nd2 Bd6 13. Nef3 e5 14. Bf5 d4 15. Ng5
+Re8 16. a3 a5 17. Be6+ Kf8 18. Bf5 Qb8 19. Nxh7+ Nxh7 20. Bxh7 e4 21. Bg6 Bxh2+
+22. Kh1 Re6 23. Qh5 Ne5 24. Bxe4 Bxe4 25. Nxe4 Rh6 26. Qf5+ Kg8 27. Nxc5 d3 28.
+g3 Bxg3+ 29. Kg2 bxa3 30. Bxe5 Bxe5 31. Nd7 Qb7+ 32. f3 Bxa1 33. Rxa1 Qxb3 34.
+Qd5+ Kh7 35. Qxa8 Qb2+ 36. Kg3 Qh2+ 37. Kg4 Rh4+ 38. Kf5 Qh3+ 39. Ke5 Qxd7 40.
+f4 Qe7+ 41. Kd4 Qf6+ 42. Kxd3 Qxa1 43. Qe4+ Kh6 44. Qe6+ Qf6 45. Qg8 a2 46. Qh8+
+Kg6 47. Qe8+ Kf5 48. Qe4+ Kg4 49. Qg2+ Kh5 50. Qd5+ Kh6 51. Qxa5 a1=Q 52. Qxa1
+Qxa1 0-1
+
+[Event "8 x 8 - <1337 - Round 4"]
+[Site "Chess.com"]
+[Date "2016.03.15"]
+[Round "4"]
+[White "atlejg"]
+[Black "zjbranson"]
+[Result "1/2-1/2"]
+[WhiteElo "1465"]
+[BlackElo "1367"]
+[TimeControl "1/259200"]
+[EndDate "2016.04.19"]
+[Termination "Game drawn by agreement"]
+
+1. d4 d5 2. c4 Nf6 3. c5 Nc6 4. e3 Bf5 5. Bd3 Bxd3 6. Qxd3 e5 7. dxe5 Nxe5 8.
+Qc3 Qe7 9. b4 O-O-O 10. Ne2 Ne4 11. Qa3 b6 12. Nec3 Nd3+ 13. Ke2 Ndxf2 14. Rf1
+Nxc3+ 15. Nxc3 d4 16. Rxf2 dxc3 17. Qxc3 bxc5 18. bxc5 Qxc5 19. Qxc5 Bxc5 20.
+Rxf7 g6 21. Bb2 Rhe8 22. Bc1 h5 23. Bd2 Bd4 24. Rc1 Bb6 25. a4 Rxd2+ 26. Kxd2
+Bxe3+ 27. Kd1 Bxc1 28. Kxc1 Re2 29. g3 Rxh2 30. Rg7 h4 31. Rxg6 hxg3 32. Rxg3
+Rh4 33. Ra3 Kb7 34. Kc2 Kb6 35. a5+ Ka6 36. Rc3 Kxa5 37. Rxc7 a6 38. Rb7 Rb4 39.
+Rh7 Ka4 1/2-1/2
+
+[Event "The Spanish Showdown! - Round 1"]
+[Site "Chess.com"]
+[Date "2016.06.21"]
+[Round "1"]
+[White "toufik-1"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1200"]
+[BlackElo "1451"]
+[TimeControl "1/259200"]
+[EndDate "2016.06.25"]
+[Termination "atlejg won on time"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 Nge7 0-1
+
+[Event "The Spanish Showdown! - Round 1"]
+[Site "Chess.com"]
+[Date "2016.06.21"]
+[Round "1"]
+[White "atlejg"]
+[Black "toufik-1"]
+[Result "1-0"]
+[WhiteElo "1451"]
+[BlackElo "1200"]
+[TimeControl "1/259200"]
+[EndDate "2016.06.23"]
+[Termination "atlejg won on time"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 1-0
+
+[Event "Kings n' Queens of Scandinavia - Round 1"]
+[Site "Chess.com"]
+[Date "2016.06.21"]
+[Round "1"]
+[White "atlejg"]
+[Black "vespya"]
+[Result "1-0"]
+[WhiteElo "1450"]
+[BlackElo "864"]
+[TimeControl "1/172800"]
+[EndDate "2016.06.21"]
+[Termination "atlejg won by resignation"]
+
+1-0
+
+[Event "Kings n' Queens of Scandinavia - Round 1"]
+[Site "Chess.com"]
+[Date "2016.06.21"]
+[Round "1"]
+[White "atlejg"]
+[Black "Kabobrle"]
+[Result "0-1"]
+[WhiteElo "1428"]
+[BlackElo "1592"]
+[TimeControl "1/172800"]
+[EndDate "2016.06.28"]
+[Termination "Kabobrle won on time"]
+
+1. d4 Nf6 2. c4 e6 3. d5 c5 0-1
+
+[Event "Kings n' Queens of Scandinavia - Round 1"]
+[Site "Chess.com"]
+[Date "2016.06.21"]
+[Round "1"]
+[White "kenjack"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1620"]
+[BlackElo "1440"]
+[TimeControl "1/172800"]
+[EndDate "2016.06.28"]
+[Termination "kenjack won on time"]
+
+1. e4 c6 2. d4 d5 3. exd5 cxd5 4. c4 1-0
+
+[Event "Kings n' Queens of Scandinavia - Round 1"]
+[Site "Chess.com"]
+[Date "2016.06.21"]
+[Round "1"]
+[White "farting_nosebleed"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1710"]
+[BlackElo "1428"]
+[TimeControl "1/172800"]
+[EndDate "2016.06.28"]
+[Termination "farting_nosebleed won on time"]
+
+1. e4 c6 2. Nf3 d5 3. exd5 cxd5 4. d4 e6 5. Bd3 1-0
+
+[Event "Kings n' Queens of Scandinavia - Round 1"]
+[Site "Chess.com"]
+[Date "2016.06.21"]
+[Round "1"]
+[White "Oscar_the_Grouch"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1782"]
+[BlackElo "1435"]
+[TimeControl "1/172800"]
+[EndDate "2016.06.28"]
+[Termination "Oscar_the_Grouch won on time"]
+
+1. d4 d5 2. c4 dxc4 3. Nf3 e6 4. e3 b5 5. a4 1-0
+
+[Event "Kings n' Queens of Scandinavia - Round 1"]
+[Site "Chess.com"]
+[Date "2016.06.21"]
+[Round "1"]
+[White "vespya"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "863"]
+[BlackElo "1451"]
+[TimeControl "1/172800"]
+[EndDate "2016.06.21"]
+[Termination "atlejg won by resignation"]
+
+0-1
+
+[Event "Kings n' Queens of Scandinavia - Round 1"]
+[Site "Chess.com"]
+[Date "2016.06.28"]
+[Round "1"]
+[White "atlejg"]
+[Black "kenjack"]
+[Result "0-1"]
+[WhiteElo "1406"]
+[BlackElo "1657"]
+[TimeControl "1/172800"]
+[EndDate "2016.07.05"]
+[Termination "kenjack won on time"]
+
+1. d4 e6 2. c4 d5 3. cxd5 exd5 4. Nf3 Nf6 0-1
+
+[Event "Kings n' Queens of Scandinavia - Round 1"]
+[Site "Chess.com"]
+[Date "2016.06.28"]
+[Round "1"]
+[White "atlejg"]
+[Black "farting_nosebleed"]
+[Result "0-1"]
+[WhiteElo "1422"]
+[BlackElo "1708"]
+[TimeControl "1/172800"]
+[EndDate "2016.07.05"]
+[Termination "farting_nosebleed won on time"]
+
+1. d4 Nf6 2. c4 e6 3. Nf3 d5 4. cxd5 exd5 0-1
+
+[Event "Kings n' Queens of Scandinavia - Round 1"]
+[Site "Chess.com"]
+[Date "2016.06.29"]
+[Round "1"]
+[White "Kabobrle"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1624"]
+[BlackElo "1413"]
+[TimeControl "1/172800"]
+[EndDate "2016.07.05"]
+[Termination "Kabobrle won on time"]
+
+1. e4 c6 2. d4 d5 3. exd5 cxd5 4. Bd3 1-0

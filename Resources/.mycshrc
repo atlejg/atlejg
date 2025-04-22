@@ -8,20 +8,19 @@ onintr -
 # Check if this is an interactive session
 if (! ${?prompt}) goto end    # could i do exit instead of goto ??
 
-#
+setenv ATLEJG c:/Users/agy/Documents/GitHub/atlejg/
+
 if (-d /project/RCP/active/fluent/) then
-   setenv ACTIVE /project/RCP/active
-   setenv RC $ACTIVE/fluent/Atle_Resources
+   setenv ACTIVE /project/RCP/active/fluent/
+   setenv RC $ACTIVE/Atle_Resources
    setenv TMP $ACTIVE/fluent/TMP
 else
    setenv ACTIVE $HOME
-   setenv RC $HOME/Tools
+   setenv RC $ATLEJG/Resources
    setenv TMP /tmp
 endif
- 
-setenv ATLEJG $HOME/Tools/atlejg
 
-
+setenv LC_ALL 'C'
 
 # ---------------------- based on /etc/csh.cshrc for Cygwin
 
@@ -47,42 +46,29 @@ set pushdsilent
 set history = 500
 
 if ( (! $?ENVONLY) && $?prompt ) then
-    set prompt=`echo "$prompt" | awk '{print $1}'`    # cleaning: [WRA36a] [agy@tr-linrgsn003 agy] => [WRA36a]
-    set prompt="${prompt} %c2> "
+    #set prompt=`echo "$prompt" | awk '{print $1}'`    # cleaning: [WRA36a] [agy@tr-linrgsn003 agy] => [WRA36a]
+    #set prompt="${prompt} %c2> "
+    set prompt="%c2> "
 endif
 
 ### MY ENVIRONMENT VARIABLES
 #
-## need http_proxy to make wget work! sometimes must also use --proxy-user and --proxy-passwd options!
-#setenv http_proxy http://www-proxy.statoil.no:80
-#setenv https_proxy http://www-proxy.statoil.no:80  # for example easy_install needs this
-#setenv use_proxy on
-unsetenv http_proxy
-unsetenv https_proxy
-
-#
 setenv EXT_PERL_MODULES $RC/PerlModules    # for: use lib $ENV{'EXT_PERL_MODULES'};
 setenv PASSIVE /project/RCP/passive/fluent/
 setenv WORK /project/RCP/work/$USER
-#
+setenv PY $ATLEJG/lib/Python3/AtlejgTools/
+
 # PATH stuff
-#setenv PATH "${HOME}/Tools/resscript_bin:${PATH}"
 setenv PATH "${HOME}/bin:${PATH}"
-setenv PATH "${PATH}:/prog/ecl/grid/macros/"
-setenv PATH "${PATH}:/project/res/x86_64_RH_6/bin"          # this is where icd_helper is found, for example
-setenv ECLHOME /prog/ecl/grid
-setenv PATH "${PATH}:/prog/ecl/grid/macros"
-#setenv PATH "${PATH}:/project/res/resscript/"              # statoil res-sim scripts. ref. thorbjorn skille. should be included by SDP_cshrc
-#setenv PATH "${PATH}:$RC/lib/Python/vkip/Python3/scripts"                           # vegard kippe stuff
-#setenv PATH "${PATH}:/private/agy/.local/bin"               # this is where 'pip install <package> --user' puts stuff
 
-
-#
 # PERL-stuff
 setenv PERLLIB "/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/site_perl:/project/res/x86_64_RH_5/lib64/perl5/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5:/project/res/x86_64_RH_5/lib/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib/perl5/site_perl:/project/res/x86_64_RH_5/lib/perl5/5.8.8:/project/res/x86_64_RH_5/lib/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib/perl5"
 
 ### MY ALIASES
 #
+
+alias aporuser 'ssh -i ~/.ssh/DLS_key.pem aporuser@128.251.196.63'
+
 # ls-stuff
 unalias ls
 alias l 'ls -C'
@@ -94,7 +80,6 @@ alias lss 'ls -sSh | more'   # better than  ls -s -1 | sort -n -r | more
 alias lssr 'ls -sShR | more' # recursive
 alias lsd 'find . -type d -maxdepth 1 | sort' # list all dirs in current dir
 # really short names for the most used commands ...
-alias v 'vi -R' # like view - but using vim
 alias m 'more'
 alias g 'grep'
 alias xterm 'xterm -bg black -fg white'
@@ -115,7 +100,7 @@ alias rio 'ssh -X rio-linrgsn008.rio.statoil.no'
 alias ssh_crontab 'ssh -X stj-linrgs039.stj.statoil.no'        # need to be here for crontab
 #
 alias @floviz '@floviz -local -version 2009.2'
-alias cmds 'vi $ATLEJG/Resources/cmds'
+alias cmds 'vi $RC/cmds'
 alias bookshelf 'acroread /prog/ecl/grid/2016.2/manuals/bookshelf.pdf'
 alias killps '/prog/script/killps agy'
 alias pkill pkill -u $USER  # only kill my jobs
@@ -130,17 +115,15 @@ alias free 'free -m' # report in Mb
 alias du_ 'find . -type d -exec du -s {} \; | sort -n'
 alias do 'do -vc'                      # i want do to be verbose - and use tcsh
 alias fnm 'readlink -f'                # print full path of the file
-alias eclipse '++ $ACTIVE/reservoir_simulations/agy; pwd; echo "see ~/Misc/cmds for typical eclipse related commands"'
-# this couuld be something to check/consider
-# source /prog/ecl/script/eclrun.cshrc
-alias octave /prog/rdtoolbox/octave/octave
 #
-# useful for RGS session (got it from Håkon Kyte). note: --fb seems bettr than --size
+# useful for RGS session (got it from Haakon Kyte). note: --fb seems bettr than --size
 alias x11win "xrandr --fb 1600x900"
 alias x11one "xrandr --fb 1920x1080"
 alias x11two "xrandr --fb 3840x1080"
 alias x11big1 "xrandr --fb 2560x1600"
 alias x11big2 "xrandr --fb 5120x1600"
+
+alias mintty "mintty tcsh"
 #
 # for receiving mail when using ts for queueing tasks
 setenv TS_MAILTO agy@equinor.com
@@ -148,10 +131,9 @@ setenv TS_MAILTO agy@equinor.com
 # PYTHON STUFF
 # 
 setenv PYTHONPATH "$ATLEJG/lib/Python3"                                     # my stuff
-alias pylab 'ipython --pylab --logfile=ipython_log.py -i $HOME/Tools/atlejg/Resources/pythonstartup'
+alias pylab 'ipython --pylab --logfile=ipython_log.py -i $RC/pythonstartup'
 
 # vim stuff
-#
 setenv EDITOR vim
 alias vimdiff "vimdiff -c 'syntax off'"  # focus on differences - not syntax
 
@@ -204,19 +186,14 @@ alias completor "python3 /private/agy/Tools/subscript/src/subscript/completor/ma
 setenv TT /project/RCP/active/reservoir_simulations/agy/Peregrino/Shoebox/Simul/Version12
 setenv PY $ATLEJG/lib/Python3/AtlejgTools/
 
+alias vim vim -u $RC/.vimrc
+alias gvim "c:/Appl/Vim/vim81/gvim.exe -u C:\\Users\\agy\\Documents\\GitHub\\atlejg\\Resources\\.vimrc"     # windows gvim needs dos-addresse
+alias vi 'vim'
+alias v 'vi -R' # like view - but using vim
+
 # dont want redirected output to overwrite files - unless told to (using >!)
 set noclobber
 set nobeep filec fignore=(.o \~ .BAK)
-
-
-
-
-
-
-
-
-
-
 
 
 # OLD STUFF ...
@@ -308,6 +285,65 @@ set nobeep filec fignore=(.o \~ .BAK)
 #setenv PYTHONPATH "${PYTHONPATH}:/project/res/lib/python2.7/site-packages"    # for resscript.header etc.
 #setenv PYTHONPATH "${PYTHONPATH}:/private/agy/Tools/subscript-internal/src/subscript_internal/"
 #alias python python3
+## need http_proxy to make wget work! sometimes must also use --proxy-user and --proxy-passwd options!
+##setenv http_proxy http://www-proxy.statoil.no:80
+##setenv https_proxy http://www-proxy.statoil.no:80  # for example easy_install needs this
+##setenv use_proxy on
+#setenv PATH "${HOME}/Tools/resscript_bin:${PATH}"
+#alias eclipse '++ $ACTIVE/reservoir_simulations/agy; pwd; echo "see ~/Misc/cmds for typical eclipse related commands"'
+#setenv PATH "${PATH}:/project/res/resscript/"              # statoil res-sim scripts. ref. thorbjorn skille. should be included by SDP_cshrc
+#setenv PATH "${PATH}:$RC/lib/Python/vkip/Python3/scripts"                           # vegard kippe stuff
+#setenv PATH "${PATH}:/private/agy/.local/bin"               # this is where 'pip install <package> --user' puts stuff
+#setenv PATH "${PATH}:/project/res/x86_64_RH_6/bin"          # this is where icd_helper is found, for example
+# eclipse stuff
+#setenv PATH "${PATH}:/prog/ecl/grid/macros/"
+#setenv ECLHOME /prog/ecl/grid
+# this couuld be something to check/consider
+# source /prog/ecl/script/eclrun.cshrc
 #
+# FLUENT STUFF
+#
+#setenv FLUENT_ARCH lnamd64
+#setenv PATH "${PATH}:/prog/Fluent/i686/Fluent.Inc/bin"
+#setenv ANSYS_DIR /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192
+#setenv ANSYS_DIR /project/RCP/active/Ansys/Ansys_2020R1/ansys_inc/v201       # WindModeller does not work with this :-(
+#alias fluent /prog/Fluent/ansys_inc_V16.2/ansys_inc/v162/fluent/bin/fluent -cc
+#alias cfdpost /prog/Fluent/ansys_inc_V16.2/ansys_inc/v162/CFD-Post/bin/cfx5post
+#setenv PATH "${PATH}:${ANSYS_DIR}/CFX/bin"
+#setenv PATH "${PATH}:${ANSYS_DIR}/fluent/bin"
+#alias fluent    fluent -cc
+#alias cfx       /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/v192/CFX/bin/cfx5
+#alias workbench "${ANSYS_DIR}/Framework/bin/Linux64/runwb2"  # Jan-2021
+#alias cfdpost   "${ANSYS_DIR}/CFD-Post/bin/cfdpost"
+#setenv FLUENT_JOU  ~/Fluent/Jou
+#alias anslic_admin /prog/Fluent/Ansys_V19.2/InstallPath/ansys_inc/Licensemanager/shared_files/licensing/lic_admin/anslic_admin # this is the tool to check fluent licenses
+#
+# WindModeller stuff
+#
+#setenv SCRIPT_DIR /project/RCP/active/Ansys/windmodeller-150120/utilities/scripts
+#setenv PATH "${PATH}:${SCRIPT_DIR}"
+#setenv PATH "${PATH}:/project/RCP/active/Ansys/windmodeller-150120/utilities/lib/linux-amd64"
+#setenv PERLLIB "${PERLLIB}:${SCRIPT_DIR}"
+#setenv PERL5LIB $PERLLIB
+
+# WindWork stuff
+#if (`hostname | grep -i st-` != '') then
+#    # stavanger
+#    alias windworks "python /project/OffshoreWind/user/agy/src/WindWorks/WindWorks/run.py"
+#else
+#    alias windworks "/project/RCP/active/wind_yield_assessment/agy/WindWorks/Tools/windworks"
+#endif
+
+# GAMBIT stuff
+# Wed Jan 13 12:03:05 MET 2016
+# gambit will only work on selected disks... for now, i use /tmp. remember copying afterwards!!
+# must use LD_PRELOAD as well. for documentation see $HOME/Tools/memcpy-preload.c
+#alias gambit_  'echo "REMEMBER: GOTO /tmp"; setenv FLUENT_ARCH lnx86; setenv RELEASE 2.3.16; setenv LM_LICENSE_FILE 7241@st-vlic01.st.statoil.no; setenv LD_PRELOAD $HOME/Tools/memcpy-preload.so; /prog/Fluent/i686/Fluent.Inc/bin/gambit'
+# completor
+#alias completor "python3 /private/agy/Tools/subscript/src/subscript/completor/main.py"
+# useful directories
+#setenv TT /project/RCP/active/reservoir_simulations/agy/Peregrino/Shoebox/Simul/Version12
+#alias octave /prog/rdtoolbox/octave/octave
+
 # goto-label...
 end:

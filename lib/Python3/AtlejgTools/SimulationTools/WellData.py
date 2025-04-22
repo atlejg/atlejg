@@ -183,13 +183,13 @@ class WellData(object):
         if varnm2: return ax1, ax2
         else     : return ax1
 #
-    def get(self, varnm, minval=-pl.Inf, maxval=pl.Inf):
+    def get(self, varnm, minval=-pl.inf, maxval=pl.inf):
         '''
         a clean way of getting data.
         will decimate data based on variable values if asked for
         '''
         y = self.__dict__[varnm]
-        if minval == -pl.Inf and maxval == pl.Inf: return y
+        if minval == -pl.inf and maxval == pl.inf: return y
         ixs1 = pl.find(minval <= y)
         ixs2 = pl.find(maxval >= y)
         ixs = list(set.intersection(set(ixs1), set(ixs2)))
@@ -451,7 +451,7 @@ class WellData(object):
         step[ixs] = y2
         return step
 #
-    def tix(self, t0, dt_max=pl.Inf):
+    def tix(self, t0, dt_max=pl.inf):
         '''
         finds index closest to t0. (tix = time-index)
         # input

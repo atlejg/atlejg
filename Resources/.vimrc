@@ -65,7 +65,7 @@ map <F3> :exec("tag ".expand("<cword>"))<CR>
 " open in new tab
 map <F4> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
 " open in new vertical tab - more useful
-map <F5> :vsp <CR>:exec("tag ".expand("<cword>"))<CR>
+map <F5> :sp <CR>:exec("tag ".expand("<cword>"))<CR>
 "map <C-]> :ta <cword> <CR> "!dir <cword> <CR> " DOES NOT WORK. WHY ??? (dir <cword> works...)
 "nmap <c-r> :ta expand("<cword>")<CR>
 "map <c-r> :ta expand("<cword>")<CR>
@@ -102,7 +102,7 @@ augroup END
 filetype plugin on
 set ofu=syntaxcomplete#Complete
 " maybe not so useful now that Ctrl-X Ctrl-O works...
-let g:pydiction_location = '/private/agy/.vim/after/ftplugin/pydiction/complete-dict'
+"let g:pydiction_location = '/private/agy/.vim/after/ftplugin/pydiction/complete-dict'
 
 " for python debugging
 :map <F2> opdb.set_trace()<Esc>
@@ -164,6 +164,9 @@ if has("autocmd")
   " make sure tabstop = 4 is respected for python
   autocmd FileType python setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab
 
+  "" run flake8 for every python-file save
+  "autocmd BufWritePost *.py call flake8#Flake8()
+
 endif " has("autocmd")
 
 "" auto-completion not so efficient...
@@ -183,3 +186,9 @@ set foldlevel=99
 " aligns text (like comments after code) so they end at column 80
 " <leader> means '\', so \+tab executes this
 nnoremap <leader><tab> mc80A <esc>080lDgelD`cP
+
+" get block-cursor in normal mode
+let &t_ti.="\e[1 q"
+let &t_SI.="\e[5 q"
+let &t_EI.="\e[1 q"
+let &t_te.="\e[0 q"

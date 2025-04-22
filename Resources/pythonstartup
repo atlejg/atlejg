@@ -2,16 +2,10 @@
 import os, sys
 from pathlib import Path
 if 'win' in sys.platform:
-    pass
-    #sys.path.append(str(Path('C:/Appl/PythonPackages/WindWorks/')))
-    #TWW.TEST_REPO = Path("D:\OneDrive - Equinor\ACTIVE\Wind\WindWorks\Testdata")
-    #
     sys.path.append(str(Path('C:/Appl/atlejg/lib/Python3')))
 else:
     pass
     #sys.path.insert(1, '/private/agy/Tools/atlejg/lib/Python3')                        # in PYTHONPATH
-    #sys.path.append('/project/res/ecalc/master/lib/python3.7/site-packages')            # mostly for ecl.ecl
-    #sys.path.append('/private/agy/Tools/subscript/src/subscript')
 
 #import py_wake
 #import WindWorks.Utils as WU
@@ -25,6 +19,7 @@ else:
 #import WindWorks.run as ww
 #import WindWorks.test_windworks as TWW
 
+
 # make sure figures are handled 'properly' in interactive ipython sessions
 import matplotlib
 matplotlib.interactive(1)
@@ -36,9 +31,8 @@ from pylab import *
 import pandas as pd
 import AtlejgTools.FluentUtils as FL
 import AtlejgTools.Utils as UT
-import AtlejgTools.RCP_project.Valve_characteristics as VC
+#import AtlejgTools.RCP_project.Valve_characteristics as VC
 import AtlejgTools.SimulationTools.UnitConversion      as U
-#import AtlejgTools.WindYieldAssessment.WindModeller as WM
 
 if 'win' not in sys.platform:
    import AtlejgTools.EclipseTools.Utils as ECL

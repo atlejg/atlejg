@@ -1,0 +1,261 @@
+[Event "FIDE World Chess Championship 2021"]
+[Site "?"]
+[Date "2021.12.03"]
+[Round "6"]
+[White "Carlsen, Magnus"]
+[Black "Nepomniachtchi, Ian"]
+[Result "1-0"]
+[ECO "D02"]
+[WhiteElo "2855"]
+[BlackElo "2782"]
+[Annotator "samsh"]
+[PlyCount "271"]
+[EventDate "2021.??.??"]
+[SourceVersionDate "2021.12.03"]
+
+{At the end of game five, I predicted that we would see a more eventful game
+six, as Magnus would probably double dip for the first time  and play either 1.
+e4 or 1.d4 with a pretty good idea of what he would be  facing. Given Nepo's
+repertoire, I was not too surprised to see Magnus aim for some kind of Catalan.
+While the opening and early middlegame certainly looked dull as Magnus wasn't
+able to apply much pressure, the game did  liven up at some point, and my
+prediction came true as we finally saw a  full point scored.} 1. d4 Nf6 2. Nf3
+d5 3. g3 e6 4. Bg2 Be7 5. O-O O-O 6. b3 {This is an interesting move order for
+White. He clearly is aiming to  play c4 at a moment when he is ready to take
+back with the pawn.} 6... c5 7. dxc5 (7. c4 {This would lead to a more typical
+position, which I have    actually played a bunch of times on the white side in
+rapid games. It    is a little tricky, but generally, I think mostly harmless
+against a    prepared opponent in classical chess. Still, I am somehow not
+impressed with what Magnus played either.}) 7... Bxc5 8. c4 dxc4 9. Qc2 {Now,
+White will win back the lost c4-pawn  without allowing his structure to become
+compromised. Then, he can hope to end up a little better if Black can't develop
+his queenside or find a way  to get the c8-bishop into the game. But, I think
+this is too optimistic.  In the time it takes White to grab the pawn back, Black
+will complete his  development.} 9... Qe7 10. Nbd2!? {[%c_effect
+d2;square;d2;type;Interesting;persistent;true] Magnus has showed a remarkable 
+willingness to sacrifice pawns this match. I like this decision! The knight
+taking back on c4 will look a lot more sensible than the queen.} 10... Nc6!
+{[%c_effect c6;square;c6;type;GreatFind;persistent;true] I like this decision.
+Black doesn't bother going pawn  grabbing and instead makes sure to complete his
+development before he  faces any issues on the long diagonal.} (10... cxb3 {The
+machine is not scared of grabbing the pawn, but    after something like} 11.
+Nxb3 Bd6 12. Nfd4 {White has clear compensation as now Black was unable to
+develop his queenside before    the pressure on the long diagonal become too
+problematic. I don't see    a great way to get the bishop on c8 into the game.
+The machine calls    it equal, but in human terms, White certainly seems more
+comfortable, and I find it unsurprising that Nepo did not go for it.}) 11. Nxc4
+{Now, Bd7 leaves the bishop on a still less than impressive  square, though even
+there I imagine White can't hope for too much. Black  has two ways to solve his
+problem piece, and Nepo chose the more direct one.} 11... b5! {[%c_effect
+b5;square;b5;type;GreatFind;persistent;true] This looks like a scary move as
+Black seems like he  is asking for trouble on the long diagonal, but the tempo
+he wins by hitting the c4-knight gives him enough time to get his bishop to b7.
+Structurally, White is surely not better. His only edge was hoping that  the
+g2-bishop would be active, and the c8-bishop passive. This will no  longer be
+the case, and we end up in a dry, symmetrical position where  Black has no major
+issues.} (11... Bd7) (11... e5!? {[%c_effect
+e5;square;e5;type;Interesting;persistent;true] This was fine too. Black's bishop
+will find a nice    square on g4, or even f5 if he pushes e5-e4 first.}) 12.
+Nce5 {Now, Black should be careful. He clearly wants to get the bishop to b7,
+but he needs to do it the right way.} (12. Nfe5? {[%c_effect
+e5;square;e5;type;Mistake;persistent;true] This might look tempting, but it only
+creates problems    for White. After} 12... Nd4! {[%c_effect
+d4;square;d4;type;GreatFind;persistent;true]} 13. Qd1 Bb7! {[%c_effect
+b7;square;b7;type;GreatFind;persistent;true] Black is taking over    the
+initiative.}) 12... Nb4! {[%c_effect
+b4;square;b4;type;GreatFind;persistent;true] Black clears the knight off of the
+hanging square with a  gain of tempo and is ready for Bc8-b7 next, equalizing.}
+(12... Bb7? {[%c_effect b7;square;b7;type;Mistake;persistent;true] This tempting
+move would lose material after} 13. Nxc6 Bxc6 14. b4! {[%c_effect
+b4;square;b4;type;GreatFind;persistent;true]} 14... Bxf3 15. Bxf3 {when Black
+has hanging pieces on    both a8 and c5.}) 13. Qb2 Bb7 14. a3 Nc6! {[%c_effect
+c6;square;c6;type;GreatFind;persistent;true] Since the queen is no longer on c2,
+this move  is safe as there is no b3-b4 thrust to skewer the bishops on the
+c-file. The position looks very equal, though soon enough some imbalance was 
+found.} 15. Nd3 Bb6 16. Bg5 Rfd8 17. Bxf6 gxf6!? {[%c_effect
+f6;square;f6;type;Interesting;persistent;true] This is not a bad move, but its a
+bit surprising to me. Given that the pawn structure will become  crippled either
+way, why would we keep queens on? I suppose Black's king  is not feeling any
+particular pressure.} (17... Qxf6 {This would have been my choice. I might even
+prefer    Black.}) 18. Rac1 Nd4 (18... e5 {The machine flashed this move
+briefly, but it seems    super inhuman to me. Black is just begging for an
+invasion on f5.} 19. Nh4 Nd4 20. e3 Bxg2 21. Kxg2 Qb7+ 22. Kg1 Ne6 {Apparently,
+Black is a   little better here with Ne6-g5 coming next. It looks super scary
+for a   human though. Some Qb2-e2 and Nh4-f5 does not look like fun.}) 19. Nxd4
+Bxd4 20. Qa2 Bxg2 21. Kxg2 Qb7+ 22. Kg1 Qe4 23. Qc2 a5 24. Rfd1 Kg7 25. Rd2
+{This was the first position I saw of the game, as inflight WiFi had not been
+working to that point. I just assumed it would end in a  draw pretty promptly,
+but I did not expect Nepo to immediately change the  character of the game.}
+25... Rac8!? {[%c_effect c8;square;c8;type;Interesting;persistent;true] This is
+surely not a bad move, and it does liven things up, but it strikes me as very
+risky. The computer insists that the position remains equal, but it looks much
+more double  edged after the queen is traded for the two rooks. Black's position
+can  become risky as his kingside pawns being split means that neither f7 nor 
+h7 can be defended by another pawn. This being the case, having a greater 
+number of pieces can be a really big deal, and two rooks have some  potential to
+overpower the queen. Black is definitely still fine, but he  should be looking
+for direct active counterplay on the queenside. Still, given how the game played
+out, I suspect Nepo may have found himself  regretting this decision, even if it
+was not the one that objectively  landed him in a bad position.} (25... f5 {Some
+simple move like this one, making room for the bishop on f6 and putting more
+pawns on light squares, was what I was expecting. It looks very equal and very
+drawn.}) 26. Qxc8 Rxc8 27. Rxc8 Qd5 28. b4 a4 29. e3 Be5?! {[%c_effect
+e5;square;e5;type;Inaccuracy;persistent;true] The machine still  claims the
+position is equal, but I believe this was a big step in the  wrong direction.
+Black could have immediately gone for a line where White  needs to find two only
+moves before a draw is agreed, and instead he sort  of lazily brings the bishop
+back as if his position is not under any pressure and he has all the time in the
+world.} (29... Bb2 {This might have been a little more challenging, forcing
+White to find a couple good moves, but it can't be too tough.} 30. Rc5!
+{[%c_effect c5;square;c5;type;GreatFind;persistent;true]} 30... Qd6 31. Rxb2
+Qxd3 {Now, White's position actually looks really    dangerous since a3 is
+falling. He needs to find one only move, but    then he is fine.} 32. Rbc2!
+{[%c_effect c2;square;c2;type;GreatFind;persistent;true] Not too difficult.
+White moves his rook   away so it will not be hanging when a3 is taken, and now
+he is ready    to meet Qxa3 with Rxb5. It should be quite drawish. Still, Magnus
+was    low enough on time that there was some non-zero chance he would not   
+find his way with a couple only moves. But... non-zero, but not high either.})
+30. h4 h5? {[%c_effect h5;square;h5;type;Mistake;persistent;true] Now White has
+real weaknesses to play against. The h5-pawn  can certainly become a target, and
+once more Black missed his chance to  directly equalize.} (30... Bb2 {This was
+still fine, but it is basically an admission    that Be5 was a bad decision.
+This is not an easy thing for a human to    do, especially if he still thinks
+the position is fine.}) 31. Kh2 {Sesse claims Black is still fine here. In human
+terms, I think he has a lot of problems to solve. He is missing counterplay and
+will have to be very wary of the rooks suddenly invading the position. My
+onboard WiFi  cut out here as well, and I knew it would be some time before we
+were over a land mass again. At this moment, despite being short on time, I
+thought  Magnus would have a really good position by the time I got to see it 
+again.} 31... Bb2? {[%c_effect b2;square;b2;type;Mistake;persistent;true] Now it
+is too late for this. White should be  winning, but with the clock ticking down,
+Magnus did not find the way.} 32. Rc5 Qd6 33. Rd1? {[%c_effect
+d1;square;d1;type;Mistake;persistent;true] This let a big chance slip.} (33.
+Rcc2! {[%c_effect c2;square;c2;type;GreatFind;persistent;true] [ Carlsen: \"That
+was not on my radar. As a matter of fact, when I went for this Rd1 I just missed
+...Qd7. I thought I would be in time to go Rb4 and eliminate those pawns, so
+that was more an oversight than anything else.\"]
+
+} 33... Bxa3 34. Nf4 $1
+{[%c_effect f4;square;f4;type;GreatFind;persistent;true] White has a decisive
+attack, as his rooks will soon penetrate to the 7th or 8th rank, and h5 is a
+goner. I suspect Magnus saw this, but missed that after} 34... Qe7 35. Rc8 $1
+{[%c_effect c8;square;c8;type;GreatFind;persistent;true] Would win. In fact,
+every other move loses $1}) 33... Bxa3 34. Rxb5 Qd7 35. Rc5 e5 (35... Bxb4 {I'm
+not sure why Nepo did not play this move, though I   am not as optimistic as the
+machine about his winning chances.}) 36. Rc2 Qd5 $6 {[%c_effect
+d5;square;d5;type;Inaccuracy;persistent;true]} (36... Bxb4 $1 {[%c_effect
+b4;square;b4;type;GreatFind;persistent;true] Again, this looked tempting.}) 37.
+Rdd2 $1 {[%c_effect d2;square;d2;type;GreatFind;persistent;true] Now White has
+everything under control, and the a3-bishop is  in some trouble.} 37... Qb3 38.
+Ra2 e4 $2 {[%c_effect e4;square;e4;type;Mistake;persistent;true] With time control
+rapidly  approaching, both sides missed an important idea.} (38... f5 {So says
+the machine, and apparently Black is fine. This    is super tough for a human to
+play, particularly with no time.}) 39. Nc5 Qxb4 {Now, Magnus had a move clear
+winner. It is super bad luck  for him that the chance happened to present itself
+on move 40 rather than  41 $1} 40. Nxe4 $2 {[%c_effect
+e4;square;e4;type;Mistake;persistent;true]} (40. Rdc2 $1 {[%c_effect
+c2;square;c2;type;GreatFind;persistent;true] This should win routinely. Black's
+queen and bishop are   both completely stuck, and White is ready for Nxa4 next.
+After    something like} 40... f5 41. Nxa4 Qxa4 42. Rc3 $18 {White should be   
+technically winning. He will get his rooks to the seventh rank and    take on
+f7. This is exactly the kind of position I was talking about earlier where
+Black's weak pawns means simply having a greater number    of total pieces is a
+huge advantage, and the two rooks should easily    beat the queen.}) 40... Qb3
+{Time control is reached, and Black is more or less okay.} 41. Rac2 Bf8 42. Nc5
+Qb5 43. Nd3 a3 {Black's a-pawn is annoying enough though it is really hard for
+White to break through.} 44. Nf4 Qa5 45. Ra2 Bb4 46. Rd3 Kh6 47. Rd1 Qa4 48.
+Rda1 {Magnus is trying to reorganize his pieces  to target the a3-pawn, but it
+will be really hard to get the knight to  join as well.} 48... Bd6 49. Kg1 Qb3
+50. Ne2 Qd3 51. Nd4 Kh7 {Case in  point, it looks like Nc2 should pick up a3 and
+promptly win the game, but  things are not so simple.} 52. Kh2 (52. Nc2 Qb3 $1
+{[%c_effect b3;square;b3;type;GreatFind;persistent;true] White struggles to take
+on a3 thanks to Bd6-e5    hanging over his head. I don't see a great plan for
+him.} 53. Nxa3 $2 {[%c_effect a3;square;a3;type;Mistake;persistent;true]} 53...
+Be5 $1 {[%c_effect e5;square;e5;type;GreatFind;persistent;true]}) 52... Qe4 $6
+{[%c_effect e4;square;e4;type;Inaccuracy;persistent;true] This strikes me as a
+bit careless. Now, Magnus took the  chance to change the position and get rid of
+the a-pawn, but it became a  bit too simplified to seriously hope to play for a
+win against good  defense.} 53. Rxa3 Qxh4+ $1 {[%c_effect
+h4;square;h4;type;GreatFind;persistent;true]} (53... Bxa3 $2 {[%c_effect
+a3;square;a3;type;Mistake;persistent;true]} 54. Rxa3 {White should be totally
+winning here    despite the relative material balance. The queen's main strength
+is    being able to attack multiple things at once, and here, Black has   
+nothing to attack. White will maneuvre Ra3-a5-f5-f4, then knight    around to e4
+to force f6-f5, then knight comes to d4, and Black collapses.}) 54. Kg1 Qe4 55.
+Ra4 Be5 $1 {[%c_effect e5;square;e5;type;GreatFind;persistent;true]} 56. Ne2 Qc2
+57. R1a2 Qb3 {The bishop on e5 is  incredibly well placed. White somehow does
+not quite have the coordination he needs to finish the game off.} 58. Kg2 Qd5+
+59. f3 {The machine hates  this move, but I don't see another great way to make
+progress.} 59... Qd1 60. f4 Bc7 {The pawn being forced off of f2 really weakens
+White's  pawn chain, and his king's cover. It will be very hard for him to do
+something like double on the seventh and take on f7 as long as his  kingside
+needs defenders.} 61. Kf2 Bb6 $1 {[%c_effect
+b6;square;b6;type;GreatFind;persistent;true] Targeting the weak e3-pawn.} 62.
+Ra1 Qb3 63. Re4 {White has coordinated his position about as well as  possible,
+but it will still be a nightmare to break through. This was the  first position
+I saw once my internet came back, and I was unsurprised  that there were some
+missed chances along the way. The rook on e4 holds  everything together but is
+also tethered to the defense of the e3-pawn.  The knight on e2 is not wildly
+mobile either. Still, Magnus is head and  shoulders above every player in
+history at grinding out positions like  this one, and it showed.} 63... Kg7 64.
+Re8 f5 65. Raa8 {Even with the  rooks invading like this, what is White's next
+move $2} 65... Qb4 66. Rac8 Ba5 67. Rc1 Bb6 68. Re5 Qb3 69. Re8 Qd5 70. Rcc8
+{White is not making any progress on the board, but progress on the clock is
+more important. The position is surely a draw objectively, but Black will have
+to defend it  for 50 moves, and if anything ever drops, he will surely lose.
+White's  best chance is to pressure Black on the clock, and here Nepo was down
+to 5 minutes.} 70... Qh1 (70... Qb3 {This was also fine.}) 71. Rc1 Qd5 72. Rb1
+Ba7 $2 {[%c_effect a7;square;a7;type;Mistake;persistent;true] Case in point. This
+is a bad move, and the  product of not having much time.} (72... Bd8 {Black
+keeps all unwanted guests off of the 7th rank and   is ready for h4 next.}) 73.
+Re7 $1 {[%c_effect e7;square;e7;type;GreatFind;persistent;true]} 73... Bc5 74. Re5
+{Now Black is in only-move territory.} 74... Qd3 75. Rb7 Qc2 76. Rb5 $1
+{[%c_effect b5;square;b5;type;GreatFind;persistent;true]} 76... Ba7 77. Ra5 (77.
+Rxf5 {Already this was possible.} 77... Qd3 78. Rxf7+ $1 {[%c_effect
+f7;square;f7;type;GreatFind;persistent;true]} 78... Kxf7 79. Rb7+ {The computer
+still thinks this is a draw, but a human would    almost certainly lose with
+Black.}) (77. Re7) 77... Bb6 78. Rab5 Ba7 79. Rxf5 $1 {[%c_effect
+f5;square;f5;type;GreatFind;persistent;true] Magnus plays it the second time 
+around.} 79... Qd3 80. Rxf7+ Kxf7 81. Rb7+ Kg6 82. Rxa7 Qd5 83. Ra6+ Kh7 84.
+Ra1 $1 {[%c_effect a1;square;a1;type;GreatFind;persistent;true] I like this move.
+No need to rush, start by preventing Qh1.} 84... Kg6 85. Nd4 Qb7 86. Ra2 Qh1 87.
+Ra6+ Kf7 88. Nf3 $1 {[%c_effect f3;square;f3;type;GreatFind;persistent;true]
+White's king  is totally safe for the moment. The machine still claims Black is
+making a draw here, but for a human with no time... this feels impossible. There
+ are no direct perpetuals, Black will have to sit and defend perfectly for  50
+moves until a pawn moves, then for another 50 moves... even with time  on the
+clock, I would expect a human to crack. Without it, no chance.} 88... Qb1 89.
+Rd6 Kg7 90. Rd5 Qb2+ 91. Rd2 Qb1 92. Re2 {Not subtle. The e-pawn is coming.}
+92... Qb6 93. Rc2 Qb1 94. Nd4 Qh1 95. Rc7+ Kf6 96. Rc6+ Kf7 97. Nf3 Qb1 98. Ng5+
+Kg7 99. Ne6+ Kf7 100. Nd4 Qh1 {White has  made no progress for the last several
+moves, but the clocks just keep  getting lower. Black cannot hold this forever.}
+101. Rc7+ Kf6 102. Nf3 Qb1 103. Rd7 Qc2+ 104. Rd2 Qb1 105. Ng1 $5 {[%c_effect
+g1;square;g1;type;Interesting;persistent;true] Finally, White sets up a
+different coordination.} 105... Qb4 106. Rd1 Qb3 107. Rd6+ Kg7 108. Rd4 Qb2+
+109. Ne2 Qb1 110. e4 $1 {[%c_effect e4;square;e4;type;GreatFind;persistent;true]
+Finally. Machine still says draw, but go play 50 more  moves... and then e5 or
+f5 comes, and then 50 more...} 110... Qh1 111. Rd7+ Kg8 112. Rd4 Qh2+ 113. Ke3
+h4 {Black trades off his last pawn, but  this doesn't change much. He still has
+a practically impossible task.} 114. gxh4 Qh3+ 115. Kd2 Qxh4 116. Rd3 Kf8 117.
+Rf3 Qd8+ 118. Ke3 Qa5 119. Kf2 Qa7+ 120. Re3 Qd7 121. Ng3 {White has set up a
+very good coordination  and the pawns are ready to go.} 121... Qd2+ 122. Kf3
+Qd1+ 123. Re2 Qb3+ 124. Kg2 {No more checks. Black is done for.} 124... Qb7 125.
+Rd2 Qb3 126. Rd5 Ke7 127. Re5+ Kf7 128. Rf5+ Ke8 129. e5 $1 {[%c_effect
+e5;square;e5;type;GreatFind;persistent;true] Machine still says  draw, even
+here. And again, go play 50 more moves $1 It just can't be done.} 129... Qa2+ 130.
+Kh3 Qe6 $2 {[%c_effect e6;square;e6;type;Mistake;persistent;true] [Editor's note:
+130...Qe6 was the losing  mistake according to the tablebases. With
+engine-perfect play, ...Qb1 and  ...Qc2 would be drawn.]} (130... Qb1) (130...
+Qc2) 131. Kh4 {Finally, at long last, the machine confirms what all the humans 
+knew for awhile. Magnus is winning this game.} 131... Qh6+ 132. Nh5 Qh7 133. e6 $1
+{[%c_effect e6;square;e6;type;GreatFind;persistent;true] A nice final touch. The
+rook cannot be captured.} 133... Qg6 134. Rf7 Kd8 135. f5 Qg1 136. Ng7 {Nepo had
+seen enough, and finally, the  impasse was broken $1 Magnus won in his trademark
+style, not taking a ton of risks, but taking his chance to imbalance the game
+when it came, and then gradually grinding out a win from what was a defensible
+but unpleasant  position for Black. I like that it came in phases, and that one
+phase was, \"This position is technically still a draw, but there is no chance a
+human will hold it.\" Surely Nepo could have defended better before allowing
+Rxf5 and Rxf7 to transform the position, but after that, I doubt there was much
+he could do. Now that a point is on the scoreboard, we could see a very 
+different looking match in the games to come $1} 1-0

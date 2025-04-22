@@ -1,0 +1,840 @@
+[Event "Scandinavian - Round 1"]
+[Site "Chess.com"]
+[Date "2017.06.01"]
+[Round "1"]
+[White "wind_bbc"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1432"]
+[BlackElo "1582"]
+[TimeControl "1/259200"]
+[EndDate "2017.10.16"]
+[Termination "atlejg won by resignation"]
+
+1. e4 d5 2. exd5 Nf6 3. c4 c6 4. dxc6 Nxc6 5. c5 b6 6. b4 bxc5 7. bxc5 e6 8. d4
+e5 9. dxe5 Qxd1+ 10. Kxd1 Nd5 11. Ba3 Nxe5 12. g3 Bb7 13. Bb2 f6 14. f3 Ne3+ 15.
+Ke2 Nc2 16. Kf2 Bxc5+ 17. Ke2 Nxa1 18. Bxa1 Bxg1 19. Rxg1 Nxf3 20. Rg2 Rc8 21.
+Nc3 Ba6+ 22. Kxf3 Bxf1 23. Rd2 Rd8 24. Rxd8+ Kxd8 25. a4 Ke7 26. Nb5 Bxb5 27.
+axb5 Rb8 28. Bd4 Rxb5 29. Bxa7 h5 30. h4 g5 31. hxg5 fxg5 32. g4 hxg4+ 33. Kxg4
+Kf6 34. Be3 Rb4+ 35. Kg3 Rb3 36. Kf2 Kf5 37. Ke2 Rxe3+ 38. Kxe3 g4 39. Kf2 Kf4
+40. Kg2 g3 41. Kf1 Kf3 42. Kg1 g2 0-1
+
+[Event "Practice The King's Indian Attack (Sicilian Variation) - Round 1"]
+[Site "Chess.com"]
+[Date "2017.06.30"]
+[Round "1"]
+[White "carlosgentl"]
+[Black "atlejg"]
+[Result "1/2-1/2"]
+[WhiteElo "1471"]
+[BlackElo "1578"]
+[TimeControl "1/259200"]
+[EndDate "2017.11.13"]
+[Termination "Game drawn by agreement"]
+
+1. Nf3 d5 2. g3 c5 3. Bg2 e6 4. b3 Be7 5. Bb2 Bf6 6. c3 Ne7 7. O-O O-O 8. d4
+cxd4 9. cxd4 a6 10. a4 a5 11. e3 b6 12. Nc3 Ba6 13. Re1 Nbc6 14. Ba3 Qb8 15. Qc2
+Rc8 16. Bh3 Rd8 17. Rec1 Nb4 18. Bxb4 axb4 19. Ne2 Rc8 20. Qb2 Bxe2 21. Qxe2
+Rxc1+ 22. Rxc1 Ng6 23. Rc6 Ne7 24. Rc1 Ra5 25. Qd2 Qd6 26. Qc2 b5 27. axb5 Rxb5
+28. Ra1 Rb8 29. Bf1 h6 30. Ra6 Rb6 31. Ra8+ Rb8 32. Ra6 Rb6 33. Ra8+ Rb8 34. Ra4
+Nf5 35. g4 Nh4 36. Nxh4 Bxh4 37. Bd3 Qe7 38. f3 Qf8 39. Kg2 Rc8 40. Qd2 Rc3 41.
+Kh3 Be7 42. Bb1 Rxb3 43. Qa2 Ra3 44. Rxa3 bxa3 45. Qc2 g6 46. Kg2 Qb8 47. h3 Qb2
+48. Qxb2 axb2 49. Kf2 Ba3 50. Ke2 Bb4 51. Kd3 Kf8 52. Kc2 Ke7 53. Kxb2 Kd6 54.
+e4 Be1 55. Ba2 Bf2 56. Kc3 g5 57. Bb1 f6 58. exd5 Kxd5 59. Be4+ Kd6 60. Kc4 Bg3
+61. d5 exd5+ 62. Bxd5 Ke5 63. Kc5 f5 64. Kc6 fxg4 65. hxg4 Bh2 66. Be4 Kf6 67.
+Kd5 Bg3 68. Kd4 Bf4 69. Kd5 Bg3 1/2-1/2
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2017.08.10"]
+[Round "-"]
+[White "FIERA40"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1722"]
+[BlackElo "1564"]
+[TimeControl "1/259200"]
+[EndDate "2017.10.14"]
+[Termination "FIERA40 won by checkmate"]
+
+1. Nf3 d5 2. e3 Nc6 3. d4 g6 4. Bb5 Bd7 5. Bxc6 Bxc6 6. O-O Bg7 7. b3 e6 8. Bb2
+Ne7 9. Nbd2 O-O 10. c4 a6 11. c5 b6 12. Rc1 bxc5 13. Ne5 Bxe5 14. dxe5 c4 15.
+bxc4 dxc4 16. Nxc4 Qb8 17. Ba1 Rd8 18. Qg4 Bb5 19. Qh4 Nf5 20. Qh3 Qb7 21. Rfe1
+Bxc4 22. Rxc4 Rd2 23. g4 Rad8 24. gxf5 Rd1 25. Rc1 Rxe1+ 26. Rxe1 Qb4 27. Rf1
+exf5 28. Qh6 Qf8 29. Qg5 Re8 30. h4 h6 31. Qg3 h5 32. f4 Qa3 33. Qe1 Qxa2 34.
+Qc3 Qe6 35. Qxc7 Rc8 36. Qd6 Qc4 37. Rd1 Rf8 38. Qd4 Qe2 39. e6 Qg4+ 40. Kf1
+Qf3+ 41. Ke1 f6 42. e7 Re8 43. Qc4+ Kg7 44. Qe6 Qg3+ 45. Ke2 Qg2+ 46. Ke1 Qg1+
+47. Kd2 Qg2+ 48. Kc1 Qe4 49. Qxf6+ Kh6 50. Qg7# 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2017.08.23"]
+[Round "-"]
+[White "atlejg"]
+[Black "RaymundR"]
+[Result "1-0"]
+[WhiteElo "1576"]
+[BlackElo "1613"]
+[TimeControl "1/259200"]
+[EndDate "2017.10.15"]
+[Termination "atlejg won by resignation"]
+
+1. d4 Nf6 2. Nf3 e6 3. e3 d5 4. Bd3 c5 5. c3 Nc6 6. O-O cxd4 7. Nxd4 Bc5 8. Nxc6
+bxc6 9. Nd2 a5 10. a3 O-O 11. Qc2 e5 12. e4 d4 13. cxd4 Qxd4 14. Nb3 Qd6 15.
+Nxc5 Rd8 16. Be3 Nd7 17. Nxd7 Rxd7 18. Be2 Bb7 19. Rfd1 Qe7 20. Rxd7 Qxd7 21.
+Rd1 Qe7 22. Qc5 Qxc5 23. Bxc5 g5 24. Bb6 a4 25. Rd8+ Kg7 26. Rxa8 Bxa8 27. f3
+Kg6 28. Bd1 f5 29. Bxa4 h5 30. b4 g4 31. exf5+ Kxf5 32. fxg4+ hxg4 33. Bc2+ Kf4
+34. Bf2 e4 35. g3+ Ke5 36. Kf1 Bb7 37. Ke2 c5 38. bxc5 Bc6 39. Ke3 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2017.10.12"]
+[Round "-"]
+[White "clemyd"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1516"]
+[BlackElo "1562"]
+[TimeControl "1/259200"]
+[EndDate "2017.12.27"]
+[Termination "atlejg won by resignation"]
+
+1. d4 d5 2. c4 c6 3. Nc3 Bf5 4. Nf3 Nf6 5. Bg5 Nbd7 6. e3 h6 7. Bh4 e6 8. cxd5
+cxd5 9. Bb5 Be7 10. O-O O-O 11. Bg3 a6 12. Bd3 Bxd3 13. Qxd3 b5 14. Rac1 Qa5 15.
+Rfe1 Qb6 16. e4 dxe4 17. Nxe4 Nxe4 18. Qxe4 Bd6 19. Ne5 Nxe5 20. Bxe5 Bxe5 21.
+dxe5 Rac8 22. Rxc8 Rxc8 23. Qe2 Rd8 24. Rc1 Qa5 25. a3 Rd2 26. b4 Rxe2 27. bxa5
+Ra2 28. g3 Rxa3 29. Rc8+ Kh7 30. Rc7 Kg6 31. Rc6 Rxa5 32. Kg2 Ra2 33. Kf3 Kf5
+34. Rc5 Ra4 35. h3 b4 36. g4+ Kg5 37. Kg3 Ra3+ 38. f3 b3 39. h4+ Kg6 40. h5+ Kh7
+41. Rc1 b2 42. Rb1 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2017.10.12"]
+[Round "-"]
+[White "atlejg"]
+[Black "Zzgloo"]
+[Result "0-1"]
+[WhiteElo "1595"]
+[BlackElo "1617"]
+[TimeControl "1/259200"]
+[EndDate "2017.12.30"]
+[Termination "Zzgloo won by checkmate"]
+
+1. e4 e5 2. Nf3 Nc6 3. Nc3 Nf6 4. d4 exd4 5. Nxd4 Ne5 6. Be2 Bb4 7. Bd2 d6 8. a3
+Bxc3 9. Bxc3 Nxe4 10. Bd2 O-O 11. O-O Nxd2 12. Qxd2 Bd7 13. b4 Qf6 14. Nf3 Rfe8
+15. Rfe1 Bf5 16. Nxe5 Rxe5 17. h3 Qg6 18. c4 Bxh3 19. Bf1 Rae8 20. Rxe5 Rxe5 21.
+g3 Be6 22. Rc1 h5 23. Bd3 Qg4 24. Qd1 Qg5 25. Bf1 h4 26. Rc3 f5 27. Bg2 f4 28.
+gxf4 Qxf4 29. Rf3 Qxc4 30. Bh3 Rg5+ 31. Kh2 Bxh3 32. Rxh3 Qf4+ 33. Kh1 Qxf2 34.
+Rh2 Qg3 35. Qf1 d5 36. Rh3 Qg4 37. Qf2 Qe4+ 38. Qf3 Qe1+ 39. Kh2 Qg1# 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2017.10.15"]
+[Round "-"]
+[White "einmag"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1405"]
+[BlackElo "1610"]
+[TimeControl "1/259200"]
+[EndDate "2018.02.15"]
+[Termination "atlejg won by resignation"]
+
+1. e4 e5 2. Bc4 Nf6 3. d3 d6 4. h3 c6 5. Nf3 Be7 6. O-O O-O 7. Be3 b5 8. Bb3 h6
+9. a3 a5 10. c4 bxc4 11. dxc4 Nxe4 12. Nbd2 Nxd2 13. Qxd2 Na6 14. Rac1 Nc5 15.
+Bxh6 Nxb3 16. Qc2 Nxc1 17. Bxg7 Ne2+ 18. Qxe2 Kxg7 19. Nd2 Rh8 20. c5 f6 21.
+cxd6 Qxd6 22. Nc4 Qc7 23. Qe3 Ba6 24. Rc1 Bxc4 25. Rxc4 Kf7 26. Qc3 c5 27. b3
+Rad8 28. Qc2 Rd4 29. Rc3 Rhd8 30. g3 Qc6 31. Kf1 Qh1+ 32. Ke2 Re4+ 33. Re3 Rxe3+
+34. Kxe3 Qe1+ 35. Kf3 Ke6 36. Qc4+ Rd5 37. Qa6+ Bd6 38. Qc8+ Kf7 39. Qd7+ Kg8
+40. Qd8+ Kg7 41. Qd7+ Kh6 42. Qf5 Be7 43. Kg4 Qd1+ 44. Kh4 e4 45. Qf4+ Rg5 46.
+g4 f5 47. Kg3 Bd6 48. Qxd6+ Qxd6+ 49. f4 Rg8 50. h4 Rxg4+ 51. Kh3 Qd3+ 0-1
+
+[Event "Scandinavian - Round 1"]
+[Site "Chess.com"]
+[Date "2017.10.16"]
+[Round "1"]
+[White "atlejg"]
+[Black "wind_bbc"]
+[Result "0-1"]
+[WhiteElo "1582"]
+[BlackElo "1424"]
+[TimeControl "1/259200"]
+[EndDate "2017.10.19"]
+[Termination "wind_bbc won on time"]
+
+1. e4 d5 0-1
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2017.10.17"]
+[Round "-"]
+[White "RaymundR"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1571"]
+[BlackElo "1550"]
+[TimeControl "1/259200"]
+[EndDate "2017.12.16"]
+[Termination "RaymundR won by checkmate"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 Nd5 5. Nxf7 Kxf7 6. Bxd5+ Ke8 7. Bxc6 bxc6
+8. Qh5+ Ke7 9. d4 h6 10. Bg5+ hxg5 11. Qxh8 Ba6 12. Qh5 Kf6 13. dxe5+ Kxe5 14.
+Nc3 Bc5 15. O-O-O Bd4 16. f4+ Kxf4 17. Qf7+ Bf6 18. g3+ Kg4 19. h3+ Kxg3 20.
+Rhg1+ Kf4 21. e5 Qe7 22. Rd4+ Kf3 23. Qh5+ Kf2 24. Qg4 Qxe5 25. Qg2+ Ke3 26.
+Re4+ Qxe4 27. Qxe4+ Kf2 28. Rg2+ Kf1 29. Qf3+ Ke1 30. Qf2# 1-0
+
+[Event "OPEN TOURNAMENT - Round 3"]
+[Site "Chess.com"]
+[Date "2017.10.27"]
+[Round "3"]
+[White "KUNALDEB"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1350"]
+[BlackElo "1582"]
+[TimeControl "1/259200"]
+[EndDate "2017.10.29"]
+[Termination "atlejg won on time"]
+
+0-1
+
+[Event "OPEN TOURNAMENT - Round 3"]
+[Site "Chess.com"]
+[Date "2017.10.27"]
+[Round "3"]
+[White "jaquecesar"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1593"]
+[BlackElo "1595"]
+[TimeControl "1/259200"]
+[EndDate "2018.02.06"]
+[Termination "atlejg won by resignation"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 Bd6 4. c3 Nf6 5. O-O Nxe4 6. d4 a6 7. Bxc6 bxc6 8.
+Re1 Nf6 9. dxe5 O-O 10. exd6 cxd6 11. Qxd6 Nd5 12. Bg5 Nf6 13. Nbd2 Ra7 14. Bxf6
+Qxf6 15. Qxf6 gxf6 16. Re4 d5 17. Re3 Rb7 18. b3 Bf5 19. Rae1 Rbb8 20. Nd4 Bd7
+21. Re7 Rfe8 22. Rxe8+ Bxe8 23. Re3 Bd7 24. Re7 Rd8 25. h3 Kf8 26. Nf1 Kxe7 27.
+g4 Rg8 28. f3 f5 29. Ne3 fxg4 30. fxg4 h5 31. Kf2 hxg4 32. hxg4 Rh8 33. Kg2 Rg8
+34. Kf3 Rh8 35. Kg3 Rh1 36. Kf4 c5 37. Nxd5+ Kd6 38. Nf5+ Bxf5 39. Kxf5 Kxd5 40.
+g5 Rf1+ 41. Kg4 Ke6 42. c4 Rh1 43. Kf4 f6 0-1
+
+[Event "OPEN TOURNAMENT - Round 3"]
+[Site "Chess.com"]
+[Date "2017.10.27"]
+[Round "3"]
+[White "doribrud"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1643"]
+[BlackElo "1593"]
+[TimeControl "1/259200"]
+[EndDate "2017.11.23"]
+[Termination "atlejg won on time"]
+
+1. e4 c5 2. Nf3 e6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 Bc5 6. Be3 b6 7. Bb5 Bb7 8. O-O
+Nxe4 9. Nxe4 Bxe4 10. Qg4 Bg6 11. Bg5 Be7 12. Bxe7 Qxe7 0-1
+
+[Event "OPEN TOURNAMENT - Round 3"]
+[Site "Chess.com"]
+[Date "2017.10.27"]
+[Round "3"]
+[White "hapawn"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1835"]
+[BlackElo "1582"]
+[TimeControl "1/259200"]
+[EndDate "2017.10.29"]
+[Termination "atlejg won on time"]
+
+0-1
+
+[Event "OPEN TOURNAMENT - Round 3"]
+[Site "Chess.com"]
+[Date "2017.10.27"]
+[Round "3"]
+[White "victorabiodun"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1505"]
+[BlackElo "1604"]
+[TimeControl "1/259200"]
+[EndDate "2018.02.08"]
+[Termination "atlejg won on time"]
+
+1. f4 e6 2. Nf3 d5 3. e3 Bd6 4. d4 Nf6 5. Bd3 O-O 0-1
+
+[Event "OPEN TOURNAMENT - Round 3"]
+[Site "Chess.com"]
+[Date "2017.10.27"]
+[Round "3"]
+[White "Swingee"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1808"]
+[BlackElo "1598"]
+[TimeControl "1/259200"]
+[EndDate "2018.02.11"]
+[Termination "Swingee won by resignation"]
+
+1. e4 c5 2. Nf3 Nc6 3. Nc3 d6 4. d4 cxd4 5. Nxd4 Nxd4 6. Qxd4 e5 7. Qd1 g6 8.
+Bd3 Bg7 9. Nd5 Nf6 10. Bg5 Be6 11. Bb5+ Kf8 12. Nxf6 Bxf6 13. Bxf6 Qxf6 14.
+Qxd6+ Kg7 15. O-O Rhd8 16. Qc7 a6 17. Bd3 b5 18. f4 exf4 19. Rxf4 Qxb2 20. Raf1
+Qd4+ 21. Kh1 Rd7 22. Qc6 Rdd8 23. Qb7 Qd7 24. Qb6 Rdb8 25. Qa5 Rc8 26. a3 Qc7
+27. Qd2 Qc3 28. Qc1 Ra7 29. Rh4 Rh8 30. Qf4 Qc7 31. Qf6+ Kg8 32. e5 Qe7 33. Qf2
+Rd7 34. a4 Bc4 35. Bxc4 bxc4 36. Rxc4 Qxe5 37. Re1 Qb8 38. Qf6 Qd8 39. Qxa6 Rd1
+40. Re4 Kg7 41. Qe2 Rxe1+ 42. Qxe1 Qc8 43. c4 Rd8 44. h3 Qd7 45. c5 Qc6 46. Rc4
+Kg8 47. Qc3 Qc7 48. Rd4 Re8 49. c6 Re6 50. Rd7 Qc8 51. c7 Re8 52. Qd4 Qa6 53.
+Rd8 Qf1+ 54. Kh2 Kf8 55. Qh8+ Ke7 56. Qxe8+ Kf6 57. Qh8+ Kg5 58. Qe5+ f5 59.
+c8=Q 1-0
+
+[Event "OPEN TOURNAMENT - Round 3"]
+[Site "Chess.com"]
+[Date "2017.10.27"]
+[Round "3"]
+[White "Sigefroid"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "2034"]
+[BlackElo "1591"]
+[TimeControl "1/259200"]
+[EndDate "2017.12.06"]
+[Termination "Sigefroid won by checkmate"]
+
+1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 e5 5. Bb5+ Bd7 6. Bxd7+ Nxd7 7. Nf5 Nc5 8.
+Nc3 Nf6 9. Bg5 Be7 10. Nxg7+ Kf8 11. Bh6 Kg8 12. Qf3 Qd7 13. Nf5 Bf8 14. Qg3+
+Bg7 15. Qxg7# 1-0
+
+[Event "OPEN TOURNAMENT - Round 3"]
+[Site "Chess.com"]
+[Date "2017.10.30"]
+[Round "3"]
+[White "atlejg"]
+[Black "KUNALDEB"]
+[Result "1-0"]
+[WhiteElo "1582"]
+[BlackElo "1350"]
+[TimeControl "1/259200"]
+[EndDate "2017.11.04"]
+[Termination "atlejg won on time"]
+
+1. e4 1-0
+
+[Event "OPEN TOURNAMENT - Round 3"]
+[Site "Chess.com"]
+[Date "2017.10.30"]
+[Round "3"]
+[White "atlejg"]
+[Black "hapawn"]
+[Result "1-0"]
+[WhiteElo "1582"]
+[BlackElo "1835"]
+[TimeControl "1/259200"]
+[EndDate "2017.11.04"]
+[Termination "atlejg won on time"]
+
+1. e4 1-0
+
+[Event "Practice The King's Indian Attack (Sicilian Variation) - Round 2"]
+[Site "Chess.com"]
+[Date "2017.11.14"]
+[Round "2"]
+[White "Porcs"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1225"]
+[BlackElo "1578"]
+[TimeControl "1/259200"]
+[EndDate "2017.11.19"]
+[Termination "atlejg won on time"]
+
+1. Nf3 d5 2. g3 c5 3. Bg2 Nf6 0-1
+
+[Event "Practice The King's Indian Attack (Sicilian Variation) - Round 2"]
+[Site "Chess.com"]
+[Date "2017.11.14"]
+[Round "2"]
+[White "atlejg"]
+[Black "rahgozr"]
+[Result "1-0"]
+[WhiteElo "1578"]
+[BlackElo "1350"]
+[TimeControl "1/259200"]
+[EndDate "2017.11.16"]
+[Termination "atlejg won on time"]
+
+1. Nf3 d5 2. g3 c5 3. Bg2 1-0
+
+[Event "Practice The King's Indian Attack (Sicilian Variation) - Round 2"]
+[Site "Chess.com"]
+[Date "2017.11.14"]
+[Round "2"]
+[White "atlejg"]
+[Black "zvonko"]
+[Result "1-0"]
+[WhiteElo "1578"]
+[BlackElo "1482"]
+[TimeControl "1/259200"]
+[EndDate "2017.11.16"]
+[Termination "atlejg won on time"]
+
+1. Nf3 d5 2. g3 c5 3. Bg2 1-0
+
+[Event "Practice The King's Indian Attack (Sicilian Variation) - Round 2"]
+[Site "Chess.com"]
+[Date "2017.11.14"]
+[Round "2"]
+[White "GermanTraver"]
+[Black "atlejg"]
+[Result "1/2-1/2"]
+[WhiteElo "1566"]
+[BlackElo "1614"]
+[TimeControl "1/259200"]
+[EndDate "2018.01.07"]
+[Termination "Game drawn by agreement"]
+
+1. Nf3 d5 2. g3 c5 3. Bg2 e6 4. O-O Bd6 5. d4 cxd4 6. Qxd4 Nf6 7. Bg5 Nbd7 8.
+Re1 O-O 9. Nc3 Qb6 10. Qxb6 axb6 11. a3 h6 12. Nb5 Be5 13. Nxe5 Nxe5 14. Bxf6
+gxf6 15. b3 Nc6 16. Rad1 Rd8 17. a4 Nb4 18. Rc1 Bd7 19. c4 Bxb5 20. cxb5 Na2 21.
+Rc7 Rab8 22. Ra1 Nb4 23. Rac1 Na2 24. R1c2 Nb4 25. Rc1 Na2 26. R1c2 1/2-1/2
+
+[Event "Practice The King's Indian Attack (Sicilian Variation) - Round 2"]
+[Site "Chess.com"]
+[Date "2017.11.14"]
+[Round "2"]
+[White "atlejg"]
+[Black "mtblank"]
+[Result "0-1"]
+[WhiteElo "1597"]
+[BlackElo "1984"]
+[TimeControl "1/259200"]
+[EndDate "2018.01.14"]
+[Termination "mtblank won on time"]
+
+1. Nf3 d5 2. g3 c5 3. Bg2 Nf6 4. d3 Nc6 5. Bd2 e5 6. c4 d4 7. e4 dxe3 8. Bxe3
+Be7 9. O-O O-O 10. Nc3 Bg4 11. Qd2 Bf5 12. Rfd1 h6 13. Nh4 Bh7 14. Na4 Nd7 15.
+Nf3 Qc7 16. b3 f5 17. Nc3 f4 18. gxf4 exf4 19. Bxf4 Qxf4 20. Qe2 Kh8 21. Nd5 Qf7
+22. Re1 Bd6 0-1
+
+[Event "Practice The King's Indian Attack (Sicilian Variation) - Round 2"]
+[Site "Chess.com"]
+[Date "2017.11.14"]
+[Round "2"]
+[White "gecama"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1821"]
+[BlackElo "1578"]
+[TimeControl "1/259200"]
+[EndDate "2017.11.20"]
+[Termination "gecama won on time"]
+
+1. Nf3 d5 2. g3 c5 3. Bg2 Nf6 4. c4 dxc4 5. Qa4+ 1-0
+
+[Event "Practice The King's Indian Attack (Sicilian Variation) - Round 2"]
+[Site "Chess.com"]
+[Date "2017.11.17"]
+[Round "2"]
+[White "rahgozr"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1350"]
+[BlackElo "1578"]
+[TimeControl "1/259200"]
+[EndDate "2017.11.20"]
+[Termination "atlejg won on time"]
+
+1. Nf3 d5 2. g3 c5 3. Bg2 Nf6 0-1
+
+[Event "Practice The King's Indian Attack (Sicilian Variation) - Round 2"]
+[Site "Chess.com"]
+[Date "2017.11.17"]
+[Round "2"]
+[White "zvonko"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1523"]
+[BlackElo "1599"]
+[TimeControl "1/259200"]
+[EndDate "2018.01.13"]
+[Termination "zvonko won by checkmate"]
+
+1. Nf3 d5 2. g3 c5 3. Bg2 Nf6 4. d4 cxd4 5. Nxd4 e5 6. Nb3 b6 7. Nc3 Bb7 8. Bg5
+Be7 9. Bxf6 Bxf6 10. Bxd5 Bxd5 11. Qxd5 Nd7 12. O-O-O Rc8 13. e4 Nc5 14. Qxd8+
+Bxd8 15. Nb5 Nxe4 16. f3 Nf2 17. Nd6+ Kd7 18. Nxf7+ Kc7 19. Nxh8 Nxh1 20. Rxh1
+Bg5+ 21. f4 exf4 22. Nf7 Bf6 23. gxf4 Rf8 24. Ne5 Kd6 25. Rd1+ Kc7 26. Rd7+ Kb8
+27. Nd4 Bxe5 28. fxe5 Rf1+ 29. Kd2 Rf2+ 30. Kc3 Rxh2 31. Rxg7 Rh5 32. Nc6+ Ka8
+33. Rxa7# 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2017.11.18"]
+[Round "-"]
+[White "atlejg"]
+[Black "carlosgentl"]
+[Result "1-0"]
+[WhiteElo "1604"]
+[BlackElo "1433"]
+[TimeControl "1/259200"]
+[EndDate "2018.02.11"]
+[Termination "atlejg won by resignation"]
+
+1. d4 Nf6 2. c4 e6 3. d5 exd5 4. cxd5 d6 5. Nc3 Be7 6. e4 O-O 7. Nf3 Bg4 8. Be2
+Nbd7 9. O-O Re8 10. Nd4 Bxe2 11. Qxe2 a6 12. b3 Bf8 13. Ba3 Ne5 14. h3 b5 15.
+Nd1 Qd7 16. Ne3 g6 17. Bb2 Qc8 18. Rac1 Nxe4 19. Nc6 Nxc6 20. dxc6 Bh6 21. Rc2
+Re7 22. Re1 Qe8 23. Nd5 Bg7 24. Nxe7+ Qxe7 25. Bxg7 d5 26. f3 Kxg7 27. fxe4 dxe4
+28. Qxe4 Qxe4 29. Rxe4 Rd8 30. Re7 Rc8 31. Rd2 Kg8 32. Rdd7 h5 33. Rxf7 1-0
+
+[Event "Practice The King's Indian Attack (Sicilian Variation) - Round 2"]
+[Site "Chess.com"]
+[Date "2017.11.19"]
+[Round "2"]
+[White "atlejg"]
+[Black "Porcs"]
+[Result "1-0"]
+[WhiteElo "1578"]
+[BlackElo "1225"]
+[TimeControl "1/259200"]
+[EndDate "2017.11.22"]
+[Termination "atlejg won on time"]
+
+1. Nf3 d5 2. g3 c5 3. Bg2 1-0
+
+[Event "Practice The King's Indian Attack (Sicilian Variation) - Round 2"]
+[Site "Chess.com"]
+[Date "2017.11.20"]
+[Round "2"]
+[White "atlejg"]
+[Black "gecama"]
+[Result "1-0"]
+[WhiteElo "1606"]
+[BlackElo "1701"]
+[TimeControl "1/259200"]
+[EndDate "2017.12.28"]
+[Termination "atlejg won on time"]
+
+1. Nf3 d5 2. g3 c5 3. Bg2 Nc6 4. O-O e5 5. d3 Nf6 6. c4 Be7 7. cxd5 Nxd5 8. Nc3
+Be6 9. Nxd5 Bxd5 10. b3 O-O 11. Bb2 Bf6 12. e4 Be6 13. Qd2 Rc8 14. Ba3 b6 15.
+Rfd1 Bg4 16. Re1 Bxf3 17. Bxf3 Nd4 18. Bg2 1-0
+
+[Event "OPEN TOURNAMENT - Round 3"]
+[Site "Chess.com"]
+[Date "2017.11.23"]
+[Round "3"]
+[White "atlejg"]
+[Black "doribrud"]
+[Result "1-0"]
+[WhiteElo "1590"]
+[BlackElo "1591"]
+[TimeControl "1/259200"]
+[EndDate "2017.12.28"]
+[Termination "atlejg won on time"]
+
+1. e4 e6 2. Nf3 d5 3. exd5 exd5 4. d4 Bd6 5. Nc3 Nf6 6. Bd3 h6 7. O-O O-O 8. Nb5
+Bg4 9. Nxd6 Qxd6 10. c4 dxc4 11. Bxc4 Nc6 12. Be3 Rad8 13. Bb5 Bxf3 14. Qxf3
+Nxd4 15. Bxd4 Qxd4 16. Qxb7 1-0
+
+[Event "Let's Play!"]
+[Site "Chess.com"]
+[Date "2017.11.26"]
+[Round "-"]
+[White "atlejg"]
+[Black "doribrud"]
+[Result "1-0"]
+[WhiteElo "1577"]
+[BlackElo "1612"]
+[TimeControl "1/259200"]
+[EndDate "2017.12.28"]
+[Termination "atlejg won on time"]
+
+1. d4 e6 2. c4 d5 3. cxd5 exd5 4. e3 Bd6 5. Be2 Nf6 6. Nf3 Bf5 7. O-O Nbd7 8. b3
+O-O 9. Ba3 Bxa3 10. Nxa3 c6 11. Bd3 Ne4 12. Nb1 Ndf6 13. Nbd2 Re8 14. Nxe4 1-0
+
+[Event "Oliver's-\"87th GENEVA INTERNATIONAL MOTOR SHOW\" - Round 2"]
+[Site "Chess.com"]
+[Date "2017.12.02"]
+[Round "2"]
+[White "atlejg"]
+[Black "abegbey"]
+[Result "1-0"]
+[WhiteElo "1593"]
+[BlackElo "1455"]
+[TimeControl "1/259200"]
+[EndDate "2017.12.05"]
+[Termination "atlejg won on time"]
+
+1. Nf3 1-0
+
+[Event "Oliver's-\"87th GENEVA INTERNATIONAL MOTOR SHOW\" - Round 2"]
+[Site "Chess.com"]
+[Date "2017.12.02"]
+[Round "2"]
+[White "Doge_Dandolo"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1546"]
+[BlackElo "1562"]
+[TimeControl "1/259200"]
+[EndDate "2017.12.12"]
+[Termination "Doge_Dandolo won on time"]
+
+1. f4 e6 2. Nf3 Nc6 3. g3 d5 4. Bg2 Bd6 5. O-O Nf6 6. d3 O-O 7. e4 1-0
+
+[Event "Oliver's-\"87th GENEVA INTERNATIONAL MOTOR SHOW\" - Round 2"]
+[Site "Chess.com"]
+[Date "2017.12.02"]
+[Round "2"]
+[White "atlejg"]
+[Black "oliver1518"]
+[Result "0-1"]
+[WhiteElo "1593"]
+[BlackElo "1573"]
+[TimeControl "1/259200"]
+[EndDate "2017.12.05"]
+[Termination "oliver1518 won on time"]
+
+1. d4 Nf6 0-1
+
+[Event "Oliver's-\"87th GENEVA INTERNATIONAL MOTOR SHOW\" - Round 2"]
+[Site "Chess.com"]
+[Date "2017.12.05"]
+[Round "2"]
+[White "abegbey"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1455"]
+[BlackElo "1591"]
+[TimeControl "1/259200"]
+[EndDate "2017.12.08"]
+[Termination "atlejg won on time"]
+
+0-1
+
+[Event "Oliver's-\"87th GENEVA INTERNATIONAL MOTOR SHOW\" - Round 2"]
+[Site "Chess.com"]
+[Date "2017.12.05"]
+[Round "2"]
+[White "oliver1518"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1541"]
+[BlackElo "1576"]
+[TimeControl "1/259200"]
+[EndDate "2017.12.12"]
+[Termination "oliver1518 won on time"]
+
+1. d4 d5 2. c4 dxc4 3. Nf3 Nf6 4. Nc3 e6 5. e3 1-0
+
+[Event "OPEN TOURNAMENT - Round 3"]
+[Site "Chess.com"]
+[Date "2017.12.06"]
+[Round "3"]
+[White "atlejg"]
+[Black "Sigefroid"]
+[Result "1-0"]
+[WhiteElo "1616"]
+[BlackElo "1995"]
+[TimeControl "1/259200"]
+[EndDate "2018.01.06"]
+[Termination "atlejg won on time"]
+
+1. e4 c5 2. d3 Nc6 3. Nf3 e6 4. g3 g6 5. Bg2 Bg7 6. O-O Nge7 7. c4 d6 8. Qd2 O-O
+9. Na3 a6 10. Nc2 1-0
+
+[Event "Practice The King's Indian Attack (Sicilian Variation) - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.07"]
+[Round "2"]
+[White "atlejg"]
+[Black "GermanTraver"]
+[Result "0-1"]
+[WhiteElo "1614"]
+[BlackElo "1568"]
+[TimeControl "1/259200"]
+[EndDate "2018.01.10"]
+[Termination "GermanTraver won on time"]
+
+1. Nf3 d5 2. g3 c5 3. Bg2 Nc6 0-1
+
+[Event "slow chess - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.14"]
+[Round "2"]
+[White "venroy777"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1179"]
+[BlackElo "1597"]
+[TimeControl "1/432000"]
+[EndDate "2018.01.18"]
+[Termination "atlejg won on time"]
+
+0-1
+
+[Event "slow chess - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.14"]
+[Round "2"]
+[White "madhychuek"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1529"]
+[BlackElo "1597"]
+[TimeControl "1/432000"]
+[EndDate "2018.01.18"]
+[Termination "atlejg won on time"]
+
+0-1
+
+[Event "slow chess - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.14"]
+[Round "2"]
+[White "anand78789"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1564"]
+[BlackElo "1597"]
+[TimeControl "1/432000"]
+[EndDate "2018.01.18"]
+[Termination "atlejg won on time"]
+
+0-1
+
+[Event "slow chess - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.14"]
+[Round "2"]
+[White "atlejg"]
+[Black "madhychuek"]
+[Result "1-0"]
+[WhiteElo "1597"]
+[BlackElo "1529"]
+[TimeControl "1/432000"]
+[EndDate "2018.01.19"]
+[Termination "atlejg won on time"]
+
+1. d4 1-0
+
+[Event "slow chess - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.14"]
+[Round "2"]
+[White "atlejg"]
+[Black "venroy777"]
+[Result "1-0"]
+[WhiteElo "1597"]
+[BlackElo "1179"]
+[TimeControl "1/432000"]
+[EndDate "2018.01.19"]
+[Termination "atlejg won on time"]
+
+1. e4 1-0
+
+[Event "slow chess - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.14"]
+[Round "2"]
+[White "atlejg"]
+[Black "tbudiman"]
+[Result "1-0"]
+[WhiteElo "1597"]
+[BlackElo "1723"]
+[TimeControl "1/432000"]
+[EndDate "2018.01.19"]
+[Termination "atlejg won on time"]
+
+1. d4 1-0
+
+[Event "slow chess - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.14"]
+[Round "2"]
+[White "atlejg"]
+[Black "anand78789"]
+[Result "1-0"]
+[WhiteElo "1597"]
+[BlackElo "1564"]
+[TimeControl "1/432000"]
+[EndDate "2018.01.19"]
+[Termination "atlejg won on time"]
+
+1. e4 1-0
+
+[Event "slow chess - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.14"]
+[Round "2"]
+[White "tbudiman"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1723"]
+[BlackElo "1597"]
+[TimeControl "1/432000"]
+[EndDate "2018.01.18"]
+[Termination "atlejg won on time"]
+
+0-1
+
+[Event "Scandinavian - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.15"]
+[Round "2"]
+[White "zingaro23"]
+[Black "atlejg"]
+[Result "1-0"]
+[WhiteElo "1485"]
+[BlackElo "1571"]
+[TimeControl "1/259200"]
+[EndDate "2018.01.30"]
+[Termination "zingaro23 won on time"]
+
+1. e4 d5 2. exd5 Qxd5 3. Nc3 Qd7 4. Bb5 c6 5. Ba4 Na6 6. Qe2 Nc5 7. Nf3 Nxa4 8.
+Nxa4 1-0
+
+[Event "Scandinavian - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.15"]
+[Round "2"]
+[White "NagaQueen"]
+[Black "atlejg"]
+[Result "0-1"]
+[WhiteElo "1573"]
+[BlackElo "1583"]
+[TimeControl "1/259200"]
+[EndDate "2018.01.31"]
+[Termination "atlejg won by resignation"]
+
+1. e4 d5 2. exd5 Qxd5 3. d4 Nc6 4. c3 e5 5. Qf3 Nf6 6. Qxd5 Nxd5 7. dxe5 Nxe5 8.
+Bf4 Nxf4 9. g3 Nfd3+ 0-1
+
+[Event "Scandinavian - Round 2"]
+[Site "Chess.com"]
+[Date "2018.01.15"]
+[Round "2"]
+[White "atlejg"]
+[Black "DC07"]
+[Result "0-1"]
+[WhiteElo "1587"]
+[BlackElo "1663"]
+[TimeControl "1/259200"]
+[EndDate "2018.01.30"]
+[Termination "DC07 won on time"]
+
+1. e4 d5 2. exd5 Qxd5 3. Nf3 Nf6 4. Nc3 Qd8 5. Bd3 Bg4 6. h3 Bh5 7. O-O e6 0-1
+
+[Event "OPEN TOURNAMENT - Round 3"]
+[Site "Chess.com"]
+[Date "2018.02.08"]
+[Round "3"]
+[White "atlejg"]
+[Black "victorabiodun"]
+[Result "1-0"]
+[WhiteElo "1604"]
+[BlackElo "1473"]
+[TimeControl "1/259200"]
+[EndDate "2018.02.13"]
+[Termination "atlejg won on time"]
+
+1. d4 1-0
