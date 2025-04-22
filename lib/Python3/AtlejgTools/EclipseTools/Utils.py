@@ -38,7 +38,7 @@ def _read_lines(f, line):
         vals.extend(list(map(float, line.split())))
     return vals
 
-def read_frft_file(fname, varnm, t_start=-pl.Inf, t_end=pl.Inf, dotranspose=True):
+def read_frft_file(fname, varnm, t_start=-pl.inf, t_end=pl.inf, dotranspose=True):
     '''
     Reads  an frft file, returning time, well-coordinates (md), and values for the requested variable pr time and md.
     See keyword WRFTPLT.
@@ -836,7 +836,7 @@ def read_summary2(sumryfile):
     '''
     return SummaryVectors(sumryfile)
 
-def read_rsm(fname, t_start=-pl.Inf, t_end=pl.Inf, dt=-1.) :
+def read_rsm(fname, t_start=-pl.inf, t_end=pl.inf, dt=-1.) :
     '''
     reads rsm file, returning a TimeSeries container with all data
     rsm-file is divided into sections of 10 (currently) variables that are written together as columns.
@@ -853,7 +853,7 @@ def read_rsm(fname, t_start=-pl.Inf, t_end=pl.Inf, dt=-1.) :
     # and must be treated specially
     varnames = ['TIME']
     units    = ['DAYS']
-    t        = -pl.Inf
+    t        = -pl.inf
     t_prev   = 0
     data = None
     # parse file
@@ -908,13 +908,13 @@ def read_rsm(fname, t_start=-pl.Inf, t_end=pl.Inf, dt=-1.) :
     #
     return TimeSeries(data, varnames, units, fname.split('.')[0])
 
-def read_rates_from_prtfile(fname, t_start=-pl.Inf, t_end=pl.Inf):
+def read_rates_from_prtfile(fname, t_start=-pl.inf, t_end=pl.inf):
     f = open(fname)
     t = []
     oilr = []
     gasr = []
     watr = []
-    cnt = pl.Inf
+    cnt = pl.inf
     for line in f:
         cnt += 1
         if ' TIME= ' in line:
@@ -1580,7 +1580,7 @@ def read_input_property(fname, prop, ni, nj, nk):
     f.close()
     return m
 
-def read_input_property2(fname, prop, nrows=pl.Inf, stop_sign='', identif='', skip=0):
+def read_input_property2(fname, prop, nrows=pl.inf, stop_sign='', identif='', skip=0):
     '''
     #
     NB! consider using DataDeck instead (see below), which is much more robust.
@@ -2131,7 +2131,7 @@ def get_icd_segments(datafile, wellnm):
     assumes that section is ended with a DELIM on a separate line.
     assumes only one WSEGAICD or WSEGVALV section in file.
     '''
-    smin = pl.Inf; smax = -pl.Inf
+    smin = pl.inf; smax = -pl.inf
     f = open(datafile)
     rightplace = False
     for line in f:
