@@ -18,7 +18,7 @@ import ecl
 import inspect
 import subprocess, signal, psutil
 import string
-from datetime import datetime, timedelta
+import datetime
 from AtlejgTools.EclipseTools.DataDeck import DataDeck, MONTH_MAP
 
 _log = AtlejgTools.LogTools.Log(AtlejgTools.LogTools.LOG_LEVEL_DEBUG)
@@ -540,7 +540,7 @@ class SummaryVectors() :
         self._well_segms = {} # list of well-segments for each well
         self.separator   = separator
         self._sum        = ecl.summary.EclSum(nm)
-        self._datadeck   = None
+        self.datadeck   = DataDeck(self.nm+'.DATA')
         if 'TIME' in list(self._sum.keys()):
             self.time = self._sum.numpy_vector('TIME')
         else:
@@ -569,10 +569,10 @@ class SummaryVectors() :
             n = int(len(self._segms[wname])/2)
             self._well_segms[wname] = self._segms[wname][:n]
             self._icd_segms[wname]  = self._segms[wname][n:]
-#
-    def datadeck(self):
-        if self._datadeck == None: self._datadeck = DataDeck(self.nm+'.DATA')
-        return self._datadeck
+        #
+        startdate = self.datadeck.get_raw_data('START')[0]
+        self.startdate = datetime.date(int(startdate[2]), MONTH_MAP[startdate[1]], int(startdate[0]))
+        self.dates = self.startdate + numpy.array([datetime.timedelta(x) for x in self.time])
 #
     def segments(self, wellnm):
         return pl.array(self._segms[wellnm])
@@ -631,7 +631,10 @@ class SummaryVectors() :
         '''
         cross-plot two variables
         '''
-        y1 = self.get(varnm1, scaler=scaler1)
+        if varnm1 == 'DATES':
+            y1 = self.dates
+        else:
+            y1 = self.get(varnm1, scaler=scaler1)
         y2 = self.get(varnm2, scaler=scaler2)
         if newfig : pl.figure()
         elif do_clf: pl.clf()
@@ -641,11 +644,12 @@ class SummaryVectors() :
         pl.legend(loc='best')
         pl.grid(True)
 #
-    def plot(self, varnm, newfig=True, do_clf=False, scaler=1., marker=None):
+    def plot(self, varnm, newfig=True, do_clf=False, scaler=1., marker=None, use_dates=True):
         '''
         Plot the vector
         '''
-        self.cross_plot('TIME', varnm, newfig=newfig, do_clf=do_clf, scaler2=scaler, marker=marker)
+        x = 'DATES' if use_dates else 'TIME'
+        self.cross_plot(x, varnm, newfig=newfig, do_clf=do_clf, scaler2=scaler, marker=marker)
 #
     def savetxt(self, var_list=None, scaler=1.):
         '''always writes time first. saves a txt-file'''
@@ -3449,7 +3453,7 @@ class EclipseCoupling(object):
         if self.trn and not self.trn.closed: self.trn.close()
         UT.tcsh('cat %s.I0* >! %s.sched' % (self.casenm, self.casenm))     # cat all sched-files created into one file
 
-def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, mode='hist', dateshift=timedelta(1), header=[]):
+def create_simple_schedule(dates, producers, injectors, sched_fnm, wctrls, wts, mode='hist', dateshift=datetime.timedelta(1), header=[]):
     '''
     creates a simple schedule for running the simulation, based on values found in producers and injectors dicts.
     all wells *must* have the same sampling. but they dont need to cover the same time-span.
