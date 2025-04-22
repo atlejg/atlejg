@@ -7,3 +7,10 @@ ipython_log.py
 atlejg.egg-info
 build
 dist
+
+# installed tools
+bin/Python/
+bin/black
+bin/blackd
+bin/flake8
+bin/include/
