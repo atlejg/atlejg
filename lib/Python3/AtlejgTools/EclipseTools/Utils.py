@@ -13,7 +13,8 @@ import AtlejgTools.Utils                          as UT
 import AtlejgTools.Plotting.Utils                 as PU
 #import ert
 #import ert.ecl.ecl                                as ecl
-import ecl.ecl                                    as ecl
+#import ecl.ecl                                    as ecl
+import ecl
 import inspect
 import subprocess, signal, psutil
 import string
@@ -538,7 +539,7 @@ class SummaryVectors() :
         self._icd_segms  = {} # list of icd-segments for each well
         self._well_segms = {} # list of well-segments for each well
         self.separator   = separator
-        self._sum        = ecl.EclSum(nm)
+        self._sum        = ecl.summary.EclSum(nm)
         self._datadeck   = None
         if 'TIME' in list(self._sum.keys()):
             self.time = self._sum.numpy_vector('TIME')
@@ -813,7 +814,7 @@ def read_summary(sumryfile):
     varnames = []
     units    = []
     data = None
-    sum = ecl.EclSum(casenm)
+    sum = ecl.summary.EclSum(casenm)
     for varnm in list(sum.keys()):
         y = sum.numpy_vector(varnm)
         if data is None: data = y
