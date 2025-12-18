@@ -80,7 +80,7 @@ class DataDeck:
     it uses the (available) Eclipse keywords for splitting the data-file into
     chunks of data. then each chunk is splitted into (possibly) multiple lines
     by the DELIM separator.  it also handles default values by giving you a 1*
-    (if raw data is asked for) or a NaN (if numeric value is asked for)
+    (if raw data is asked for) or a nan (if numeric value is asked for)
     #
     note1: it is important to realize that Eclipse input does not really care
            too much about the \\n (newline), even if humans will typically
@@ -234,7 +234,7 @@ class DataDeck:
         return kw in self._kw_counter
 
     #
-    def get_raw_data(self, kw, identif="", get_all=False):
+    def get_raw_data(self, kw, identif="", get_all=False, verbose=True):
         """
         returns the parameters for the given keyword in text form as a
         list of lists. even if this method is called 'get_raw_data', data
@@ -272,13 +272,14 @@ class DataDeck:
                 for line in chunk:
                     if identif in line:
                         foundit = True
-                    break
+                        break
                 if foundit:
                     break
             if foundit:
                 return format_chunk(chunk)
             else:
-                print('multiple data exists - did not find identifier "%s"' % identif)
+                if verbose:
+                    print('multiple data exists - did not find identifier "%s"' % identif)
                 return []
         # - one unique chunk. most often this is the case
         chunk = self._chunk(kw, 1)
@@ -301,7 +302,7 @@ class DataDeck:
         match_col : which column to search for 'identif'
         matrix    : force result to be matrix
         note1: column-indexing uses the natural numbering (not python-index)
-        note2: gives you a NaN for defaulted values
+        note2: gives you a nan for defaulted values
         note3: returns array if col1==col2 or if only one line is found, else
                it gives a matrix. this can be overridden using the 'matrix'
                parameter
@@ -311,15 +312,15 @@ class DataDeck:
         for rec in raw[skip:]:
             if identif not in rec[match_col - 1]:
                 continue
-            row = pl.NaN * pl.ones(ncols)
+            row = pl.nan * pl.ones(ncols)
             for j in range(col1 - 1, col2):
                 indx = j - col1 + 1  # starting at 0
                 if len(rec) <= j:
-                    row[indx] = pl.NaN  # values 'far right' are defaulted
+                    row[indx] = pl.nan  # values 'far right' are defaulted
                 else:
                     val = rec[j]
                     if val == "1*":
-                        row[indx] = pl.NaN
+                        row[indx] = pl.nan
                     else:
                         row[indx] = float(val)
             m.append(row)

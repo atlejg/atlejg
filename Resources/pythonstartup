@@ -4,8 +4,32 @@ from pathlib import Path
 if 'win' in sys.platform:
     sys.path.append(str(Path('C:/Appl/atlejg/lib/Python3')))
 else:
-    pass
-    #sys.path.insert(1, '/private/agy/Tools/atlejg/lib/Python3')                        # in PYTHONPATH
+    sys.path.append(str(Path('/scratch/afield/agy/GitHub/apo-r/sandbox/Atle/Tools')))
+    sys.path.append(str(Path('/scratch/afield/agy/GitHub/apo-r/libraries/utils')))
+    
+
+# make sure figures are handled 'properly' in interactive ipython sessions
+import matplotlib
+matplotlib.interactive(1)
+
+import scipy
+import xarray as xr
+from importlib import reload              # want reload as in ipython2
+from pylab import *
+import pandas as pd
+import AtlejgTools.Utils as UT
+import AtlejgTools.SimulationTools.UnitConversion      as U
+
+if 'win' not in sys.platform:
+   import resdata
+   from resdata.summary import Summary                     # sm = Summary('B00.UNSMRY').pandas_frame() replaces much of ECL
+   import AtlejgTools.EclipseTools.DataDeck as DD
+
+rcParams['figure.figsize'] = 9, 5
+rcParams['lines.linewidth'] = 5    # orig: 1
+
+import logging
+logging.basicConfig(level=logging.INFO, force=True)
 
 #import py_wake
 #import WindWorks.Utils as WU
@@ -18,31 +42,8 @@ else:
 #import WindWorks.GUI
 #import WindWorks.run as ww
 #import WindWorks.test_windworks as TWW
-
-
-# make sure figures are handled 'properly' in interactive ipython sessions
-import matplotlib
-matplotlib.interactive(1)
-
-import scipy
-import xarray as xr
-from importlib import reload              # want reload as in ipython2
-from pylab import *
-import pandas as pd
-import AtlejgTools.FluentUtils as FL
-import AtlejgTools.Utils as UT
+#import AtlejgTools.SimulationTools.PostProcessing as PP
+#import AtlejgTools.SimulationTools.ParameterStudy as PS
 #import AtlejgTools.RCP_project.Valve_characteristics as VC
-import AtlejgTools.SimulationTools.UnitConversion      as U
-
-if 'win' not in sys.platform:
-   sys.path.append(str(Path('/prog/res/komodo/2025.04.03-py311-rhel8/root/lib64/python3.11/site-packages/')))
-   import AtlejgTools.EclipseTools.Utils as ECL
-   import AtlejgTools.SimulationTools.PostProcessing as PP
-   import AtlejgTools.SimulationTools.ParameterStudy as PS
-
-rcParams['figure.figsize'] = 9, 5
-rcParams['lines.linewidth'] = 5    # orig: 1
-
-import logging
-logging.basicConfig(level=logging.INFO, force=True)
-
+#import AtlejgTools.FluentUtils as FL
+#import AtlejgTools.EclipseTools.Utils as ECL             # ecl is deprecated and confuses opm functionality

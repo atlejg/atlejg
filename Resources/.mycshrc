@@ -51,7 +51,7 @@ set pushdsilent
 set history = 500
 
 if ( (! $?ENVONLY) && $?prompt ) then
-    set prompt="${VIRTUAL_ENV_PROMPT}%c2> "
+    set prompt="%c2> "
 endif
 
 ### MY ENVIRONMENT VARIABLES
@@ -60,6 +60,11 @@ setenv EXT_PERL_MODULES $RC/PerlModules    # for: use lib $ENV{'EXT_PERL_MODULES
 setenv PASSIVE /project/RCP/passive/fluent/
 setenv WORK /project/RCP/work/$USER
 setenv PY $ATLEJG/lib/Python3/AtlejgTools/
+
+# SEEQ
+setenv SEEQ_ACCESS_KEY DR4e1s2iTTmUIFH31tbXuQ
+setenv SEEQ_PASSWD JPKo7apFSFDumiYeEGsQ12nmdbzaCL
+
 
 # PATH stuff
 setenv PATH "${HOME}/bin:${PATH}"
@@ -102,9 +107,13 @@ alias stavanger     'ssh -X st-linrgs047.st.statoil.no'
 alias rio 'ssh -X rio-linrgsn008.rio.statoil.no'
 alias ssh_crontab 'ssh -X stj-linrgs039.stj.statoil.no'        # need to be here for crontab
 #
+# eclipse stuff
+source /prog/res/ecl/script/eclrun.cshrc                       # not sure i need it, but just in case...
+alias opmrun /scratch/multiscale/agy/Tools/OPM_Flow/release_aug18/bin/flow  # the one i got from vegard kippe aug 2025
 alias @floviz '@floviz -local -version 2009.2'
-alias cmds 'vi $RC/cmds'
 alias bookshelf 'acroread /prog/ecl/grid/2016.2/manuals/bookshelf.pdf'
+
+alias cmds 'vi $RC/cmds'
 alias killps '/prog/script/killps agy'
 alias pkill pkill -u $USER  # only kill my jobs
 alias convert /usr/bin/convert    # makes sure it is image-magik
@@ -135,6 +144,7 @@ setenv TS_MAILTO agy@equinor.com
 # 
 setenv PYTHONPATH "$ATLEJG/lib/Python3"                                     # my stuff
 alias pylab 'ipython --pylab --logfile=ipython_log.py -i $RC/pythonstartup'
+alias uvlab 'uv run python -m IPython --pylab'                   # make sure ipython is run from the uv's local .venv
 
 # vim stuff
 setenv EDITOR vim
@@ -201,6 +211,8 @@ set nobeep filec fignore=(.o \~ .BAK)
 
 # OLD STUFF ...
 #
+#setenv PATH "${PATH}:/private/agy/.local/share/uv/python/cpython-3.12.11-linux-x86_64-gnu/bin/"
+#alias python python3.12
 #setenv PYTHONPATH /project/res/x86_64_RH_6/share/ert/release/2.1/lib/python2.7/site-packages:$PYTHONPATH                       # avoid rng_init_mode_enum error! 9/4-18
 # running pylab gets increasingly difficult...
 # see http://wiki.statoil.no/wiki/index.php/Python

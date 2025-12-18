@@ -112,6 +112,8 @@ eclq   # this one is better!
 /prog/ecl/grid/macros/@eclipse -lsf -ver 2009.2 -lsfqueue normal -local -data `pwd` -file CHAP # note: not chCH.DATA
 # parallell
 @eclipse -lsf -ver 2010.1 -lsfqueue normal -lsfhtype any -scali -procs 6 -local -data `pwd` -file CHAP # note: not chCH.DATA
+# packing simulations
+pack_sim
 
 # useful eclipse commands
 grep 'WELL X21      IS  SHUT   AT TIME' *.PRT

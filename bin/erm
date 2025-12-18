@@ -24,7 +24,7 @@ datafiles = [fname for fname in args.files if fname.endswith('.DATA')]
 
 SMALL = ('DBG', 'ERR', 'dbprtx', 'ECLEND', 'done', 'MSG', 'ECLRUN', 'eclrun_dbg', 'RFT', 'h5', 'OUT', 'OK', 'OK-stat-target', 'stderr', 'LSF-stdout')
 BIG   = ('UNRST','INIT','EGRID','GRID', 'SAVE', 'RFT')
-KEEP  = ('DATA', 'ini', 'inp', 'xls', 'xlsx', 'csv')
+KEEP  = ('DATA', 'yaml', 'ini', 'inp', 'xls', 'xlsx', 'csv')
 
 for datafile in datafiles:
    fnames = UT.glob(datafile.split('.')[0]+'.*')
@@ -32,19 +32,19 @@ for datafile in datafiles:
       ext = os.path.splitext(fname)[1][1:]   # file extension (without dot)
       if ext.startswith('F'): ext = ext[1:]  # formatted file => remove F
       if args.all: 
-         if args.v: print 'deleting', fname
+         if args.v: print('deleting', fname)
          os.unlink(fname)
          continue
       if args.big and ext in BIG or ext in SMALL:
-         if args.v: print 'deleting', fname
+         if args.v: print('deleting', fname)
          os.unlink(fname)
          continue
       if args.most and ext not in KEEP:      # typical input-files
-         if args.v: print 'deleting', fname
+         if args.v: print('deleting', fname)
          os.unlink(fname)
          continue
       if args.small and ext in SMALL:        # delete small files
-         if args.v: print 'deleting', fname
+         if args.v: print('deleting', fname)
          os.unlink(fname)
          continue
-      if args.v: print 'keeping', fname   # default
+      if args.v: print('keeping', fname)   # default
