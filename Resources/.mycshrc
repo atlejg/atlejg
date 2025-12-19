@@ -11,7 +11,7 @@ if (! ${?prompt}) goto end    # could i do exit instead of goto ??
 if (`hostname | grep -i statoil.no` != '') then
    setenv ATLEJG $HOME/Tools/atlejg/
 else
-   setenv ATLEJG c:/Users/agy/Documents/GitHub/atlejg/
+   setenv ATLEJG c:/Appl/GitHub/atlejg/
    setenv VIRTUAL_ENV_PROMPT ""
 endif
 
@@ -108,7 +108,7 @@ alias rio 'ssh -X rio-linrgsn008.rio.statoil.no'
 alias ssh_crontab 'ssh -X stj-linrgs039.stj.statoil.no'        # need to be here for crontab
 #
 # eclipse stuff
-source /prog/res/ecl/script/eclrun.cshrc                       # not sure i need it, but just in case...
+#source /prog/res/ecl/script/eclrun.cshrc                       # not sure i need it, but just in case...
 alias opmrun /scratch/multiscale/agy/Tools/OPM_Flow/release_aug18/bin/flow  # the one i got from vegard kippe aug 2025
 alias @floviz '@floviz -local -version 2009.2'
 alias bookshelf 'acroread /prog/ecl/grid/2016.2/manuals/bookshelf.pdf'
@@ -200,7 +200,7 @@ setenv TT /project/RCP/active/reservoir_simulations/agy/Peregrino/Shoebox/Simul/
 setenv PY $ATLEJG/lib/Python3/AtlejgTools/
 
 alias vim vim -u $RC/.vimrc
-alias gvim "c:/Appl/Vim/vim81/gvim.exe -u C:\\Users\\agy\\Documents\\GitHub\\atlejg\\Resources\\.vimrc"     # windows gvim needs dos-addresse
+alias gvim c:/Appl/gvim_9.1.1825_x64/vim/vim91/gvim -u "C:\\Appl\\GitHub\\atlejg\\Resources\\.vimrc"
 alias vi 'vim'
 alias v 'vi -R' # like view - but using vim
 
