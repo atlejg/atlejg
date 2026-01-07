@@ -11,7 +11,11 @@ if (! ${?prompt}) goto end    # could i do exit instead of goto ??
 if (`hostname | grep -i statoil.no` != '') then
    setenv ATLEJG $HOME/Tools/atlejg/
 else
-   setenv ATLEJG c:/Appl/GitHub/atlejg/
+    if (`hostname | grep PC-101265` != '') then
+       setenv ATLEJG C:/Users/agy/Documents/GitHub/atlejg
+    else
+       setenv ATLEJG c:/Appl/GitHub/atlejg/
+    endif
    setenv VIRTUAL_ENV_PROMPT ""
 endif
 
