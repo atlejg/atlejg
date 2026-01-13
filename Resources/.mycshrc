@@ -146,9 +146,9 @@ setenv TS_MAILTO agy@equinor.com
 
 # PYTHON STUFF
 # 
-setenv PYTHONPATH "$ATLEJG/lib/Python3"                                     # my stuff
+setenv PYTHONPATH "$ATLEJG/lib/Python3"                                                      # my stuff
 alias pylab 'ipython --pylab --logfile=ipython_log.py -i $RC/pythonstartup'
-alias uvlab 'uv run python -m IPython --pylab'                   # make sure ipython is run from the uv's local .venv
+alias uvlab 'uv run python -m IPython --pylab --logfile=ipython_log.py -i $RC/pythonstartup' # make sure ipython is run from the uv's local .venv
 
 # vim stuff
 setenv EDITOR vim

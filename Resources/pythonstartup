@@ -1,29 +1,32 @@
 # -- coding: utf-8     # handle filenames with norwegian special characters
+
 import os, sys
 from pathlib import Path
+
 if 'win' in sys.platform:
     sys.path.append(str(Path('C:/Appl/atlejg/lib/Python3')))
 else:
     sys.path.append(str(Path('/scratch/afield/agy/GitHub/apo-r/sandbox/Atle/Tools')))
     sys.path.append(str(Path('/scratch/afield/agy/GitHub/apo-r/libraries/utils')))
+    import resdata
+    from resdata.summary import Summary                     # sm = Summary('B00.UNSMRY').pandas_frame() replaces much of ECL
+    import AtlejgTools.EclipseTools.DataDeck as DD
     
-
 # make sure figures are handled 'properly' in interactive ipython sessions
 import matplotlib
 matplotlib.interactive(1)
 
 import scipy
-import xarray as xr
-from importlib import reload              # want reload as in ipython2
+from importlib import reload
 from pylab import *
 import pandas as pd
 import AtlejgTools.Utils as UT
-import AtlejgTools.SimulationTools.UnitConversion      as U
+import AtlejgTools.SimulationTools.UnitConversion as U
 
-if 'win' not in sys.platform:
-   import resdata
-   from resdata.summary import Summary                     # sm = Summary('B00.UNSMRY').pandas_frame() replaces much of ECL
-   import AtlejgTools.EclipseTools.DataDeck as DD
+import hdf5well
+import apo_utils.data_preparation as DP
+import pdm_datareader as PDM
+import apo_utils.WellCollection as WC
 
 rcParams['figure.figsize'] = 9, 5
 rcParams['lines.linewidth'] = 5    # orig: 1
@@ -32,6 +35,7 @@ import logging
 logging.basicConfig(level=logging.INFO, force=True)
 
 #import py_wake
+#import xarray as xr
 #import WindWorks.Utils as WU
 #import WindWorks.FugaUtils as FU
 #import WindWorks.KnowlUtils as KU
