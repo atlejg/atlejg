@@ -13,8 +13,10 @@ if (`hostname | grep -i statoil.no` != '') then
 else
     if (`hostname | grep PC-101265` != '') then
        setenv ATLEJG C:/Users/agy/Documents/GitHub/atlejg
+       alias gvim C:/appl/Vim/vim91/gvim.exe -u "C:\\Users\\agy\\Documents\\GitHub\\atlejg\\Resources\\.vimrc"
     else
        setenv ATLEJG c:/Appl/GitHub/atlejg/
+       alias gvim c:/Appl/gvim_9.1.1825_x64/vim/vim91/gvim -u "C:\\Appl\\GitHub\\atlejg\\Resources\\.vimrc"
     endif
    setenv VIRTUAL_ENV_PROMPT ""
 endif
@@ -29,9 +31,15 @@ else
    setenv TMP /tmp
 endif
 
-setenv LC_ALL 'C'
 
 # ---------------------- based on /etc/csh.cshrc for Cygwin
+
+# fix locale so norwegian special letters are accepted
+
+setenv LANG nb_NO.UTF-8
+#setenv LC_ALL 'C'
+setenv LC_ALL nb_NO.UTF-8
+
 
 # Some neat default settings.
 set autocorrect=1
@@ -66,8 +74,8 @@ setenv WORK /project/RCP/work/$USER
 setenv PY $ATLEJG/lib/Python3/AtlejgTools/
 
 # SEEQ
-setenv SEEQ_ACCESS_KEY DR4e1s2iTTmUIFH31tbXuQ
-setenv SEEQ_PASSWD JPKo7apFSFDumiYeEGsQ12nmdbzaCL
+setenv SEEQ_ACCESS_KEY ZvYbvzwxTfKWXgJ6i-Vtzw
+setenv SEEQ_PASSWD YfMgOFT3JBFaeM8J5RqSYg
 
 
 # PATH stuff
@@ -204,7 +212,6 @@ setenv TT /project/RCP/active/reservoir_simulations/agy/Peregrino/Shoebox/Simul/
 setenv PY $ATLEJG/lib/Python3/AtlejgTools/
 
 alias vim vim -u $RC/.vimrc
-alias gvim c:/Appl/gvim_9.1.1825_x64/vim/vim91/gvim -u "C:\\Appl\\GitHub\\atlejg\\Resources\\.vimrc"
 alias vi 'vim'
 alias v 'vi -R' # like view - but using vim
 

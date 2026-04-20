@@ -20,13 +20,14 @@ import scipy
 from importlib import reload
 from pylab import *
 import pandas as pd
-import AtlejgTools.Utils as UT
-import AtlejgTools.SimulationTools.UnitConversion as U
+#import AtlejgTools.Utils as UT
+#import AtlejgTools.SimulationTools.UnitConversion as U
 
 import hdf5well
 import apo_utils.data_preparation as DP
+import hdf5well.organizer as HO
 import pdm_datareader as PDM
-import apo_utils.WellCollection as WC
+#import apo_utils.WellCollection as WC
 
 rcParams['figure.figsize'] = 9, 5
 rcParams['lines.linewidth'] = 5    # orig: 1

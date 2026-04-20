@@ -192,3 +192,13 @@ let &t_ti.="\e[1 q"
 let &t_SI.="\e[5 q"
 let &t_EI.="\e[1 q"
 let &t_te.="\e[0 q"
+
+" avoid red blocks on underscore in markdown files
+hi link markdownError NONE
+
+" Treat dash and underscore as keyword characters
+set iskeyword+=-
+set iskeyword+=_
+
+set guifont=Consolas:h9
+
