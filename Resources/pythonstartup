@@ -17,11 +17,19 @@ import matplotlib
 matplotlib.interactive(1)
 
 import scipy
-from importlib import reload
 from pylab import *
 import pandas as pd
 #import AtlejgTools.Utils as UT
 #import AtlejgTools.SimulationTools.UnitConversion as U
+
+
+
+# need a way to have ipython see changes in modules that i'm working on
+from importlib import reload   # explicit reload
+# this one should always make sure it's reloaded, but i run into problems
+# (debugger does not stop on the line that fails)
+#%load_ext autoreload
+#%autoreload 2
 
 import hdf5well
 import apo_utils.data_preparation as DP
