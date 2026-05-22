@@ -19,6 +19,8 @@ matplotlib.interactive(1)
 import scipy
 from pylab import *
 import pandas as pd
+pd.set_option("display.max_rows", 100)      # or None
+pd.set_option("display.max_colwidth", 200)  # or None
 #import AtlejgTools.Utils as UT
 #import AtlejgTools.SimulationTools.UnitConversion as U
 
@@ -42,6 +44,15 @@ rcParams['lines.linewidth'] = 5    # orig: 1
 
 import logging
 logging.basicConfig(level=logging.INFO, force=True)
+
+
+#%config TerminalInteractiveShell.colors = "Linux"   # does not work in python
+from IPython import get_ipython
+
+ip = get_ipython()
+if ip is not None:
+    cfg = ip.config
+    cfg.TerminalInteractiveShell.colors = "Linux"   # seem not to work
 
 #import py_wake
 #import xarray as xr

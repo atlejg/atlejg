@@ -115,7 +115,7 @@ alias mv 'mv -i'
 alias xdone 'display ~/Misc/done.jpg'
 alias bergen 'ssh -X be-grid01.be.statoil.no'
 alias trondheim 'ssh -X tr-linrgsn002.tr.statoil.no'
-alias stavanger     'ssh -X st-linrgs047.st.statoil.no'
+alias stavanger 'ssh -X agy@st-lintgx0380.st.statoil.no'
 alias rio 'ssh -X rio-linrgsn008.rio.statoil.no'
 alias ssh_crontab 'ssh -X stj-linrgs039.stj.statoil.no'        # need to be here for crontab
 #
