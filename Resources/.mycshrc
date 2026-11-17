@@ -80,6 +80,7 @@ setenv SEEQ_PASSWD YfMgOFT3JBFaeM8J5RqSYg
 
 # PATH stuff
 setenv PATH "${HOME}/bin:${PATH}"
+setenv PATH "${PATH}:Resources/.mycshrc"    # opmflow, eclipse and other res-sim stuff is here
 
 # PERL-stuff
 setenv PERLLIB "/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/site_perl:/project/res/x86_64_RH_5/lib64/perl5/5.8.8/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5/5.8.8:/project/res/x86_64_RH_5/lib64/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib64/perl5:/project/res/x86_64_RH_5/lib/perl5/site_perl/5.8.8:/project/res/x86_64_RH_5/lib/perl5/site_perl:/project/res/x86_64_RH_5/lib/perl5/5.8.8:/project/res/x86_64_RH_5/lib/perl5/x86_64-linux-thread-multi:/project/res/x86_64_RH_5/lib/perl5"
